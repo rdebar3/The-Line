@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Clear Service Worker — The Line</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 32rem;
+        margin: 4rem auto;
+        padding: 0 1rem;
+        line-height: 1.5;
+      }
+      a {
+        color: #c9a227;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Clearing stale service worker…</h1>
+    <p id="status">Please wait.</p>
+    <script>
+      (async function () {
+        const status = document.getElementById("status");
+
+        try {
+          if ("serviceWorker" in navigator) {
+            await navigator.serviceWorker.register("/sw.js", {
+              updateViaCache: "none",
+            });
+            await navigator.serviceWorker.ready;
+
+            const registrations =
+              await navigator.serviceWorker.getRegistrations();
+            await Promise.all(
+              registrations.map((registration) => registration.unregister())
+            );
+          }
+
+          if ("caches" in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map((key) => caches.delete(key)));
+          }
+
+          status.textContent =
+            "Done. Redirecting to The Line in 2 seconds…";
+          setTimeout(() => {
+            window.location.replace("/");
+          }, 2000);
+        } catch (error) {
+          status.textContent =
+            "Automatic cleanup failed. Close all localhost:3000 tabs, then in DevTools go to Application → Storage → Clear site data. Error: " +
+            error;
+        }
+      })();
+    </script>
+  </body>
+</html>
