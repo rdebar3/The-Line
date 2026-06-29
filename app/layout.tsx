@@ -85,7 +85,13 @@ export default function RootLayout({
       className={`${cinzel.variable} ${sourceSans.variable} ${geistMono.variable} ${libreBaskerville.variable} dark h-full antialiased`}
     >
       <body className="flex min-h-full min-w-0 flex-col overflow-x-hidden">
-        <ClerkProvider appearance={clerkAppearance}>
+        <ClerkProvider
+          appearance={clerkAppearance}
+          signInUrl="/sign-in"
+          signUpUrl="/sign-up"
+          signInFallbackRedirectUrl="/"
+          signUpFallbackRedirectUrl="/"
+        >
           <UserScopeSync />
           <ClearStaleServiceWorker />
           <AuthHeader />

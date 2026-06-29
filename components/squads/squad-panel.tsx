@@ -139,7 +139,7 @@ export function SquadPanel() {
           <p className="text-sm text-muted-foreground">
             Sign in to create or join a platoon with friends.
           </p>
-          <SignInButton mode="modal">
+          <SignInButton mode="redirect" forceRedirectUrl="/">
             <Button className="btn-gold mt-3 min-h-10">Sign in for platoons</Button>
           </SignInButton>
         </div>

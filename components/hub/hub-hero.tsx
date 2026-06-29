@@ -77,7 +77,7 @@ export function HubHero() {
           Sign in to save your Defender Score and climb the leaderboard.
         </p>
         <div className="mx-auto mt-3 flex max-w-[16rem] flex-col items-stretch gap-2 sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-2.5">
-          <SignInButton mode="modal">
+          <SignInButton mode="redirect" forceRedirectUrl="/">
             <Button
               variant="outline"
               className="auth-btn-signin h-10 w-full rounded-xl border-navy-border/80 bg-navy-elevated/60 px-4 text-sm font-semibold tracking-wide text-foreground hover:border-gold/35 hover:bg-navy-elevated sm:w-auto sm:px-5"
@@ -85,7 +85,7 @@ export function HubHero() {
               Sign In
             </Button>
           </SignInButton>
-          <SignUpButton mode="modal">
+          <SignUpButton mode="redirect" forceRedirectUrl="/">
             <Button className="auth-btn-signup btn-gold premium-button h-10 w-full rounded-xl px-4 text-sm font-semibold tracking-wide sm:w-auto sm:px-5">
               Create Account
             </Button>

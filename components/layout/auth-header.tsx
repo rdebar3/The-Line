@@ -24,16 +24,16 @@ export function AuthHeader() {
 
         <nav className="flex items-center gap-2 sm:gap-2.5">
           <Show when="signed-out">
-            <SignInButton mode="modal">
+            <SignInButton mode="redirect" forceRedirectUrl="/">
               <Button
                 variant="outline"
                 size="sm"
-                className="auth-btn-signin hidden h-9 rounded-lg border-navy-border/80 bg-navy-elevated/50 px-4 text-xs font-semibold tracking-wide text-foreground hover:border-gold/30 hover:bg-navy-elevated sm:inline-flex"
+                className="auth-btn-signin inline-flex h-9 rounded-lg border-navy-border/80 bg-navy-elevated/50 px-3 text-xs font-semibold tracking-wide text-foreground hover:border-gold/30 hover:bg-navy-elevated sm:px-4"
               >
                 Sign In
               </Button>
             </SignInButton>
-            <SignUpButton mode="modal">
+            <SignUpButton mode="redirect" forceRedirectUrl="/">
               <Button
                 size="sm"
                 className="auth-btn-signup btn-gold premium-button h-9 shrink-0 rounded-lg px-3 text-xs font-semibold tracking-wide shadow-[0_0_20px_rgba(201,162,39,0.15)] sm:px-4"

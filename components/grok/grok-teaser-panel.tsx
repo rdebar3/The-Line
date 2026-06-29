@@ -144,7 +144,7 @@ export function GrokTeaserPanel({
           Free accounts get {limit} short constitutional answers per day. Unlock
           for unlimited counsel.
         </p>
-        <SignInButton mode="modal">
+        <SignInButton mode="redirect" forceRedirectUrl="/">
           <Button className="btn-gold mt-4 w-full sm:w-auto">Sign In</Button>
         </SignInButton>
       </div>
