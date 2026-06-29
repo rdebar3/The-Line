@@ -210,7 +210,6 @@ export type ProgressionState = {
   weeklyChallenge: WeeklyChallengeState;
   earnedBadges: string[];
   squadId: string | null;
-  reminders: { enabled: boolean; lastNudgeAt: string | null };
   cloudSyncedAt: string | null;
 };
 
@@ -256,7 +255,6 @@ export function createInitialProgressionState(): ProgressionState {
     weeklyChallenge: createInitialWeeklyChallengeState(),
     earnedBadges: [],
     squadId: null,
-    reminders: { enabled: false, lastNudgeAt: null },
     cloudSyncedAt: null,
   };
 }
@@ -664,19 +662,6 @@ export function recordWeeklyChallengeSession(
       refreshWeeklyChallengeState(state.weeklyChallenge),
       sessionScore
     ),
-  };
-}
-
-export function setReminderPreference(
-  state: ProgressionState,
-  enabled: boolean
-): ProgressionState {
-  return {
-    ...state,
-    reminders: {
-      enabled,
-      lastNudgeAt: state.reminders.lastNudgeAt,
-    },
   };
 }
 

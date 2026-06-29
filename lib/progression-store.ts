@@ -15,10 +15,13 @@ export function readProgressionState(): ProgressionState {
     const raw = localStorage.getItem(storageKey);
 
     if (!raw) return createInitialProgressionState();
-    const parsed = JSON.parse(raw) as Partial<ProgressionState>;
+    const parsed = JSON.parse(raw) as Partial<ProgressionState> & {
+      reminders?: unknown;
+    };
+    const { reminders: _removed, ...rest } = parsed;
     return {
       ...createInitialProgressionState(),
-      ...parsed,
+      ...rest,
     };
   } catch {
     return createInitialProgressionState();

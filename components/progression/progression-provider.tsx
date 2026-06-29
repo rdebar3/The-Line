@@ -24,7 +24,6 @@ import {
   recordWeeklyChallengeSession,
   addGrokMission,
   completeGrokMission,
-  setReminderPreference,
   setSquadMembership,
   type GrokMission,
   type ProgressionState,
@@ -68,7 +67,6 @@ type ProgressionContextValue = {
   ) => ReturnType<typeof completeGrokMission> | null;
   completeOnboarding: (goal: OnboardingGoal) => void;
   recordWeeklySession: (sessionScore: number) => void;
-  setRemindersEnabled: (enabled: boolean) => void;
   setSquadId: (squadId: string | null) => void;
 };
 
@@ -192,14 +190,6 @@ export function ProgressionProvider({ children }: { children: ReactNode }) {
     [isSignedIn, persist, state, userId]
   );
 
-  const setRemindersEnabled = useCallback(
-    (enabled: boolean) => {
-      if (!state) return;
-      persist(setReminderPreference(state, enabled));
-    },
-    [persist, state]
-  );
-
   const setSquadId = useCallback(
     (squadId: string | null) => {
       if (!state) return;
@@ -251,7 +241,6 @@ export function ProgressionProvider({ children }: { children: ReactNode }) {
       finishGrokMission,
       completeOnboarding,
       recordWeeklySession,
-      setRemindersEnabled,
       setSquadId,
     }),
     [
@@ -268,7 +257,6 @@ export function ProgressionProvider({ children }: { children: ReactNode }) {
       finishGrokMission,
       completeOnboarding,
       recordWeeklySession,
-      setRemindersEnabled,
       setSquadId,
     ]
   );
