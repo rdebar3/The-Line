@@ -11,6 +11,8 @@ export type GrokProgressionRequest = {
   focusArea?: string;
 };
 
+import { shuffleMissionChoices } from "@/lib/choice-shuffle";
+
 export type GrokMissionPayload = {
   title: string;
   focusArea: string;
@@ -55,11 +57,15 @@ Respond ONLY with valid JSON in this exact shape:
     { "id": "c", "label": "..." },
     { "id": "d", "label": "..." }
   ],
-  "correctChoiceId": "a",
+  "correctChoiceId": "b",
   "explanation": "Brief explanation of the correct answer"
 }
 
-Target their weakest areas. Make the scenario realistic and educational.`;
+Target their weakest areas. Make the scenario realistic and educational.
+
+MULTIPLE-CHOICE DESIGN:
+- Vary correctChoiceId across a, b, c, and d — do not always use "a".
+- All options similar length and tone; distractors must be plausible misconceptions.`;
 
     case "personalized_scenario":
       return `${BASE_CONTEXT}
@@ -78,7 +84,7 @@ Respond ONLY with valid JSON in this exact shape:
     { "id": "c", "label": "..." },
     { "id": "d", "label": "..." }
   ],
-  "correctChoiceId": "a",
+  "correctChoiceId": "c",
   "explanation": "Brief explanation"
 }`;
 
@@ -103,7 +109,10 @@ export function buildProgressionUserPrompt(
   return lines.join("\n\n");
 }
 
-export function parseGrokMissionPayload(content: string): GrokMissionPayload | null {
+export function parseGrokMissionPayload(
+  content: string,
+  missionId = `mission-${Date.now()}`
+): GrokMissionPayload | null {
   const jsonMatch = content.match(/\{[\s\S]*\}/);
   if (!jsonMatch) return null;
 
@@ -119,7 +128,7 @@ export function parseGrokMissionPayload(content: string): GrokMissionPayload | n
     ) {
       return null;
     }
-    return parsed;
+    return shuffleMissionChoices(parsed, missionId);
   } catch {
     return null;
   }

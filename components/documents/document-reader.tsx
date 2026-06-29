@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronRight, Lock } from "lucide-react";
 
 import { accentStyles } from "@/components/documents/accent-styles";
@@ -17,6 +17,8 @@ import { cn } from "@/lib/utils";
 export function DocumentReader({ document }: { document: FoundingDocument }) {
   const { canAccess, openUnlockModal } = useSubscription();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const panelRef = useRef<HTMLElement>(null);
+  const mobilePanelRef = useRef<HTMLDivElement>(null);
   const accent = accentStyles[document.accent];
   const hasUnlimitedPassages = canAccess("unlimited_passages");
   const selectedPassage =
@@ -41,6 +43,33 @@ export function DocumentReader({ document }: { document: FoundingDocument }) {
         ?.scrollIntoView({ behavior: "smooth", block: "center" });
     });
   }, [document.passages, hasUnlimitedPassages, openUnlockModal]);
+
+  useEffect(() => {
+    if (!selectedId) return;
+
+    requestAnimationFrame(() => {
+      const isDesktop = window.matchMedia("(min-width: 1280px)").matches;
+      const target = isDesktop ? panelRef.current : mobilePanelRef.current;
+      if (!target) return;
+
+      const headerHeight = Number.parseFloat(
+        getComputedStyle(globalThis.document.documentElement).getPropertyValue(
+          "--site-header-height"
+        )
+      );
+      const headerOffset = Number.isFinite(headerHeight) ? headerHeight : 60;
+      const rect = target.getBoundingClientRect();
+      const aboveViewport = rect.top < headerOffset + 16;
+      const belowViewport = rect.bottom > window.innerHeight - 16;
+
+      if (aboveViewport || belowViewport) {
+        target.scrollIntoView({
+          behavior: "smooth",
+          block: isDesktop ? "start" : "nearest",
+        });
+      }
+    });
+  }, [selectedId]);
 
   function handlePassageClick(passageId: string, index: number, isSelected: boolean) {
     if (!hasUnlimitedPassages && index >= FREE_PASSAGE_LIMIT) {
@@ -156,17 +185,16 @@ export function DocumentReader({ document }: { document: FoundingDocument }) {
           })}
         </div>
 
-        <div className="xl:sticky xl:top-[max(2rem,env(safe-area-inset-top))]">
-          <PassagePanel
-            passage={selectedPassage}
-            accent={document.accent}
-            className="hidden xl:block"
-          />
-        </div>
+        <aside
+          ref={panelRef}
+          className="hidden xl:sticky xl:top-[calc(var(--site-header-height)+1rem)] xl:z-10 xl:max-h-[calc(100dvh-var(--site-header-height)-2rem)] xl:self-start xl:overflow-y-auto xl:overscroll-y-contain xl:scroll-smooth xl:block"
+        >
+          <PassagePanel passage={selectedPassage} accent={document.accent} />
+        </aside>
       </div>
 
       {selectedPassage && (
-        <div className="xl:hidden">
+        <div ref={mobilePanelRef} className="xl:hidden">
           <PassagePanel passage={selectedPassage} accent={document.accent} />
         </div>
       )}

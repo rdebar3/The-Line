@@ -98,7 +98,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ commentary: content });
     }
 
-    const mission = parseGrokMissionPayload(content);
+    const mission = parseGrokMissionPayload(
+      content,
+      `mission-${authResult.userId}-${Date.now()}`
+    );
 
     if (!mission) {
       return NextResponse.json(

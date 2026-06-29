@@ -83,12 +83,12 @@ export const QUESTION_FORMAT_PROMPTS: Record<QuestionFormat, string> = {
   teach: `FORMAT: KEY IDEA (direct teaching)
 - situation: 2–3 plain-English sentences explaining the assigned topic from the founding documents — like a brief lesson, NOT a legal thriller or tech dystopia.
 - question: Straightforward multiple choice — "What does this provision do?", "Who is limited?", "What is the core principle?"
-- choices: Each distractor should reflect a common misconception a citizen might hold.
+- choices: Each distractor should reflect a common misconception a citizen might hold. Keep all four options similar in length and tone — no obvious "throwaway" answers.
 - modernImplication: Practical takeaway the user can use when engaging government, voting, or defending their rights.`,
   apply: `FORMAT: REAL-WORLD APPLICATION
 - situation: 2–4 sentences describing ONE everyday situation Americans actually encounter (search, speech, voting, taxes, permits, courts, federal vs state rules). The doctrine must fit NATURALLY — no Rube Goldberg fact chains.
 - question: Which protection, limit, or principle governs?
-- choices: Plausible options; one clearly best under the assigned source.
+- choices: Plausible options with parallel structure; one clearly best under the assigned source. Vary which letter is correct across sessions.
 - modernImplication: Specific, actionable insight for the user's own life.`,
   scenario: `FORMAT: CASE STUDY (use only when a realistic dispute naturally fits)
 - situation: 3–5 sentences — a believable dispute where the assigned doctrine clearly applies. Must sound like something that could happen, not forced analogy.

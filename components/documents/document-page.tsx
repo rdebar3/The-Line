@@ -8,7 +8,7 @@ type DocumentPageProps = {
 
 export function DocumentPage({ document }: DocumentPageProps) {
   return (
-    <PageShell footerTagline="Read the text. Know the line.">
+    <PageShell footerTagline="Read the text. Know the line." animate={false}>
       <DocumentReader document={document} />
     </PageShell>
   );

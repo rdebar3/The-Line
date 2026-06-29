@@ -6,6 +6,7 @@ import {
 import type { TopicAssignment } from "@/lib/scenario-curriculum";
 import { getCurriculumOverview } from "@/lib/scenario-curriculum";
 import type { ScenarioDifficulty } from "@/lib/scenario-difficulty";
+import { shuffleScenarioChoices } from "@/lib/choice-shuffle";
 import type { Scenario } from "@/lib/scenarios";
 import { CHARACTER_NAME } from "@/lib/guardian";
 
@@ -47,6 +48,12 @@ ANTI-PATTERNS (never do these):
 - Bizarre tech dystopia plots to make rare amendments "relevant."
 - Distractors that no reasonable person would consider (obvious throwaways).
 - Questions where the "correct" answer requires a tortured analogy instead of straightforward doctrine.
+
+MULTIPLE-CHOICE DESIGN (standard test quality):
+- Vary which choice letter is correct across a session — never default every answer to "a".
+- All four options should be similar in length, tone, and specificity; the correct answer must not stand out as the longest or most legalistic.
+- Distractors must be plausible misconceptions a thoughtful citizen might pick — never joke options, "all of the above," or obvious throwaways.
+- When generating multiple items, rotate correctChoiceId across a, b, c, and d roughly evenly.
 
 NOT every item is a dramatic scenario. Follow the assigned questionFormat exactly.`;
 
@@ -102,7 +109,7 @@ Respond ONLY with valid JSON:
         { "id": "c", "label": "..." },
         { "id": "d", "label": "..." }
       ],
-      "correctChoiceId": "a",
+      "correctChoiceId": "b",
       "historicalContext": "2-4 sentences tied to founding text",
       "modernImplication": "2-4 sentences of practical value for the user's life",
       "guardianPositive": "1-2 sentences",
@@ -117,7 +124,8 @@ Output rules:
 - Generate EXACTLY the requested count.
 - Follow each TOPIC ASSIGNMENT including questionFormat — this overrides default instincts.
 - questionFormat in output must match assignment.
-- JSON only. No markdown.`;
+- JSON only. No markdown.
+- correctChoiceId must vary across items — use b, c, or d as often as a.`;
 }
 
 function formatTopicAssignments(assignments: TopicAssignment[]): string {
@@ -241,17 +249,20 @@ export function parseGrokScenariosPayload(
 
     return parsed.scenarios
       .filter(isValidScenario)
-      .map((scenario, index) => ({
-        ...scenario,
-        id: normalizeScenarioId(scenario.id, index, sessionSeed),
-        questionFormat:
-          scenario.questionFormat &&
-          VALID_FORMATS.has(scenario.questionFormat as QuestionFormat)
-            ? (scenario.questionFormat as QuestionFormat)
-            : undefined,
-        difficulty,
-        generated: true,
-      }));
+      .map((scenario, index) => {
+        const normalized: Scenario = {
+          ...scenario,
+          id: normalizeScenarioId(scenario.id, index, sessionSeed),
+          questionFormat:
+            scenario.questionFormat &&
+            VALID_FORMATS.has(scenario.questionFormat as QuestionFormat)
+              ? (scenario.questionFormat as QuestionFormat)
+              : undefined,
+          difficulty,
+          generated: true,
+        };
+        return shuffleScenarioChoices(normalized);
+      });
   } catch {
     return [];
   }

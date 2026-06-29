@@ -7,7 +7,6 @@ import { CheckCircle2, Flame, Shield, Target, TrendingUp, Zap } from "lucide-rea
 import { MasteryTracksPanel } from "@/components/progression/mastery-tracks-panel";
 import { GrokProgressionPanel } from "@/components/progression/grok-progression-panel";
 import { WeeklyChallengeCard } from "@/components/hub/weekly-challenge-card";
-import { StreakReminders } from "@/components/settings/streak-reminders";
 import { PromotionOrders } from "@/components/progression/promotion-orders";
 import { RankBadge } from "@/components/progression/rank-badge";
 import { Button } from "@/components/ui/button";
@@ -122,9 +121,8 @@ export function DefenderProgressionHub() {
           <WeeklyChallengeCard />
         </div>
 
-        <div className="mb-6 grid gap-4 lg:grid-cols-2 lg:gap-5 sm:mb-8">
+        <div className="mb-6 sm:mb-8">
           <MasteryTracksPanel />
-          <StreakReminders />
         </div>
 
         {/* Defender score hero */}

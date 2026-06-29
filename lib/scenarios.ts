@@ -1,3 +1,4 @@
+import { shuffleScenarioChoices } from "@/lib/choice-shuffle";
 import type { TopicAssignment } from "@/lib/scenario-curriculum";
 import type { QuestionFormat } from "@/lib/question-formats";
 import type { ScenarioDifficulty } from "@/lib/scenario-difficulty";
@@ -478,9 +479,10 @@ export function buildFallbackSession({
   if (topicAssignments.length > 0) {
     return topicAssignments.slice(0, size).map((assignment, index) => {
       const base = findStaticMatchForTopic(assignment);
-      return {
+      const id = `fallback-${assignment.topicId}-${Date.now()}-${index}`;
+      return shuffleScenarioChoices({
         ...base,
-        id: `fallback-${assignment.topicId}-${Date.now()}-${index}`,
+        id,
         amendment: assignment.amendment,
         amendmentLabel: assignment.amendmentLabel,
         sourceDocument: assignment.sourceDocument,
@@ -489,7 +491,7 @@ export function buildFallbackSession({
         situation: `At ${assignment.settingHint}, a new situation tests ${assignment.principles.join(", ")}. ${base.situation}`,
         difficulty,
         generated: false,
-      };
+      });
     });
   }
   const preferredIds = new Set(DIFFICULTY_SCENARIO_MAP[difficulty]);
@@ -529,10 +531,13 @@ export function buildFallbackSession({
 
   return [...prioritized, ...secondary, ...remainder]
     .slice(0, size)
-    .map((scenario) => ({
-      ...scenario,
-      id: `fallback-${scenario.id}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      difficulty,
-      generated: false,
-    }));
+    .map((scenario) => {
+      const id = `fallback-${scenario.id}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      return shuffleScenarioChoices({
+        ...scenario,
+        id,
+        difficulty,
+        generated: false,
+      });
+    });
 }
