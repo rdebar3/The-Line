@@ -1,11 +1,10 @@
 "use client";
 
-import { ShieldCheck, ShieldX } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 
 import { GuardianCharacter } from "@/components/guardian/guardian-character";
 import { GuardianReaction } from "@/components/rights/guardian-reaction";
 import { CHARACTER_NAME } from "@/lib/guardian";
-import { cn } from "@/lib/utils";
 
 type FieldDebriefPanelProps = {
   hasAnswered: boolean;

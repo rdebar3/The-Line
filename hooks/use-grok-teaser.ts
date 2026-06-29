@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import {
   FREE_GROK_DAILY_LIMIT,
@@ -13,35 +13,34 @@ import {
 
 export function useGrokTeaser() {
   const { isLoaded: authLoaded, isSignedIn, userId } = useAuth();
-  const [uses, setUses] = useState(0);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [revision, setRevision] = useState(0);
 
-  const refresh = useCallback(() => {
-    const state = readGrokTeaserState();
-    setUses(state.uses);
-    setIsLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    if (!authLoaded) {
-      setIsLoaded(false);
-      return;
-    }
-    refresh();
-  }, [refresh, authLoaded, isSignedIn, userId]);
+  const uses = useMemo(
+    () => {
+      if (!authLoaded) return 0;
+      return readGrokTeaserState().uses;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- revision + auth re-read user-scoped storage
+    [authLoaded, isSignedIn, userId, revision]
+  );
 
   const remaining = getGrokTeaserRemaining(uses);
   const canUseTeaser = remaining > 0;
+  const isLoaded = authLoaded;
 
-  const useTeaser = useCallback(() => {
+  const refresh = useCallback(() => {
+    setRevision((current) => current + 1);
+  }, []);
+
+  const recordTeaserUse = useCallback(() => {
     const result = consumeGrokTeaserUse();
-    setUses(result.uses);
+    setRevision((current) => current + 1);
     return result;
   }, []);
 
   const markLimitReached = useCallback(() => {
-    const state = markGrokTeaserLimitReached();
-    setUses(state.uses);
+    markGrokTeaserLimitReached();
+    setRevision((current) => current + 1);
   }, []);
 
   return {
@@ -50,7 +49,7 @@ export function useGrokTeaser() {
     remaining,
     limit: FREE_GROK_DAILY_LIMIT,
     canUseTeaser,
-    useTeaser,
+    recordTeaserUse,
     markLimitReached,
     refresh,
   };

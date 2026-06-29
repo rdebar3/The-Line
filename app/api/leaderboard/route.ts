@@ -24,7 +24,11 @@ export async function GET() {
       const top10 = await getTopEntries(10);
       return NextResponse.json({
         configured: true,
-        top10: top10.map(({ userId: _userId, ...entry }) => entry),
+        top10: top10.map((entry) => {
+          const { userId, ...publicEntry } = entry;
+          void userId;
+          return publicEntry;
+        }),
         me: null,
         isSignedIn: false,
       });

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useSubscription } from "@/hooks/use-subscription";
 import { CHARACTER_NAME } from "@/lib/guardian";
 import { FREE_DAILY_SCENARIO_GENERATION_LIMIT } from "@/lib/scenario-difficulty";
-import { UNLOCK_CTA_LABEL, UNLOCK_FULL_LABEL } from "@/lib/subscription";
+import { UNLOCK_FULL_LABEL } from "@/lib/subscription";
 
 export function PremiumCta() {
   const { isPremium, openUnlockModal } = useSubscription();

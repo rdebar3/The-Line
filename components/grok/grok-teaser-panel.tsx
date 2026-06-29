@@ -39,9 +39,8 @@ export function GrokTeaserPanel({
     remaining,
     limit,
     canUseTeaser,
-    useTeaser,
+    recordTeaserUse,
     markLimitReached,
-    refresh,
     isLoaded,
   } = useGrokTeaser();
   const [input, setInput] = useState(defaultPrompt);
@@ -104,8 +103,7 @@ export function GrokTeaserPanel({
         throw new Error(data.error ?? "Failed to get a response.");
       }
 
-      useTeaser();
-      refresh();
+      recordTeaserUse();
       setResponse(data.message ?? "");
       setInput("");
     } catch (err) {
