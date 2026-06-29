@@ -1,6 +1,7 @@
 import { FileText, Landmark, ScrollText } from "lucide-react";
 
 import { CHARACTER_NAME } from "@/lib/guardian";
+import { isLeaderboardConfigured } from "@/lib/leaderboard";
 
 import { ArsenalCard } from "@/components/hub/arsenal-card";
 import { HubHero } from "@/components/hub/hub-hero";
@@ -38,6 +39,8 @@ const documents = [
 ];
 
 export default function Home() {
+  const leaderboardConfigured = isLeaderboardConfigured();
+
   return (
     <PageBackground>
       <div className="page-shell max-w-6xl pb-2">
@@ -52,7 +55,7 @@ export default function Home() {
         </section>
 
         <div className="hub-section">
-          <LeaderboardPanel />
+          <LeaderboardPanel configured={leaderboardConfigured} />
         </div>
 
         <section id="documents" className="hub-section animate-fade-up-delay-3">

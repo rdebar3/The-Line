@@ -8,6 +8,7 @@ import {
   Loader2,
   Medal,
   Minus,
+  RefreshCw,
   Trophy,
   UserRoundPen,
 } from "lucide-react";
@@ -120,7 +121,12 @@ function UsernameSetup({
   );
 }
 
-export function LeaderboardPanel() {
+type LeaderboardPanelProps = {
+  /** Server-known flag — client fetch can lag or fail while storage is live. */
+  configured?: boolean;
+};
+
+export function LeaderboardPanel({ configured = true }: LeaderboardPanelProps) {
   const { defenderScore, isLoaded, rank } = useProgression();
   const {
     data,
@@ -129,9 +135,12 @@ export function LeaderboardPanel() {
     rankDelta,
     dismissRankDelta,
     saveUsername,
+    refresh,
   } = useLeaderboard(defenderScore, isLoaded);
 
-  if (!data?.configured) {
+  const isLive = configured || data?.configured === true;
+
+  if (!isLive) {
     return (
       <section className="hub-card-shell text-center">
         <div aria-hidden className="hub-card-accent" />
@@ -160,7 +169,7 @@ export function LeaderboardPanel() {
         </p>
       </header>
 
-      {rankDelta !== null && data.me && (
+      {rankDelta !== null && data?.me && (
         <RankMovementBanner
           delta={rankDelta}
           rank={data.me.rank}
@@ -168,7 +177,7 @@ export function LeaderboardPanel() {
         />
       )}
 
-      {data.isSignedIn === false && (
+      {data?.isSignedIn === false && (
         <div className="mb-4 rounded-xl border border-navy-border/70 bg-navy/40 px-4 py-3 text-center text-sm text-muted-foreground">
           <SignInButton mode="redirect">
             <button
@@ -182,7 +191,7 @@ export function LeaderboardPanel() {
         </div>
       )}
 
-      {data.isSignedIn && !data.me?.username && (
+      {data?.isSignedIn && !data.me?.username && (
         <div className="mb-4 space-y-2">
           <UsernameSetup onSave={saveUsername} />
           <p className="text-center text-xs text-muted-foreground">
@@ -193,16 +202,26 @@ export function LeaderboardPanel() {
       )}
 
       {error && (
-        <p className="mb-4 rounded-xl border border-crimson/30 bg-crimson/10 px-4 py-3 text-sm text-crimson">
-          {error}
-        </p>
+        <div className="mb-4 flex flex-col gap-3 rounded-xl border border-crimson/30 bg-crimson/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-crimson">{error}</p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => void refresh()}
+            className="border-crimson/30 text-crimson hover:bg-crimson/10"
+          >
+            <RefreshCw className="size-3.5" />
+            Retry
+          </Button>
+        </div>
       )}
 
-      {isLoading ? (
+      {isLoading && !data ? (
         <div className="flex justify-center py-8">
           <Loader2 className="size-6 animate-spin text-gold" />
         </div>
-      ) : (
+      ) : data ? (
         <>
           <div className="-mx-1 overflow-x-auto sm:mx-0">
           <div className="min-w-[17.5rem] overflow-hidden rounded-xl border border-navy-border/70">
@@ -285,7 +304,7 @@ export function LeaderboardPanel() {
             </div>
           )}
         </>
-      )}
+      ) : null}
       </div>
     </section>
   );

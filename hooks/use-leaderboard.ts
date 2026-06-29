@@ -48,7 +48,7 @@ export function useLeaderboard(defenderScore: number, isProgressionLoaded: boole
     setError(null);
 
     try {
-      const response = await fetch("/api/leaderboard");
+      const response = await fetch("/api/leaderboard", { cache: "no-store" });
       const payload = (await response.json()) as LeaderboardResponse & {
         error?: string;
       };
