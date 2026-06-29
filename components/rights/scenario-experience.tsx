@@ -53,9 +53,7 @@ import {
 import { SourceLinksPanel } from "@/components/rights/source-links-panel";
 import { PressureReplayDebrief } from "@/components/rights/pressure-replay-debrief";
 import { FieldCardShare } from "@/components/share/field-card-share";
-import { AudioModeToggle } from "@/components/audio/audio-mode-toggle";
 import { EducationalDisclaimer } from "@/components/legal/educational-disclaimer";
-import { useAudioMode } from "@/hooks/use-audio-mode";
 import { getDocumentSlugFromSource } from "@/lib/document-links";
 import { SCENARIO_DISCLAIMER } from "@/lib/legal-disclaimers";
 import { UNLOCK_FULL_LABEL } from "@/lib/subscription";
@@ -295,7 +293,6 @@ function TrainingSessionHeader({
         </h1>
       </div>
       <div className="flex flex-col items-center gap-3 sm:items-end">
-        <AudioModeToggle />
         <DefenderScoreBadge score={defenderScore} pointsEarned={pointsEarned} />
         {correctStreak > 0 && (
           <p className="text-xs font-medium tracking-wide text-gold">
@@ -586,8 +583,6 @@ export function ScenarioExperience() {
     correctStreak,
   } = useProgression();
 
-  const { enabled: audioEnabled, speak } = useAudioMode();
-
   const {
     isLoaded: generationLoaded,
     state: generationState,
@@ -811,10 +806,6 @@ export function ScenarioExperience() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [phase, currentIndex]);
 
-  useEffect(() => {
-    if (!audioEnabled || !scenario || phase !== "training") return;
-    speak(`${scenario.title}. ${scenario.situation}`);
-  }, [audioEnabled, scenario, phase, speak]);
   const currentAnswer = scenario
     ? answers.find((answer) => answer.scenarioId === scenario.id)
     : undefined;
