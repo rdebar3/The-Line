@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Show, SignInButton, SignUpButton } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs";
 import { ArrowRight, BookOpen, Shield } from "lucide-react";
 
 import { GuardianCharacter } from "@/components/guardian/guardian-character";
@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button";
 import { CHARACTER_NAME } from "@/lib/guardian";
 
 export function HubHero() {
+  const { isSignedIn, isLoaded } = useAuth();
+  const showAuthCta = !isLoaded || !isSignedIn;
+
   return (
     <header className="animate-fade-up text-center">
       <div className="mx-auto mb-5 flex items-center justify-center gap-3 sm:mb-6 sm:gap-4">
@@ -72,29 +75,27 @@ export function HubHero() {
         </Button>
       </div>
 
-      <Show when="signed-out">
-        <p className="mx-auto mt-5 max-w-sm text-pretty text-xs leading-relaxed text-muted-foreground sm:mt-6">
-          Sign in to save your Defender Score and climb the leaderboard.
-        </p>
-        <div className="mx-auto mt-3 flex max-w-[16rem] flex-col items-stretch gap-2 sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-2.5">
-          <SignInButton mode="redirect" forceRedirectUrl="/">
-            <button
-              type="button"
-              className="auth-btn-signin h-10 w-full rounded-xl border border-navy-border/80 bg-navy-elevated/60 px-4 text-sm font-semibold tracking-wide text-foreground transition-all hover:border-gold/35 hover:bg-navy-elevated sm:w-auto sm:px-5"
+      {showAuthCta && (
+        <>
+          <p className="mx-auto mt-5 max-w-sm text-pretty text-xs leading-relaxed text-muted-foreground sm:mt-6">
+            Sign in to save your Defender Score and climb the leaderboard.
+          </p>
+          <div className="mx-auto mt-3 flex max-w-[16rem] flex-col items-stretch gap-2 sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-2.5">
+            <Link
+              href="/sign-in"
+              className="auth-btn-signin inline-flex h-10 w-full items-center justify-center rounded-xl border border-navy-border/80 bg-navy-elevated/60 px-4 text-sm font-semibold tracking-wide text-foreground transition-all hover:border-gold/35 hover:bg-navy-elevated sm:w-auto sm:px-5"
             >
               Sign In
-            </button>
-          </SignInButton>
-          <SignUpButton mode="redirect" forceRedirectUrl="/">
-            <button
-              type="button"
-              className="auth-btn-signup btn-gold premium-button h-10 w-full rounded-xl px-4 text-sm font-semibold tracking-wide sm:w-auto sm:px-5"
+            </Link>
+            <Link
+              href="/sign-up"
+              className="auth-btn-signup btn-gold premium-button inline-flex h-10 w-full items-center justify-center rounded-xl px-4 text-sm font-semibold tracking-wide sm:w-auto sm:px-5"
             >
               Create Account
-            </button>
-          </SignUpButton>
-        </div>
-      </Show>
+            </Link>
+          </div>
+        </>
+      )}
     </header>
   );
 }
