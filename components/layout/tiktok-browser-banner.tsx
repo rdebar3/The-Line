@@ -4,16 +4,18 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ExternalLink, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useInAppBrowser } from "@/hooks/use-in-app-browser";
+import { openInExternalBrowser } from "@/lib/open-external-browser";
 import {
-  isTikTokInAppBrowser,
   TIKTOK_BANNER_DISMISS_KEY,
   TIKTOK_BANNER_OFFSET_VAR,
 } from "@/lib/tiktok-browser";
 
 export function TikTokBrowserBanner() {
   const bannerRef = useRef<HTMLDivElement>(null);
+  const { isTikTokBrowser, ready } = useInAppBrowser();
   const [visible, setVisible] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
 
   const syncBannerOffset = useCallback((height: number) => {
     document.documentElement.style.setProperty(
@@ -23,11 +25,13 @@ export function TikTokBrowserBanner() {
   }, []);
 
   useEffect(() => {
-    const dismissed = sessionStorage.getItem(TIKTOK_BANNER_DISMISS_KEY) === "1";
-    const inTikTokBrowser = isTikTokInAppBrowser();
+    if (!ready) return;
 
-    setVisible(inTikTokBrowser && !dismissed);
-  }, []);
+    const dismissed = sessionStorage.getItem(TIKTOK_BANNER_DISMISS_KEY) === "1";
+    const onAuthRoute = /^\/(sign-in|sign-up)(\/|$)/.test(window.location.pathname);
+
+    setVisible(isTikTokBrowser && !dismissed && !onAuthRoute);
+  }, [isTikTokBrowser, ready]);
 
   useEffect(() => {
     if (!visible) {
@@ -54,15 +58,13 @@ export function TikTokBrowserBanner() {
     syncBannerOffset(0);
   };
 
-  const openInExternalBrowser = async () => {
-    const url = window.location.href;
+  const openExternal = async () => {
+    const result = await openInExternalBrowser(window.location.href);
 
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 4000);
-    } catch {
-      setCopied(false);
+    if (result === "safari" || result === "chrome") {
+      setStatus("If Safari/Chrome didn't open, tap ⋯ in TikTok → Open in browser.");
+    } else {
+      setStatus("Link copied. Paste into Chrome or Safari.");
     }
   };
 
@@ -87,21 +89,20 @@ export function TikTokBrowserBanner() {
 
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold leading-snug text-foreground sm:text-[0.95rem]">
-            You&apos;re in TikTok&apos;s browser. For the best login experience,
-            open in Chrome or Safari.
+            You&apos;re in TikTok&apos;s browser — Google sign-in will fail here.
+            Open in Safari or Chrome instead.
           </p>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground sm:text-sm">
-            {copied
-              ? "Link copied! Tap the menu (⋯) in TikTok, then choose Open in browser."
-              : "Copy this page, then paste it into Chrome or Safari to sign in smoothly."}
+            {status ??
+              "Tap below, then use TikTok's ⋯ menu → Open in browser for the best experience."}
           </p>
 
           <Button
             type="button"
-            onClick={openInExternalBrowser}
+            onClick={openExternal}
             className="btn-gold premium-button mt-2.5 h-9 w-full rounded-lg px-4 text-xs font-semibold tracking-wide sm:mt-3 sm:w-auto sm:text-sm"
           >
-            {copied ? "Copied — open in browser" : "Open in External Browser"}
+            Open in Safari / Chrome
           </Button>
         </div>
 

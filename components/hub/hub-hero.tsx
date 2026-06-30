@@ -6,12 +6,12 @@ import { ArrowRight, BookOpen, Shield } from "lucide-react";
 
 import { GuardianCharacter } from "@/components/guardian/guardian-character";
 import { Button } from "@/components/ui/button";
-import { useTikTokInAppBrowser } from "@/hooks/use-tiktok-in-app-browser";
+import { useInAppBrowser } from "@/hooks/use-in-app-browser";
 import { CHARACTER_NAME } from "@/lib/guardian";
 
 export function HubHero() {
   const { isSignedIn, isLoaded } = useAuth();
-  const isTikTokBrowser = useTikTokInAppBrowser();
+  const { isTikTokBrowser } = useInAppBrowser();
   const showAuthCta = !isLoaded || !isSignedIn;
 
   return (
@@ -81,7 +81,7 @@ export function HubHero() {
         <>
           <p className="mx-auto mt-5 max-w-sm text-pretty text-xs leading-relaxed text-muted-foreground sm:mt-6">
             {isTikTokBrowser
-              ? "TikTok's browser can block sign-in. Use the banner above to open in Chrome or Safari, then create your account."
+              ? "TikTok blocks Google sign-in. Tap Sign Up, then use Open in Safari/Chrome — or continue with email only."
               : "Sign in to save your Defender Score and climb the leaderboard."}
           </p>
           <div className="mx-auto mt-3 flex max-w-[16rem] flex-col items-stretch gap-2 sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-2.5">

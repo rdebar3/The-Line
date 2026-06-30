@@ -1,9 +1,9 @@
 import { shadcn } from "@clerk/ui/themes";
 
-export const clerkAppearance = {
+const clerkAppearanceBase = {
   theme: shadcn,
   options: {
-    socialButtonsVariant: "iconButton",
+    socialButtonsVariant: "iconButton" as const,
   },
   variables: {
     colorPrimary: "#c9a227",
@@ -14,4 +14,21 @@ export const clerkAppearance = {
     colorTextSecondary: "#a1a1aa",
     borderRadius: "0.75rem",
   },
+};
+
+const hiddenSocialElements = {
+  socialButtons: "hidden",
+  socialButtonsBlockButton: "hidden",
+  dividerRow: "hidden",
 } as const;
+
+export const clerkAppearance = clerkAppearanceBase;
+
+export function getClerkAppearance(options?: { hideSocial?: boolean }) {
+  if (!options?.hideSocial) return clerkAppearanceBase;
+
+  return {
+    ...clerkAppearanceBase,
+    elements: hiddenSocialElements,
+  };
+}
