@@ -1,5 +1,7 @@
 import Stripe from "stripe";
 
+import { getAppUrl } from "@/lib/app-url";
+
 let stripeClient: Stripe | null = null;
 
 export function getStripe(): Stripe {
@@ -21,6 +23,8 @@ export function getStripe(): Stripe {
 export function getAppOrigin(request: Request): string {
   const configured = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
   if (configured) return configured;
+
+  if (process.env.NODE_ENV === "production") return getAppUrl();
 
   const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
   const proto = request.headers.get("x-forwarded-proto") ?? "http";

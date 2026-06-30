@@ -14,6 +14,7 @@ import { FirstLoginTutorial } from "@/components/onboarding/first-login-tutorial
 import { UnlockCelebration } from "@/components/monetization/unlock-celebration";
 import { ProgressionProvider } from "@/components/progression/progression-provider";
 import { SubscriptionProvider } from "@/components/monetization/subscription-provider";
+import { getAppUrl } from "@/lib/app-url";
 import { clerkAppearance } from "@/lib/clerk-appearance";
 import "./globals.css";
 
@@ -40,8 +41,7 @@ const libreBaskerville = Libre_Baskerville({
   weight: ["400", "700"],
 });
 
-const appUrl =
-  process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "https://theline.app";
+const appUrl = getAppUrl();
 
 export const metadata: Metadata = {
   title: {

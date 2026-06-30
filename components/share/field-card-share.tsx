@@ -19,7 +19,7 @@ export function FieldCardShare({
   title,
   subtitle,
   body,
-  footer = "theline.app · Civic Defense",
+  footer = "the-line-eight.vercel.app · Civic Defense",
   className,
 }: FieldCardShareProps) {
   const cardRef = useRef<HTMLDivElement>(null);

@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+import { getAppUrl } from "@/lib/app-url";
+
 const routes = [
   "",
   "/declaration",
@@ -13,9 +15,7 @@ const routes = [
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ??
-    "https://theline.app";
+  const baseUrl = getAppUrl();
 
   return routes.map((route) => ({
     url: `${baseUrl}${route}`,
