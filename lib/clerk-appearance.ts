@@ -2,6 +2,14 @@ import { shadcn } from "@clerk/ui/themes";
 
 export const clerkAppearance = {
   theme: shadcn,
+  options: {
+    socialButtonsVariant: "iconButton",
+  },
+  elements: {
+    socialButtons: "hidden",
+    socialButtonsBlockButton: "hidden",
+    dividerRow: "hidden",
+  },
   variables: {
     colorPrimary: "#c9a227",
     colorBackground: "#121a2e",
