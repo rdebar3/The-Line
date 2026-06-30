@@ -8,7 +8,7 @@ export function AuthHeader() {
   const showUserMenu = isLoaded && isSignedIn;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gold/10 bg-navy/90 backdrop-blur-md">
+    <header className="sticky top-[var(--tiktok-banner-offset,0px)] z-50 border-b border-gold/10 bg-navy/90 backdrop-blur-md">
       <div className="mx-auto flex h-14 w-full min-w-0 max-w-6xl items-center justify-between gap-3 px-4 sm:h-[3.75rem] sm:gap-4 sm:px-6">
         <Link
           href="/"

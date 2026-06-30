@@ -10,6 +10,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { UserScopeSync } from "@/components/auth/user-scope-sync";
 import { ClearStaleServiceWorker } from "@/components/dev/clear-stale-service-worker";
 import { AuthHeader } from "@/components/layout/auth-header";
+import { TikTokBrowserBanner } from "@/components/layout/tiktok-browser-banner";
 import { FirstLoginTutorial } from "@/components/onboarding/first-login-tutorial";
 import { UnlockCelebration } from "@/components/monetization/unlock-celebration";
 import { ProgressionProvider } from "@/components/progression/progression-provider";
@@ -94,6 +95,7 @@ export default function RootLayout({
         >
           <UserScopeSync />
           <ClearStaleServiceWorker />
+          <TikTokBrowserBanner />
           <AuthHeader />
           <SubscriptionProvider>
             <ProgressionProvider>
