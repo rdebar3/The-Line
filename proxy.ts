@@ -28,6 +28,8 @@ export default clerkMiddleware(async (auth, request) => {
 
 export const config = {
   matcher: [
+    // Clerk production proxy serves JS bundles under /__clerk — must bypass the .js exclusion below.
+    "/__clerk(.*)",
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     "/(api|trpc)(.*)",
   ],

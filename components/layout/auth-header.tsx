@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useAuth, UserButton } from "@clerk/nextjs";
-
-import { Button } from "@/components/ui/button";
+import {
+  Show,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from "@clerk/nextjs";
 
 export function AuthHeader() {
-  const { isSignedIn } = useAuth();
-
   return (
     <header className="sticky top-0 z-50 border-b border-gold/10 bg-navy/90 backdrop-blur-md">
       <div className="mx-auto flex h-14 w-full min-w-0 max-w-6xl items-center justify-between gap-3 px-4 sm:h-[3.75rem] sm:gap-4 sm:px-6">
@@ -25,7 +26,29 @@ export function AuthHeader() {
         </Link>
 
         <nav className="flex items-center gap-2 sm:gap-2.5">
-          {isSignedIn ? (
+          <Show
+            when="signed-in"
+            fallback={
+              <>
+                <SignInButton mode="redirect" forceRedirectUrl="/">
+                  <button
+                    type="button"
+                    className="auth-btn-signin inline-flex h-9 items-center justify-center rounded-lg border border-navy-border/80 bg-navy-elevated/50 px-3 text-xs font-semibold tracking-wide text-foreground transition-all hover:border-gold/30 hover:bg-navy-elevated sm:px-4"
+                  >
+                    Sign In
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="redirect" forceRedirectUrl="/">
+                  <button
+                    type="button"
+                    className="auth-btn-signup btn-gold premium-button inline-flex h-9 shrink-0 items-center justify-center rounded-lg px-3 text-xs font-semibold tracking-wide shadow-[0_0_20px_rgba(201,162,39,0.15)] sm:px-4"
+                  >
+                    Sign Up
+                  </button>
+                </SignUpButton>
+              </>
+            }
+          >
             <UserButton
               appearance={{
                 elements: {
@@ -34,27 +57,7 @@ export function AuthHeader() {
                 },
               }}
             />
-          ) : (
-            <>
-              <Button
-                nativeButton={false}
-                render={<Link href="/sign-in" />}
-                variant="outline"
-                size="sm"
-                className="auth-btn-signin inline-flex h-9 rounded-lg border-navy-border/80 bg-navy-elevated/50 px-3 text-xs font-semibold tracking-wide text-foreground hover:border-gold/30 hover:bg-navy-elevated sm:px-4"
-              >
-                Sign In
-              </Button>
-              <Button
-                nativeButton={false}
-                render={<Link href="/sign-up" />}
-                size="sm"
-                className="auth-btn-signup btn-gold premium-button h-9 shrink-0 rounded-lg px-3 text-xs font-semibold tracking-wide shadow-[0_0_20px_rgba(201,162,39,0.15)] sm:px-4"
-              >
-                Sign Up
-              </Button>
-            </>
-          )}
+          </Show>
         </nav>
       </div>
     </header>
