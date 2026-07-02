@@ -4,7 +4,6 @@ import { Sparkles } from "lucide-react";
 
 import {
   getFocusProgress,
-  getOverallMasteryCategories,
   getSessionFocusProgress,
   getTopicDifficultyLevel,
   getTopicStats,
@@ -33,58 +32,6 @@ function TopicDifficultyBadge({ level }: { level: TopicDifficultyLevel }) {
     >
       {meta.label}
     </span>
-  );
-}
-
-function OverallMasteryBar({
-  progressionState,
-}: {
-  progressionState: ProgressionState | null | undefined;
-}) {
-  const categories = getOverallMasteryCategories(progressionState);
-
-  return (
-    <div className="rounded-xl border border-navy-border/50 bg-navy/30 px-3 py-3 sm:px-4">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {categories.map((category) => (
-          <div key={category.id} className="min-w-0 space-y-1.5">
-            <div className="flex items-center justify-between gap-2 text-[0.65rem]">
-              <span className="truncate font-medium text-muted-foreground">
-                {category.label}
-              </span>
-              <span className="shrink-0 tabular-nums text-muted-foreground/80">
-                {category.total > 0 ? (
-                  <>
-                    <span className="text-foreground/90">{category.accuracy}%</span>
-                    <span className="mx-1 text-navy-border">·</span>
-                    {category.correct}/{category.total}
-                  </>
-                ) : (
-                  "—"
-                )}
-              </span>
-            </div>
-            <div className="h-1 overflow-hidden rounded-full bg-navy-border/40">
-              <div
-                className={cn(
-                  "h-full rounded-full transition-all duration-500",
-                  category.accuracy >= 80
-                    ? "bg-gold"
-                    : category.accuracy >= 60
-                      ? "bg-gold/70"
-                      : category.total > 0
-                        ? "bg-crimson/70"
-                        : "bg-navy-border/60"
-                )}
-                style={{
-                  width: `${category.total > 0 ? Math.max(category.accuracy, 6) : 0}%`,
-                }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -119,7 +66,7 @@ export function TrainingFocusHeader({
   const difficultyLevel = getTopicDifficultyLevel(topicStats);
 
   return (
-    <div className="space-y-4">
+    <div className="rounded-2xl border border-navy-border/50 bg-navy-elevated/40 px-4 py-4 sm:px-5 sm:py-5">
       <div className="flex flex-col gap-4 sm:gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 flex-1 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -181,8 +128,6 @@ export function TrainingFocusHeader({
           )}
         </div>
       </div>
-
-      <OverallMasteryBar progressionState={progressionState} />
     </div>
   );
 }
