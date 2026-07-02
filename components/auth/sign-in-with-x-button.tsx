@@ -1,9 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useClerk } from "@clerk/nextjs";
-import { useSignIn, useSignUp } from "@clerk/nextjs/legacy";
-import { isClerkAPIResponseError } from "@clerk/nextjs/errors";
+import { useClerk, useSignIn, useSignUp } from "@clerk/nextjs";
 
 import { useInAppBrowser } from "@/hooks/use-in-app-browser";
 import {
@@ -31,70 +29,87 @@ function XLogo({ className }: { className?: string }) {
   );
 }
 
+function getClerkErrorMessage(
+  error: { message?: string; longMessage?: string } | null | undefined
+): string {
+  if (!error) return "Could not connect to X. Please try again or use email.";
+  return (
+    error.longMessage ??
+    error.message ??
+    "Could not connect to X. Please try again or use email."
+  );
+}
+
 export function SignInWithXButton({
   mode,
   variant = "default",
   className,
 }: SignInWithXButtonProps) {
   const clerk = useClerk();
-  const { isLoaded: signInLoaded, signIn } = useSignIn();
-  const { isLoaded: signUpLoaded, signUp } = useSignUp();
+  const { signIn, errors: signInErrors, fetchStatus: signInStatus } = useSignIn();
+  const { signUp, errors: signUpErrors, fetchStatus: signUpStatus } = useSignUp();
   const { isOAuthHostile, ready } = useInAppBrowser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isReady = mode === "sign-in" ? signInLoaded : signUpLoaded;
+  const isBusy =
+    loading ||
+    (mode === "sign-in" ? signInStatus === "fetching" : signUpStatus === "fetching");
 
   const handleClick = useCallback(async () => {
-    if (!isReady || loading) return;
+    if (!clerk.loaded || isBusy) return;
 
     setLoading(true);
     setError(null);
 
-    const redirectUrlComplete = getPostAuthRedirectUrl(
+    const searchParams =
       typeof window !== "undefined"
         ? new URLSearchParams(window.location.search)
-        : null
+        : null;
+    const redirectUrl = getPostAuthRedirectUrl(searchParams);
+    const redirectCallbackUrl = getSsoCallbackUrl(
+      mode,
+      typeof window !== "undefined" ? window.location.origin : undefined
     );
-    const redirectUrl = getSsoCallbackUrl(mode);
 
     try {
-      if (mode === "sign-in" && signIn) {
-        await signIn.authenticateWithRedirect({
+      if (mode === "sign-in") {
+        const { error: ssoError } = await signIn.sso({
           strategy: X_OAUTH_STRATEGY,
           redirectUrl,
-          redirectUrlComplete,
+          redirectCallbackUrl,
         });
-        return;
-      }
 
-      if (mode === "sign-up" && signUp) {
-        await signUp.authenticateWithRedirect({
-          strategy: X_OAUTH_STRATEGY,
-          redirectUrl,
-          redirectUrlComplete,
-        });
-        return;
-      }
-    } catch (err) {
-      if (
-        isClerkAPIResponseError(err) &&
-        err.errors.some((e) => e.code === "session_exists")
-      ) {
-        const sessionId = clerk.client?.lastActiveSessionId;
-        if (sessionId) {
-          await clerk.setActive({ session: sessionId });
-          window.location.assign(redirectUrlComplete);
-          return;
+        if (ssoError) {
+          setError(getClerkErrorMessage(ssoError));
+          setLoading(false);
         }
+        return;
       }
 
+      const { error: ssoError } = await signUp.sso({
+        strategy: X_OAUTH_STRATEGY,
+        redirectUrl,
+        redirectCallbackUrl,
+      });
+
+      if (ssoError) {
+        setError(getClerkErrorMessage(ssoError));
+        setLoading(false);
+      }
+    } catch {
       setError("Could not connect to X. Please try again or use email.");
       setLoading(false);
     }
-  }, [clerk, isReady, loading, mode, signIn, signUp]);
+  }, [clerk.loaded, isBusy, mode, signIn, signUp]);
 
   if (ready && isOAuthHostile) return null;
+
+  const hookError =
+    mode === "sign-in"
+      ? signInErrors?.global?.[0] ?? signInErrors?.raw?.[0]
+      : signUpErrors?.global?.[0] ?? signUpErrors?.raw?.[0];
+  const displayError = error ?? (hookError ? getClerkErrorMessage(hookError) : null);
 
   const isCompact = variant === "compact";
 
@@ -102,7 +117,7 @@ export function SignInWithXButton({
     <button
       type="button"
       onClick={handleClick}
-      disabled={!isReady || loading}
+      disabled={!clerk.loaded || isBusy}
       aria-label="Sign in with X"
       className={cn(
         "inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-navy-border/80 bg-[#0f1419] font-semibold text-foreground transition-all hover:border-foreground/25 hover:bg-[#161b22] disabled:cursor-not-allowed disabled:opacity-60",
@@ -113,7 +128,7 @@ export function SignInWithXButton({
     >
       <XLogo className={isCompact ? "size-3.5" : "size-4"} />
       <span className={cn(isCompact && "hidden min-[420px]:inline")}>
-        {loading ? "Connecting…" : "Sign in with X"}
+        {isBusy ? "Connecting…" : "Sign in with X"}
       </span>
     </button>
   );
@@ -125,8 +140,8 @@ export function SignInWithXButton({
   return (
     <div className={cn("space-y-2", className)}>
       {button}
-      {error ? (
-        <p className="text-center text-xs text-crimson-light">{error}</p>
+      {displayError ? (
+        <p className="text-center text-xs text-crimson-light">{displayError}</p>
       ) : null}
     </div>
   );
