@@ -1,6 +1,11 @@
 import { getAppUrl } from "@/lib/app-url";
 
 export const X_OAUTH_STRATEGY = "oauth_x" as const;
+export const GOOGLE_OAUTH_STRATEGY = "oauth_google" as const;
+
+export type SocialOAuthStrategy =
+  | typeof X_OAUTH_STRATEGY
+  | typeof GOOGLE_OAUTH_STRATEGY;
 
 export const SIGN_IN_SSO_CALLBACK = "/sign-in/sso-callback";
 export const SIGN_UP_SSO_CALLBACK = "/sign-up/sso-callback";

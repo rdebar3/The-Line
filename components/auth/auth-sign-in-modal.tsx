@@ -5,11 +5,7 @@ import { SignIn, SignUp } from "@clerk/nextjs";
 import { useAuth } from "@clerk/nextjs";
 import { ArrowLeft, Mail } from "lucide-react";
 
-import {
-  AuthEmailDivider,
-  SignInWithXButton,
-} from "@/components/auth/sign-in-with-x-button";
-import { XOAuthTroubleshoot } from "@/components/auth/x-oauth-troubleshoot";
+import { SocialAuthButtons } from "@/components/auth/social-auth-buttons";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,7 +14,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useInAppBrowser } from "@/hooks/use-in-app-browser";
 import { getClerkAppearance } from "@/lib/clerk-appearance";
 import { cn } from "@/lib/utils";
 
@@ -31,10 +26,8 @@ type AuthSignInModalProps = {
 
 export function AuthSignInModal({ open, onOpenChange }: AuthSignInModalProps) {
   const { isSignedIn, isLoaded } = useAuth();
-  const { isOAuthHostile, ready } = useInAppBrowser();
   const [view, setView] = useState<AuthView>("welcome");
   const appearance = useMemo(() => getClerkAppearance(), []);
-  const hideX = ready && isOAuthHostile;
 
   useEffect(() => {
     if (isLoaded && isSignedIn && open) {
@@ -92,13 +85,7 @@ export function AuthSignInModal({ open, onOpenChange }: AuthSignInModalProps) {
 
             {view === "welcome" && (
               <div className="space-y-4">
-                {!hideX && (
-                  <>
-                    <SignInWithXButton mode="sign-in" />
-                    <XOAuthTroubleshoot />
-                    <AuthEmailDivider />
-                  </>
-                )}
+                <SocialAuthButtons mode="sign-in" />
 
                 <Button
                   type="button"
@@ -147,14 +134,7 @@ export function AuthSignInModal({ open, onOpenChange }: AuthSignInModalProps) {
 
             {view === "email-sign-up" && (
               <div className="max-h-[min(52dvh,28rem)] overflow-y-auto pr-1">
-                {!hideX && (
-                  <>
-                    <SignInWithXButton mode="sign-up" />
-                    <div className="my-4">
-                      <AuthEmailDivider />
-                    </div>
-                  </>
-                )}
+                <SocialAuthButtons mode="sign-up" showTroubleshoot={false} />
                 <SignUp
                   routing="hash"
                   appearance={appearance}

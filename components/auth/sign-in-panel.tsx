@@ -5,11 +5,7 @@ import { SignIn } from "@clerk/nextjs";
 
 import { ClerkAuthShell } from "@/components/auth/clerk-auth-shell";
 import { InAppBrowserAuthGate } from "@/components/auth/in-app-browser-auth-gate";
-import {
-  AuthEmailDivider,
-  SignInWithXButton,
-} from "@/components/auth/sign-in-with-x-button";
-import { XOAuthTroubleshoot } from "@/components/auth/x-oauth-troubleshoot";
+import { SocialAuthButtons } from "@/components/auth/social-auth-buttons";
 import { useInAppBrowser } from "@/hooks/use-in-app-browser";
 import { getClerkAppearance } from "@/lib/clerk-appearance";
 
@@ -33,9 +29,7 @@ export function SignInPanel() {
   return (
     <ClerkAuthShell>
       <div className="space-y-4">
-        <SignInWithXButton mode="sign-in" />
-        <XOAuthTroubleshoot />
-        <AuthEmailDivider />
+        <SocialAuthButtons mode="sign-in" />
         <SignIn
           routing="path"
           path="/sign-in"
