@@ -7,6 +7,7 @@ import { isClerkAPIResponseError } from "@clerk/nextjs/errors";
 
 import { useInAppBrowser } from "@/hooks/use-in-app-browser";
 import {
+  getAbsoluteAppUrl,
   getPostAuthRedirectUrl,
   getSsoCallbackPath,
   X_OAUTH_STRATEGY,
@@ -67,8 +68,11 @@ export function SignInWithXButton({
       typeof window !== "undefined"
         ? new URLSearchParams(window.location.search)
         : null;
-    const redirectUrlComplete = getPostAuthRedirectUrl(searchParams);
-    const redirectUrl = getSsoCallbackPath(mode);
+    const origin =
+      typeof window !== "undefined" ? window.location.origin : undefined;
+    const redirectPath = getPostAuthRedirectUrl(searchParams);
+    const redirectUrlComplete = getAbsoluteAppUrl(redirectPath, origin);
+    const redirectUrl = getAbsoluteAppUrl(getSsoCallbackPath(mode), origin);
 
     try {
       if (mode === "sign-in" && signIn) {

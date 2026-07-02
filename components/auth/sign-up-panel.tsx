@@ -9,6 +9,7 @@ import {
   AuthEmailDivider,
   SignInWithXButton,
 } from "@/components/auth/sign-in-with-x-button";
+import { XOAuthTroubleshoot } from "@/components/auth/x-oauth-troubleshoot";
 import { useInAppBrowser } from "@/hooks/use-in-app-browser";
 import { getClerkAppearance } from "@/lib/clerk-appearance";
 
@@ -33,6 +34,7 @@ export function SignUpPanel() {
     <ClerkAuthShell>
       <div className="space-y-4">
         <SignInWithXButton mode="sign-up" />
+        <XOAuthTroubleshoot />
         <AuthEmailDivider />
         <SignUp
           routing="path"
