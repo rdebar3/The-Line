@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { FreeVsPremium } from "@/components/monetization/free-vs-premium";
+import { PremiumAccessBanner } from "@/components/monetization/premium-access-banner";
 import { useSubscription } from "@/hooks/use-subscription";
-import { CHARACTER_NAME } from "@/lib/guardian";
 import { cn } from "@/lib/utils";
 
 type HubMonetizationFooterProps = {
@@ -24,14 +23,7 @@ export function HubMonetizationFooter({ className }: HubMonetizationFooterProps)
         <div className="hub-card-shell text-center">
           <div aria-hidden className="hub-card-accent" />
           <div className="relative flex flex-col items-center px-6 py-8 sm:px-8 sm:py-10">
-            <p className="flex items-center justify-center gap-2 font-heading text-sm font-semibold tracking-wide text-gold uppercase">
-              <Sparkles className="size-4" />
-              Full Access Active
-            </p>
-            <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-              Premium unlocked — {CHARACTER_NAME} training, all scenarios, and the
-              full Arsenal are yours.
-            </p>
+            <PremiumAccessBanner className="w-full max-w-lg border-0 bg-transparent p-0" />
             <div className="mt-6 flex w-full max-w-md flex-col gap-2.5 sm:flex-row sm:justify-center">
               <Button
                 nativeButton={false}

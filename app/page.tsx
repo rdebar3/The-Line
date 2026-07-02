@@ -6,6 +6,7 @@ import { isLeaderboardConfigured } from "@/lib/leaderboard";
 import { ArsenalCard } from "@/components/hub/arsenal-card";
 import { HubHero } from "@/components/hub/hub-hero";
 import { DefenderProgressionHub } from "@/components/hub/defender-progression-hub";
+import { IntelligenceReportPanel } from "@/components/hub/intelligence-report-panel";
 import { DocumentCard } from "@/components/hub/document-card";
 import { GuardianPlaceholder } from "@/components/hub/guardian-placeholder";
 import { HubJourney } from "@/components/hub/hub-journey";
@@ -53,6 +54,10 @@ export default function Home() {
 
         <section id="progression" className="hub-section animate-fade-up-delay-2">
           <DefenderProgressionHub />
+        </section>
+
+        <section id="intelligence" className="hub-section animate-fade-up-delay-2">
+          <IntelligenceReportPanel />
         </section>
 
         <div className="hub-section">

@@ -12,11 +12,11 @@ import { RankBadge } from "@/components/progression/rank-badge";
 import { Button } from "@/components/ui/button";
 import { useProgression } from "@/hooks/use-progression";
 import { useSubscription } from "@/hooks/use-subscription";
-import { FREE_DAILY_SCENARIO_GENERATION_LIMIT } from "@/lib/scenario-difficulty";
+import { getTrainingCtaLabel } from "@/lib/premium-status";
 import { cn } from "@/lib/utils";
 
 export function DefenderProgressionHub() {
-  const { isPremium } = useSubscription();
+  const { isPremium, isLoading: subscriptionLoading } = useSubscription();
   const {
     isLoaded,
     defenderScore,
@@ -88,15 +88,9 @@ export function DefenderProgressionHub() {
       )
     : 0;
 
-  const trainingLabel = (() => {
-    if (dailyMission && !dailyMission.completed) {
-      return `Continue Training — ${dailyMission.progress}/${dailyMission.target} Mission`;
-    }
-    if (isPremium) {
-      return "Enter Training — Rights Under Pressure";
-    }
-    return `Start Training — ${FREE_DAILY_SCENARIO_GENERATION_LIMIT} Free Scenarios/Day`;
-  })();
+  const trainingLabel = subscriptionLoading
+    ? "Enter Training"
+    : getTrainingCtaLabel({ isPremium, dailyMission });
 
   return (
     <div className="hub-card-shell shadow-[0_0_60px_rgba(201,162,39,0.08)]">

@@ -1,9 +1,19 @@
 import {
+  calculateMissionBonus,
+  getAdaptiveMissionHistory,
+  resolveMajorTopicId,
+  type AdaptiveMissionHistory,
+  type AdaptiveMissionScenario,
+  type AdaptiveMissionSession,
+  type TopicPerformanceStats,
+} from "@/lib/adaptive-intelligence";
+import {
   createInitialOnboardingState,
   type OnboardingGoal,
   type OnboardingState,
 } from "@/lib/onboarding-path";
 import { getEarnedBadges } from "@/lib/mastery-tracks";
+import type { ScenarioDifficulty } from "@/lib/scenario-difficulty";
 import {
   createInitialWeeklyChallengeState,
   recordWeeklyParticipation,
@@ -204,6 +214,9 @@ export type ProgressionState = {
     activityLogged: boolean;
   };
   weakAreas: Record<string, { correct: number; total: number }>;
+  topicPerformance: Record<string, TopicPerformanceStats>;
+  adaptiveMission: AdaptiveMissionSession | null;
+  adaptiveMissionHistory: AdaptiveMissionHistory;
   grokMissions: GrokMission[];
   pendingPromotionCommentary: MilitaryRankId | null;
   onboarding: OnboardingState;
@@ -249,6 +262,12 @@ export function createInitialProgressionState(): ProgressionState {
       activityLogged: false,
     },
     weakAreas: {},
+    topicPerformance: {},
+    adaptiveMission: null,
+    adaptiveMissionHistory: {
+      date: today,
+      missionsGenerated: 0,
+    },
     grokMissions: [],
     pendingPromotionCommentary: null,
     onboarding: createInitialOnboardingState(),
@@ -504,6 +523,11 @@ export function recordScenarioAnswer(
     total: 0,
   };
 
+  const topicId = resolveMajorTopicId(record.amendment);
+  const topicStats = topicId
+    ? (next.topicPerformance?.[topicId] ?? { correct: 0, total: 0 })
+    : null;
+
   next = {
     ...next,
     ...streakUpdate,
@@ -524,6 +548,15 @@ export function recordScenarioAnswer(
         total: weakArea.total + 1,
       },
     },
+    topicPerformance: topicId
+      ? {
+          ...(next.topicPerformance ?? {}),
+          [topicId]: {
+            correct: topicStats!.correct + (record.correct ? 1 : 0),
+            total: topicStats!.total + 1,
+          },
+        }
+      : (next.topicPerformance ?? {}),
     todayStats: {
       ...next.todayStats,
       scenariosCompleted: next.todayStats.scenariosCompleted + 1,
@@ -672,6 +705,213 @@ export function setSquadMembership(
   return { ...state, squadId };
 }
 
+function mergeTopicPerformance(
+  local: Record<string, TopicPerformanceStats>,
+  remote: Record<string, TopicPerformanceStats> | undefined
+): Record<string, TopicPerformanceStats> {
+  const merged = { ...local };
+  if (!remote) return merged;
+
+  for (const [topicId, stats] of Object.entries(remote)) {
+    const existing = merged[topicId] ?? { correct: 0, total: 0 };
+    merged[topicId] = {
+      correct: Math.max(existing.correct, stats.correct),
+      total: Math.max(existing.total, stats.total),
+    };
+  }
+
+  return merged;
+}
+
+export function startAdaptiveMission(
+  state: ProgressionState,
+  mission: {
+    title: string;
+    focusAreas: string[];
+    scenarios: Omit<
+      AdaptiveMissionScenario,
+      "answered" | "selectedChoiceId" | "correct"
+    >[];
+    difficulty: ScenarioDifficulty;
+    isPremium: boolean;
+  }
+): ProgressionState {
+  const today = getTodayDateString();
+  const history = getAdaptiveMissionHistory(state);
+
+  const session: AdaptiveMissionSession = {
+    id: `adaptive-mission-${Date.now()}`,
+    title: mission.title,
+    focusAreas: mission.focusAreas,
+    scenarios: mission.scenarios.map((scenario, index) => ({
+      ...scenario,
+      id: scenario.id || `adaptive-scenario-${index}-${Date.now()}`,
+      answered: false,
+      selectedChoiceId: null,
+      correct: null,
+    })),
+    currentIndex: 0,
+    startedAt: new Date().toISOString(),
+    completedAt: null,
+    bonusAwarded: null,
+    debrief: null,
+    difficulty: mission.difficulty,
+    isPremium: mission.isPremium,
+  };
+
+  return {
+    ...state,
+    adaptiveMission: session,
+    adaptiveMissionHistory: {
+      date: today,
+      missionsGenerated: history.missionsGenerated + 1,
+    },
+  };
+}
+
+export function answerAdaptiveMissionScenario(
+  state: ProgressionState,
+  scenarioId: string,
+  choiceId: string
+): {
+  state: ProgressionState;
+  correct: boolean;
+  pointsEarned: number;
+  missionComplete: boolean;
+} {
+  const mission = state.adaptiveMission;
+  if (!mission || mission.completedAt) {
+    return { state, correct: false, pointsEarned: 0, missionComplete: false };
+  }
+
+  const scenarioIndex = mission.scenarios.findIndex(
+    (item) => item.id === scenarioId
+  );
+  if (scenarioIndex < 0 || mission.scenarios[scenarioIndex].answered) {
+    return { state, correct: false, pointsEarned: 0, missionComplete: false };
+  }
+
+  const scenario = mission.scenarios[scenarioIndex];
+  const correct = choiceId === scenario.correctChoiceId;
+  const pointsEarned = correct ? SCORE_AWARDS.correctAnswer : SCORE_AWARDS.incorrectAnswer;
+
+  const updatedScenarios = mission.scenarios.map((item, index) =>
+    index === scenarioIndex
+      ? {
+          ...item,
+          answered: true,
+          selectedChoiceId: choiceId,
+          correct,
+        }
+      : item
+  );
+
+  const topicId = resolveMajorTopicId(scenario.focusArea) ?? scenario.topicId;
+  const topicStats = state.topicPerformance?.[topicId] ?? {
+    correct: 0,
+    total: 0,
+  };
+  const weakArea = state.weakAreas[scenario.focusArea] ?? {
+    correct: 0,
+    total: 0,
+  };
+
+  let next: ProgressionState = {
+    ...state,
+    adaptiveMission: {
+      ...mission,
+      scenarios: updatedScenarios,
+      currentIndex: Math.min(scenarioIndex + 1, updatedScenarios.length - 1),
+    },
+    weakAreas: {
+      ...state.weakAreas,
+      [scenario.focusArea]: {
+        correct: weakArea.correct + (correct ? 1 : 0),
+        total: weakArea.total + 1,
+      },
+    },
+    topicPerformance: {
+      ...(state.topicPerformance ?? {}),
+      [topicId]: {
+        correct: topicStats.correct + (correct ? 1 : 0),
+        total: topicStats.total + 1,
+      },
+    },
+    scenarioHistory: [
+      ...state.scenarioHistory,
+      {
+        scenarioId: scenario.id,
+        amendment: scenario.focusArea,
+        correct,
+        answeredAt: new Date().toISOString(),
+      },
+    ],
+    todayStats: {
+      ...state.todayStats,
+      scenariosCompleted: state.todayStats.scenariosCompleted + 1,
+      correctAnswers: state.todayStats.correctAnswers + (correct ? 1 : 0),
+      activityLogged: true,
+    },
+  };
+
+  const scored = applyScore(next, pointsEarned);
+  next = scored.state;
+
+  const allAnswered = updatedScenarios.every((item) => item.answered);
+
+  return {
+    state: next,
+    correct,
+    pointsEarned,
+    missionComplete: allAnswered,
+  };
+}
+
+export function finalizeAdaptiveMission(
+  state: ProgressionState,
+  debrief: string
+): { state: ProgressionState; bonusAwarded: number; promoted: boolean; newRank: MilitaryRank } {
+  const mission = state.adaptiveMission;
+  if (!mission) {
+    return {
+      state,
+      bonusAwarded: 0,
+      promoted: false,
+      newRank: getRankForScore(state.defenderScore),
+    };
+  }
+
+  const correctCount = mission.scenarios.filter((item) => item.correct).length;
+  const bonusAwarded = calculateMissionBonus(
+    correctCount,
+    mission.scenarios.length,
+    mission.focusAreas.length
+  );
+
+  const scored = applyScore(state, bonusAwarded);
+  const completedMission: AdaptiveMissionSession = {
+    ...mission,
+    completedAt: new Date().toISOString(),
+    bonusAwarded,
+    debrief,
+  };
+
+  return {
+    state: {
+      ...scored.state,
+      adaptiveMission: completedMission,
+      earnedBadges: getEarnedBadges(scored.state),
+    },
+    bonusAwarded,
+    promoted: scored.promoted,
+    newRank: scored.newRank,
+  };
+}
+
+export function clearAdaptiveMission(state: ProgressionState): ProgressionState {
+  return { ...state, adaptiveMission: null };
+}
+
 export function mergeCloudProgressionState(
   local: ProgressionState,
   remote: Partial<ProgressionState>
@@ -682,6 +922,10 @@ export function mergeCloudProgressionState(
     ...remote,
     defenderScore: Math.max(local.defenderScore, remoteScore),
     weakAreas: { ...local.weakAreas, ...remote.weakAreas },
+    topicPerformance: mergeTopicPerformance(
+      local.topicPerformance ?? {},
+      remote.topicPerformance
+    ),
     earnedBadges: [
       ...new Set([...(local.earnedBadges ?? []), ...(remote.earnedBadges ?? [])]),
     ],

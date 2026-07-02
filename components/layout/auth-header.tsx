@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useAuth, UserButton } from "@clerk/nextjs";
-import { Lock } from "lucide-react";
+import { Lock, Sparkles } from "lucide-react";
 
 import { useSubscription } from "@/hooks/use-subscription";
 
@@ -11,6 +11,7 @@ export function AuthHeader() {
   const { isPremium, isLoading, openUnlockModal } = useSubscription();
   const showUserMenu = isLoaded && isSignedIn;
   const showUnlockCta = isLoaded && !isLoading && !isPremium;
+  const showPremiumBadge = isLoaded && !isLoading && isPremium && isSignedIn;
 
   return (
     <header className="sticky top-[var(--tiktok-banner-offset,0px)] z-50 border-b border-gold/10 bg-navy/90 backdrop-blur-md">
@@ -29,6 +30,14 @@ export function AuthHeader() {
         </Link>
 
         <nav className="flex min-w-0 items-center gap-1.5 sm:gap-2.5">
+          {showPremiumBadge && (
+            <span className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-gold/30 bg-gold/10 px-2.5 text-[0.65rem] font-bold tracking-wide text-gold sm:h-9 sm:px-3 sm:text-xs">
+              <Sparkles className="size-3 shrink-0 sm:size-3.5" />
+              <span className="hidden min-[380px]:inline">Full Access</span>
+              <span className="min-[380px]:hidden">Premium</span>
+            </span>
+          )}
+
           {showUnlockCta && (
             <button
               type="button"

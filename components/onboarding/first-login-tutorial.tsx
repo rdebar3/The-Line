@@ -90,9 +90,11 @@ type JourneyStep = (typeof JOURNEY_STEPS)[number];
 function JourneyStepPanel({
   step,
   isPremium,
+  subscriptionLoading,
 }: {
   step: JourneyStep;
   isPremium: boolean;
+  subscriptionLoading: boolean;
 }) {
   const StepIcon = step.icon;
 
@@ -131,7 +133,7 @@ function JourneyStepPanel({
           <span className="font-semibold text-muted-foreground">Free: </span>
           {step.free}
         </p>
-        {!isPremium && (
+        {!subscriptionLoading && !isPremium && (
           <p className="mt-1.5 text-gold/90">
             <span className="font-semibold text-gold">
               Full ({PREMIUM_PRICE_LABEL}):{" "}
@@ -147,7 +149,8 @@ function JourneyStepPanel({
 export function FirstLoginTutorial() {
   const { isLoaded, isSignedIn, userId } = useAuth();
   const { user } = useUser();
-  const { isPremium, openUnlockModal } = useSubscription();
+  const { isPremium, isLoading: subscriptionLoading, openUnlockModal } =
+    useSubscription();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [isCompleting, setIsCompleting] = useState(false);
@@ -313,7 +316,11 @@ export function FirstLoginTutorial() {
           )}
 
           {journeyStep && (
-            <JourneyStepPanel step={journeyStep} isPremium={isPremium} />
+            <JourneyStepPanel
+              step={journeyStep}
+              isPremium={isPremium}
+              subscriptionLoading={subscriptionLoading}
+            />
           )}
 
           {isFinal && (
@@ -327,7 +334,7 @@ export function FirstLoginTutorial() {
                 </DialogDescription>
               </DialogHeader>
 
-              {!isPremium ? (
+              {!subscriptionLoading && !isPremium ? (
                 <div className="rounded-lg border border-gold/25 bg-gold/[0.07] px-3 py-3 text-center">
                   <p className="font-heading text-2xl font-bold text-foreground">
                     {PREMIUM_PRICE_LABEL}

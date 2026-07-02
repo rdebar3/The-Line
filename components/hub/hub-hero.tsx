@@ -6,15 +6,26 @@ import { ArrowRight, BookOpen, Shield } from "lucide-react";
 import { motion } from "motion/react";
 
 import { GuardianCharacter } from "@/components/guardian/guardian-character";
+import { PremiumAccessBanner } from "@/components/monetization/premium-access-banner";
 import { Button } from "@/components/ui/button";
 import { useInAppBrowser } from "@/hooks/use-in-app-browser";
+import { useProgression } from "@/hooks/use-progression";
+import { useSubscription } from "@/hooks/use-subscription";
 import { CHARACTER_NAME } from "@/lib/guardian";
 import { FREE_DAILY_SCENARIO_GENERATION_LIMIT } from "@/lib/scenario-difficulty";
+import { getTrainingCtaLabel } from "@/lib/premium-status";
 
 export function HubHero() {
   const { isSignedIn, isLoaded } = useAuth();
+  const { isPremium } = useSubscription();
+  const { dailyMission } = useProgression();
   const { isTikTokBrowser } = useInAppBrowser();
   const showAuthCta = !isLoaded || !isSignedIn;
+  const trainingLabel = getTrainingCtaLabel({
+    isPremium,
+    dailyMission,
+    isGuest: showAuthCta,
+  });
 
   return (
     <header className="animate-fade-up text-center">
@@ -47,11 +58,17 @@ export function HubHero() {
             className="btn-cta premium-button h-14 w-full gap-2.5 rounded-2xl border border-gold/40 bg-gradient-to-r from-crimson via-crimson-dark to-gold-dark px-6 text-base font-bold tracking-wide text-white shadow-[0_8px_40px_rgba(185,28,28,0.45),0_0_24px_rgba(201,162,39,0.2)] hover:from-crimson-hover hover:via-crimson hover:to-gold sm:h-[3.75rem] sm:text-lg"
           >
             <Shield className="size-5 shrink-0" />
-            Start Free Training ({FREE_DAILY_SCENARIO_GENERATION_LIMIT} Scenarios)
+            {trainingLabel}
             <ArrowRight className="size-5 shrink-0" />
           </Button>
         </motion.div>
       </div>
+
+      {isSignedIn && isPremium && (
+        <div className="mx-auto mt-5 max-w-md sm:mt-6">
+          <PremiumAccessBanner compact />
+        </div>
+      )}
 
       {showAuthCta && (
         <section

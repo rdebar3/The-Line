@@ -4,6 +4,7 @@ import { Fragment } from "react";
 import Link from "next/link";
 import {
   BookOpen,
+  Brain,
   ChevronRight,
   Medal,
   MessageSquare,
@@ -38,6 +39,18 @@ const steps = [
     hoverClass:
       "hover:border-crimson/45 hover:bg-crimson/[0.08] hover:shadow-[0_8px_40px_rgba(185,28,28,0.2)]",
     glowClass: "group-hover:shadow-[0_0_20px_rgba(185,28,28,0.3)]",
+  },
+  {
+    id: "intelligence",
+    label: "Adapt",
+    description: "Weak-area analysis & personalized missions",
+    href: "#intelligence",
+    icon: Brain,
+    accent: "gold",
+    iconClass: "text-gold border-gold/35 bg-gold/15",
+    hoverClass:
+      "hover:border-gold/45 hover:bg-gold/[0.08] hover:shadow-[0_8px_40px_rgba(201,162,39,0.18)]",
+    glowClass: "group-hover:shadow-[0_0_20px_rgba(201,162,39,0.35)]",
   },
   {
     id: "leaderboard",

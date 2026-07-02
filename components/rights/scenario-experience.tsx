@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { DailyScenarioLimitModal } from "@/components/monetization/daily-scenario-limit-modal";
+import { PremiumAccessBanner } from "@/components/monetization/premium-access-banner";
 import { GuardianCharacter } from "@/components/guardian/guardian-character";
 import { CHARACTER_NAME } from "@/lib/guardian";
 import { FieldDebriefPanel } from "@/components/rights/field-debrief-panel";
@@ -584,6 +585,7 @@ export function ScenarioExperience() {
     unlock,
     isPurchasing,
     purchaseError,
+    isLoading: subscriptionLoading,
   } = useSubscription();
   const isPremium = canAccess("all_scenarios");
   const [limitModalOpen, setLimitModalOpen] = useState(false);
@@ -654,9 +656,9 @@ export function ScenarioExperience() {
   }, [isSignedIn, isPremium, generationState.scenariosGenerated]);
 
   useEffect(() => {
-    if (!generationLoaded) return;
+    if (!generationLoaded || subscriptionLoading) return;
     offerDailyLimitModal();
-  }, [generationLoaded, offerDailyLimitModal]);
+  }, [generationLoaded, subscriptionLoading, offerDailyLimitModal]);
 
   const limitModal = (
     <DailyScenarioLimitModal
@@ -938,6 +940,7 @@ export function ScenarioExperience() {
     return (
       <>
       <div className="space-y-6">
+        {isPremium && <PremiumAccessBanner />}
         <TrainingBriefing
           rank={rank}
           difficulty={difficulty}

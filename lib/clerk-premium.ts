@@ -1,15 +1,12 @@
 import { clerkClient } from "@clerk/nextjs/server";
 
-export type PremiumMetadata = {
-  premium?: boolean;
-  premiumPurchasedAt?: string;
-};
+import {
+  isPremiumFromMetadata,
+  type PremiumMetadata,
+} from "@/lib/premium-status";
 
-export function isPremiumFromMetadata(
-  metadata: PremiumMetadata | null | undefined
-): boolean {
-  return metadata?.premium === true;
-}
+export type { PremiumMetadata } from "@/lib/premium-status";
+export { isPremiumFromMetadata } from "@/lib/premium-status";
 
 export async function getPremiumForUser(userId: string) {
   const client = await clerkClient();

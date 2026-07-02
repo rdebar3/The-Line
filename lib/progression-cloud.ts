@@ -48,6 +48,7 @@ export async function saveCloudProgression(
     longestStreak: state.longestStreak,
     correctStreak: state.correctStreak,
     weakAreas: state.weakAreas,
+    topicPerformance: state.topicPerformance,
     earnedBadges: state.earnedBadges,
     weeklyChallenge: state.weeklyChallenge,
     onboarding: state.onboarding,

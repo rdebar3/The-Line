@@ -12,6 +12,11 @@ import {
 
 import { UnlockFullExperienceModal } from "@/components/monetization/unlock-full-experience-modal";
 import {
+  getOptimisticPremiumState,
+  readClerkPremiumState,
+  type PremiumMetadata,
+} from "@/lib/premium-status";
+import {
   clearPremiumState,
   hasFeature,
   readPremiumState,
@@ -39,10 +44,13 @@ type SubscriptionContextValue = {
 export const SubscriptionContext =
   createContext<SubscriptionContextValue | null>(null);
 
-async function fetchPremiumStatus(): Promise<PremiumState & { isSignedIn: boolean }> {
-  const response = await fetch("/api/purchase");
+async function fetchPremiumStatus(): Promise<
+  PremiumState & { isSignedIn: boolean }
+> {
+  const response = await fetch("/api/purchase", { cache: "no-store" });
+
   if (!response.ok) {
-    return { isPremium: false, purchasedAt: null, isSignedIn: false };
+    throw new Error(`Premium status fetch failed: ${response.status}`);
   }
 
   const data = (await response.json()) as {
@@ -71,6 +79,12 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const [purchaseError, setPurchaseError] = useState<string | null>(null);
   const [justUnlocked, setJustUnlocked] = useState(false);
 
+  const clerkPremium = useMemo(
+    () =>
+      readClerkPremiumState(user?.publicMetadata as PremiumMetadata | undefined),
+    [user?.publicMetadata]
+  );
+
   const syncPremiumState = useCallback(async () => {
     if (!authLoaded) return;
 
@@ -81,27 +95,52 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    const optimistic = getOptimisticPremiumState(
+      clerkPremium,
+      readPremiumState()
+    );
+
+    if (optimistic.isPremium) {
+      setState(optimistic);
+    }
+
     setIsLoading(true);
 
     try {
       const remote = await fetchPremiumStatus();
 
-      if (remote.isPremium) {
-        writePremiumState(remote.purchasedAt ?? undefined);
-        setState({
-          isPremium: true,
-          purchasedAt: remote.purchasedAt,
-        });
+      if (!remote.isSignedIn) {
+        setState({ isPremium: false, purchasedAt: null });
+        clearPremiumState();
+        return;
+      }
+
+      const resolved: PremiumState = {
+        isPremium: remote.isPremium,
+        purchasedAt: remote.purchasedAt,
+      };
+
+      setState(resolved);
+
+      if (resolved.isPremium) {
+        writePremiumState(resolved.purchasedAt ?? undefined);
       } else {
         clearPremiumState();
-        setState({ isPremium: false, purchasedAt: null });
       }
     } catch {
-      setState(readPremiumState());
+      const fallback = getOptimisticPremiumState(
+        clerkPremium,
+        readPremiumState()
+      );
+      setState(fallback);
+
+      if (fallback.isPremium) {
+        writePremiumState(fallback.purchasedAt ?? undefined);
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [authLoaded, isSignedIn]);
+  }, [authLoaded, isSignedIn, clerkPremium]);
 
   useEffect(() => {
     void syncPremiumState();

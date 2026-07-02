@@ -23,11 +23,20 @@ import {
   recordScenarioAnswer,
   recordWeeklyChallengeSession,
   addGrokMission,
+  answerAdaptiveMissionScenario,
+  clearAdaptiveMission,
   completeGrokMission,
+  finalizeAdaptiveMission,
   setSquadMembership,
+  startAdaptiveMission,
   type GrokMission,
   type ProgressionState,
 } from "@/lib/progression";
+import type {
+  AdaptiveMissionScenario,
+  AdaptiveMissionSession,
+} from "@/lib/adaptive-intelligence";
+import type { ScenarioDifficulty } from "@/lib/scenario-difficulty";
 import type { OnboardingGoal } from "@/lib/onboarding-path";
 import { isCloudSaveConfigured } from "@/lib/progression-cloud";
 import {
@@ -51,6 +60,25 @@ type ProgressionContextValue = {
   } | null;
   pendingPromotion: ProgressionState["pendingPromotionCommentary"];
   grokMissions: GrokMission[];
+  adaptiveMission: AdaptiveMissionSession | null;
+  startPersonalizedMission: (mission: {
+    title: string;
+    focusAreas: string[];
+    scenarios: Omit<
+      AdaptiveMissionScenario,
+      "answered" | "selectedChoiceId" | "correct"
+    >[];
+    difficulty: ScenarioDifficulty;
+    isPremium: boolean;
+  }) => void;
+  answerAdaptiveScenario: (
+    scenarioId: string,
+    choiceId: string
+  ) => ReturnType<typeof answerAdaptiveMissionScenario> | null;
+  completeAdaptiveMission: (
+    debrief: string
+  ) => ReturnType<typeof finalizeAdaptiveMission> | null;
+  dismissAdaptiveMission: () => void;
   recordAnswer: (record: {
     scenarioId: string;
     amendment: string;
@@ -166,6 +194,48 @@ export function ProgressionProvider({ children }: { children: ReactNode }) {
     [persist, state]
   );
 
+  const startPersonalizedMission = useCallback(
+    (mission: {
+      title: string;
+      focusAreas: string[];
+      scenarios: Omit<
+        AdaptiveMissionScenario,
+        "answered" | "selectedChoiceId" | "correct"
+      >[];
+      difficulty: ScenarioDifficulty;
+      isPremium: boolean;
+    }) => {
+      if (!state) return;
+      persist(startAdaptiveMission(state, mission));
+    },
+    [persist, state]
+  );
+
+  const answerAdaptiveScenario = useCallback(
+    (scenarioId: string, choiceId: string) => {
+      if (!state) return null;
+      const result = answerAdaptiveMissionScenario(state, scenarioId, choiceId);
+      persist(result.state);
+      return result;
+    },
+    [persist, state]
+  );
+
+  const completeAdaptiveMission = useCallback(
+    (debrief: string) => {
+      if (!state) return null;
+      const result = finalizeAdaptiveMission(state, debrief);
+      persist(result.state);
+      return result;
+    },
+    [persist, state]
+  );
+
+  const dismissAdaptiveMission = useCallback(() => {
+    if (!state) return;
+    persist(clearAdaptiveMission(state));
+  }, [persist, state]);
+
   const completeOnboarding = useCallback(
     (goal: OnboardingGoal) => {
       if (!state) return;
@@ -234,6 +304,11 @@ export function ProgressionProvider({ children }: { children: ReactNode }) {
       dailyMission,
       pendingPromotion: state?.pendingPromotionCommentary ?? null,
       grokMissions: state?.grokMissions ?? [],
+      adaptiveMission: state?.adaptiveMission ?? null,
+      startPersonalizedMission,
+      answerAdaptiveScenario,
+      completeAdaptiveMission,
+      dismissAdaptiveMission,
       recordAnswer,
       logHubActivity,
       dismissPromotion,
@@ -255,6 +330,10 @@ export function ProgressionProvider({ children }: { children: ReactNode }) {
       dismissPromotion,
       saveGrokMission,
       finishGrokMission,
+      startPersonalizedMission,
+      answerAdaptiveScenario,
+      completeAdaptiveMission,
+      dismissAdaptiveMission,
       completeOnboarding,
       recordWeeklySession,
       setSquadId,
