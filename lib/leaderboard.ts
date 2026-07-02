@@ -11,6 +11,9 @@ const LEADERBOARD_KEY = "theline:leaderboard";
 const PROFILE_PREFIX = "theline:profile:";
 const USERNAME_PREFIX = "theline:username:";
 
+/** Number of all-time defenders shown on the main scoreboard. */
+export const LEADERBOARD_DISPLAY_LIMIT = 50;
+
 export type LeaderboardEntry = {
   rank: number;
   userId: string;
@@ -197,7 +200,26 @@ function applyCompetitionRanks(entries: LeaderboardEntry[]): LeaderboardEntry[] 
   });
 }
 
-export async function getTopEntries(limit = 10): Promise<LeaderboardEntry[]> {
+async function getUserEntry(userId: string): Promise<LeaderboardEntry | null> {
+  const redis = getRedis();
+  const score = await redis.zscore(LEADERBOARD_KEY, userId);
+  if (score === null) return null;
+
+  const profile = await readProfile(userId);
+  const rawUsername = profile.username ?? (await ensureDefaultUsername(userId));
+  const numericScore = Number(score);
+
+  return {
+    rank: await getRankForScore(userId, numericScore),
+    userId,
+    username: formatLeaderboardDisplayName(rawUsername),
+    score: numericScore,
+  };
+}
+
+export async function getTopEntries(
+  limit = LEADERBOARD_DISPLAY_LIMIT
+): Promise<LeaderboardEntry[]> {
   const redis = getRedis();
   const rows = await redis.zrange(LEADERBOARD_KEY, 0, limit - 1, {
     rev: true,
@@ -225,10 +247,15 @@ export async function getTopEntries(limit = 10): Promise<LeaderboardEntry[]> {
 }
 
 export async function getLeaderboardForUser(
-  userId: string
-): Promise<{ top10: LeaderboardEntry[]; me: LeaderboardMe | null }> {
+  userId: string,
+  limit = LEADERBOARD_DISPLAY_LIMIT
+): Promise<{
+  entries: LeaderboardEntry[];
+  pinnedMe: LeaderboardEntry | null;
+  me: LeaderboardMe | null;
+}> {
   const redis = getRedis();
-  const top10 = await getTopEntries(10);
+  const entries = await getTopEntries(limit);
   const totalPlayers = await getTotalPlayers();
   const score = await redis.zscore(LEADERBOARD_KEY, userId);
 
@@ -236,7 +263,8 @@ export async function getLeaderboardForUser(
     const profile = await readProfile(userId);
     const username = profile.username;
     return {
-      top10,
+      entries,
+      pinnedMe: null,
       me: {
         rank: totalPlayers + 1,
         score: 0,
@@ -252,9 +280,12 @@ export async function getLeaderboardForUser(
   const profile = await readProfile(userId);
   const username =
     profile.username ?? (await ensureDefaultUsername(userId));
+  const userInList = entries.some((entry) => entry.userId === userId);
+  const pinnedMe = userInList ? null : await getUserEntry(userId);
 
   return {
-    top10,
+    entries,
+    pinnedMe,
     me: {
       rank: await getRankForScore(userId, numericScore),
       score: numericScore,

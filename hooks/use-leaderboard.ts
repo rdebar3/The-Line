@@ -21,7 +21,8 @@ export type LeaderboardMe = {
 
 type LeaderboardResponse = {
   configured: boolean;
-  top10: LeaderboardRow[];
+  entries: LeaderboardRow[];
+  pinnedMe: LeaderboardRow | null;
   me: LeaderboardMe | null;
   isSignedIn?: boolean;
 };
@@ -31,10 +32,11 @@ export function useLeaderboard(defenderScore: number, isProgressionLoaded: boole
   const [data, setData] = useState<LeaderboardResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [rankDelta, setRankDelta] = useState<number | null>(null);
 
-  const refresh = useCallback(async () => {
-    setIsLoading(true);
+  const refresh = useCallback(async (options?: { silent?: boolean }) => {
+    if (!options?.silent) {
+      setIsLoading(true);
+    }
     setError(null);
 
     try {
@@ -51,7 +53,9 @@ export function useLeaderboard(defenderScore: number, isProgressionLoaded: boole
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load leaderboard.");
     } finally {
-      setIsLoading(false);
+      if (!options?.silent) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
@@ -81,30 +85,38 @@ export function useLeaderboard(defenderScore: number, isProgressionLoaded: boole
 
   useEffect(() => {
     if (!authLoaded || !isProgressionLoaded || !isSignedIn) return;
-    void refresh();
+    void refresh({ silent: true });
   }, [authLoaded, defenderScore, isProgressionLoaded, isSignedIn, refresh]);
 
   useEffect(() => {
     function handleSynced() {
-      void refresh();
+      void refresh({ silent: true });
+    }
+
+    function handleReturn() {
+      void refresh({ silent: true });
     }
 
     window.addEventListener("theline:leaderboard-synced", handleSynced);
+    window.addEventListener("pageshow", handleReturn);
+    window.addEventListener("focus", handleReturn);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        handleReturn();
+      }
+    });
+
     return () => {
       window.removeEventListener("theline:leaderboard-synced", handleSynced);
+      window.removeEventListener("pageshow", handleReturn);
+      window.removeEventListener("focus", handleReturn);
     };
   }, [refresh]);
-
-  const dismissRankDelta = useCallback(() => {
-    setRankDelta(null);
-  }, []);
 
   return {
     data,
     isLoading,
     error,
-    rankDelta,
-    dismissRankDelta,
     refresh,
     saveUsername,
   };

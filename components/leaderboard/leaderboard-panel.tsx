@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { useLeaderboard } from "@/hooks/use-leaderboard";
+import { useLeaderboard, type LeaderboardRow } from "@/hooks/use-leaderboard";
 import { useLeaderboardSync } from "@/hooks/use-leaderboard-sync";
 import { useProgression } from "@/hooks/use-progression";
 import { cn } from "@/lib/utils";
@@ -150,6 +150,53 @@ function CallsignCustomizer({
   );
 }
 
+function ScoreboardRow({
+  entry,
+  highlightYou,
+}: {
+  entry: LeaderboardRow;
+  highlightYou: boolean;
+}) {
+  const isYou = highlightYou && entry.isYou === true;
+
+  return (
+    <li
+      className={cn(
+        "grid grid-cols-[3rem_1fr_5.5rem] items-center gap-3 border-b border-navy-border/35 px-4 py-3.5 last:border-b-0 sm:grid-cols-[3.5rem_1fr_6.5rem] sm:px-5 sm:py-4",
+        isYou &&
+          "border-l-[3px] border-l-gold bg-gold/10 shadow-[inset_0_0_0_1px_rgba(201,162,39,0.2)]"
+      )}
+    >
+      <span
+        className={cn(
+          "font-heading text-base font-bold tabular-nums sm:text-lg",
+          isYou ? "text-gold" : "text-muted-foreground"
+        )}
+      >
+        #{entry.rank}
+      </span>
+      <span className="min-w-0">
+        <span
+          className={cn(
+            "block truncate font-heading text-base font-semibold sm:text-lg",
+            isYou ? "text-gold" : "text-foreground"
+          )}
+        >
+          {entry.username}
+        </span>
+        {isYou ? (
+          <span className="mt-0.5 inline-flex items-center rounded-full border border-gold/35 bg-gold/15 px-2 py-0.5 text-[0.65rem] font-bold tracking-wide text-gold uppercase">
+            You
+          </span>
+        ) : null}
+      </span>
+      <span className="text-right font-heading text-base font-bold tabular-nums text-foreground sm:text-lg">
+        {entry.score.toLocaleString()}
+      </span>
+    </li>
+  );
+}
+
 type LeaderboardPanelProps = {
   /** Server-known flag — client fetch can lag or fail while storage is live. */
   configured?: boolean;
@@ -167,6 +214,7 @@ export function LeaderboardPanel({ configured = true }: LeaderboardPanelProps) {
   );
 
   const isLive = configured || data?.configured === true;
+  const highlightYou = data?.isSignedIn === true;
 
   if (!isLive) {
     return (
@@ -175,7 +223,7 @@ export function LeaderboardPanel({ configured = true }: LeaderboardPanelProps) {
         <div className="relative p-5 sm:p-6">
           <Trophy className="mx-auto size-5 text-gold/70" />
           <p className="mt-3 font-heading text-sm font-semibold text-foreground">
-            Defender Leaderboard
+            All-Time Patriots
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
             Leaderboard storage is being set up. Check back soon.
@@ -189,147 +237,150 @@ export function LeaderboardPanel({ configured = true }: LeaderboardPanelProps) {
     <section id="leaderboard" className="hub-card-shell scroll-mt-24">
       <div aria-hidden className="hub-card-accent" />
 
-      <div className="relative p-5 sm:p-7">
-      <header className="hub-section-header">
-        <h2 className="section-eyebrow">Defender Leaderboard</h2>
-        <p className="hub-section-subtitle">
-          See where you stand among citizen-defenders on the line.
-        </p>
-      </header>
+      <div className="relative p-5 sm:p-8">
+        <header className="hub-section-header">
+          <p className="section-eyebrow">Defender Leaderboard</p>
+          <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            All-Time Patriots
+          </h2>
+          <p className="hub-section-subtitle">
+            Lifetime Defender Score — ranked by total points earned across all
+            training.
+          </p>
+        </header>
 
-      {rankDelta !== null && data?.me && (
-        <RankMovementBanner
-          delta={rankDelta}
-          rank={data.me.rank}
-          onDismiss={dismissRankDelta}
-        />
-      )}
+        {rankDelta !== null && data?.me && (
+          <RankMovementBanner
+            delta={rankDelta}
+            rank={data.me.rank}
+            onDismiss={dismissRankDelta}
+          />
+        )}
 
-      {data?.isSignedIn === false && (
-        <div className="mb-4 rounded-xl border border-navy-border/70 bg-navy/40 px-4 py-3 text-center text-sm text-muted-foreground">
-          <SignInButton mode="redirect">
-            <button
+        {data?.isSignedIn === false && (
+          <div className="mb-4 rounded-xl border border-navy-border/70 bg-navy/40 px-4 py-3 text-center text-sm text-muted-foreground">
+            <SignInButton mode="redirect">
+              <button
+                type="button"
+                className="font-semibold text-gold underline-offset-2 hover:underline"
+              >
+                Sign in
+              </button>
+            </SignInButton>{" "}
+            to join the all-time scoreboard and claim your call sign.
+          </div>
+        )}
+
+        {data?.isSignedIn && data.me?.isDefaultUsername && data.me.displayName && (
+          <CallsignCustomizer
+            currentName={data.me.displayName}
+            onSave={saveUsername}
+          />
+        )}
+
+        {error && (
+          <div className="mb-4 flex flex-col gap-3 rounded-xl border border-crimson/30 bg-crimson/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-crimson">{error}</p>
+            <Button
               type="button"
-              className="font-semibold text-gold underline-offset-2 hover:underline"
+              variant="outline"
+              size="sm"
+              onClick={() => void refresh()}
+              className="border-crimson/30 text-crimson hover:bg-crimson/10"
             >
-              Sign in
-            </button>
-          </SignInButton>{" "}
-          to claim your rank and choose a leaderboard name.
-        </div>
-      )}
-
-      {data?.isSignedIn && data.me?.isDefaultUsername && data.me.displayName && (
-        <CallsignCustomizer
-          currentName={data.me.displayName}
-          onSave={saveUsername}
-        />
-      )}
-
-      {error && (
-        <div className="mb-4 flex flex-col gap-3 rounded-xl border border-crimson/30 bg-crimson/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-crimson">{error}</p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => void refresh()}
-            className="border-crimson/30 text-crimson hover:bg-crimson/10"
-          >
-            <RefreshCw className="size-3.5" />
-            Retry
-          </Button>
-        </div>
-      )}
-
-      {isLoading && !data ? (
-        <div className="flex justify-center py-8">
-          <Loader2 className="size-6 animate-spin text-gold" />
-        </div>
-      ) : data ? (
-        <>
-          <div className="-mx-1 overflow-x-auto sm:mx-0">
-          <div className="min-w-[17.5rem] overflow-hidden rounded-xl border border-navy-border/70">
-            <div className="grid grid-cols-[2.5rem_1fr_5rem] gap-2 border-b border-navy-border/60 bg-navy/50 px-4 py-2.5 text-[0.65rem] font-semibold tracking-[0.15em] text-muted-foreground uppercase sm:grid-cols-[3rem_1fr_6rem]">
-              <span>Rank</span>
-              <span>Defender</span>
-              <span className="text-right">Score</span>
-            </div>
-            <ol>
-              {data.top10.length === 0 ? (
-                <li className="px-4 py-6 text-center text-sm text-muted-foreground">
-                  {data.isSignedIn
-                    ? "You're on the board — train to climb the ranks."
-                    : "No defenders on the board yet. Sign in to join the ranks."}
-                </li>
-              ) : (
-                data.top10.map((entry) => (
-                  <li
-                    key={`${entry.rank}-${entry.username}`}
-                    className={cn(
-                      "grid grid-cols-[2.5rem_1fr_5rem] gap-2 border-b border-navy-border/40 px-4 py-3 text-sm last:border-b-0 sm:grid-cols-[3rem_1fr_6rem]",
-                      entry.isYou && "bg-gold/10"
-                    )}
-                  >
-                    <span className="font-heading font-semibold text-gold">
-                      #{entry.rank}
-                    </span>
-                    <span className="truncate font-medium text-foreground">
-                      {entry.username}
-                      {entry.isYou && (
-                        <span className="ml-2 text-xs text-gold">(you)</span>
-                      )}
-                    </span>
-                    <span className="text-right font-heading font-semibold text-foreground">
-                      {entry.score.toLocaleString()}
-                    </span>
-                  </li>
-                ))
-              )}
-            </ol>
+              <RefreshCw className="size-3.5" />
+              Retry
+            </Button>
           </div>
-          </div>
+        )}
 
-          {data.me && data.isSignedIn && (
-            <div className="mt-4 rounded-xl border border-gold/25 bg-gold/5 px-4 py-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-[0.65rem] font-semibold tracking-[0.2em] text-gold uppercase">
-                    Your Standing
-                  </p>
-                  <p className="mt-1 font-heading text-lg font-bold text-foreground">
-                    #{data.me.rank}{" "}
-                    <span className="text-sm font-medium text-muted-foreground">
-                      of {Math.max(data.me.totalPlayers, data.me.rank)} synced
-                      account{data.me.totalPlayers === 1 ? "" : "s"}
-                    </span>
-                  </p>
-                  {data.me.isDefaultUsername && (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Claim a custom call sign when you&apos;re ready.
-                    </p>
+        {isLoading && !data ? (
+          <div className="flex justify-center py-10">
+            <Loader2 className="size-6 animate-spin text-gold" />
+          </div>
+        ) : data ? (
+          <>
+            <div className="overflow-hidden rounded-2xl border border-navy-border/70 bg-navy/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+              <div className="grid grid-cols-[3rem_1fr_5.5rem] gap-3 border-b border-gold/20 bg-navy/60 px-4 py-3 text-[0.7rem] font-bold tracking-[0.18em] text-muted-foreground uppercase sm:grid-cols-[3.5rem_1fr_6.5rem] sm:px-5">
+                <span>Rank</span>
+                <span>Patriot</span>
+                <span className="text-right">Total pts</span>
+              </div>
+
+              <div className="max-h-[min(28rem,60dvh)] overflow-y-auto overscroll-contain">
+                <ol>
+                  {data.entries.length === 0 ? (
+                    <li className="px-5 py-10 text-center text-sm text-muted-foreground">
+                      {data.isSignedIn
+                        ? "You're on the board — train to climb the ranks."
+                        : "No defenders on the board yet. Sign in to join the ranks."}
+                    </li>
+                  ) : (
+                    data.entries.map((entry) => (
+                      <ScoreboardRow
+                        key={`${entry.rank}-${entry.username}-${entry.score}`}
+                        entry={entry}
+                        highlightYou={highlightYou}
+                      />
+                    ))
                   )}
-                </div>
-                <div className="text-right">
-                  <p className="text-[0.65rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
-                    Score
-                  </p>
-                  <p className="mt-1 font-heading text-2xl font-bold text-foreground">
-                    {data.me.score.toLocaleString()}
-                  </p>
-                </div>
-              </div>
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <Medal className="size-3.5 text-gold" />
-                <span>
-                  {rank.title} ({rank.abbreviation}) ·{" "}
-                  {data.me.displayName ?? data.me.username ?? "Defender"}
-                </span>
+                </ol>
+
+                {data.pinnedMe ? (
+                  <div className="border-t border-gold/25 bg-navy/50">
+                    <p className="px-5 pt-3 text-[0.65rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+                      Your position
+                    </p>
+                    <ol>
+                      <ScoreboardRow
+                        entry={data.pinnedMe}
+                        highlightYou={highlightYou}
+                      />
+                    </ol>
+                  </div>
+                ) : null}
               </div>
             </div>
-          )}
-        </>
-      ) : null}
+
+            {data.me && data.isSignedIn && (
+              <div className="mt-5 rounded-xl border border-gold/25 bg-gold/5 px-4 py-4 sm:px-5">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[0.65rem] font-semibold tracking-[0.2em] text-gold uppercase">
+                      Your lifetime standing
+                    </p>
+                    <p className="mt-1 font-heading text-xl font-bold text-foreground sm:text-2xl">
+                      #{data.me.rank}{" "}
+                      <span className="text-sm font-medium text-muted-foreground sm:text-base">
+                        of {Math.max(data.me.totalPlayers, data.me.rank)} defenders
+                      </span>
+                    </p>
+                    {data.me.isDefaultUsername && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Claim a custom call sign when you&apos;re ready.
+                      </p>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[0.65rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+                      Lifetime score
+                    </p>
+                    <p className="mt-1 font-heading text-3xl font-bold text-foreground">
+                      {data.me.score.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <Medal className="size-3.5 text-gold" />
+                  <span>
+                    {rank.title} ({rank.abbreviation}) ·{" "}
+                    {data.me.displayName ?? data.me.username ?? "Defender"}
+                  </span>
+                </div>
+              </div>
+            )}
+          </>
+        ) : null}
       </div>
     </section>
   );

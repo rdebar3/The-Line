@@ -5,14 +5,24 @@ import {
   getLeaderboardForUser,
   getTopEntries,
   isLeaderboardConfigured,
+  LEADERBOARD_DISPLAY_LIMIT,
   removeUserFromLeaderboard,
 } from "@/lib/leaderboard";
+
+function stripUserId<T extends { userId: string }>(
+  entry: T
+): Omit<T, "userId"> {
+  const { userId, ...publicEntry } = entry;
+  void userId;
+  return publicEntry;
+}
 
 export async function GET() {
   if (!isLeaderboardConfigured()) {
     return NextResponse.json({
       configured: false,
-      top10: [],
+      entries: [],
+      pinnedMe: null,
       me: null,
     });
   }
@@ -21,27 +31,27 @@ export async function GET() {
     const { userId } = await auth();
 
     if (!userId) {
-      const top10 = await getTopEntries(10);
+      const entries = await getTopEntries(LEADERBOARD_DISPLAY_LIMIT);
       return NextResponse.json({
         configured: true,
-        top10: top10.map((entry) => {
-          const { userId, ...publicEntry } = entry;
-          void userId;
-          return publicEntry;
-        }),
+        entries: entries.map(stripUserId),
+        pinnedMe: null,
         me: null,
         isSignedIn: false,
       });
     }
 
-    const { top10, me } = await getLeaderboardForUser(userId);
+    const { entries, pinnedMe, me } = await getLeaderboardForUser(userId);
 
     return NextResponse.json({
       configured: true,
-      top10: top10.map(({ userId: entryUserId, ...entry }) => ({
-        ...entry,
-        isYou: entryUserId === userId,
+      entries: entries.map((entry) => ({
+        ...stripUserId(entry),
+        isYou: entry.userId === userId,
       })),
+      pinnedMe: pinnedMe
+        ? { ...stripUserId(pinnedMe), isYou: true }
+        : null,
       me: me
         ? {
             rank: me.rank,
