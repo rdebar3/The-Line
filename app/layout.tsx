@@ -95,9 +95,9 @@ export default function RootLayout({
         >
           <UserScopeSync />
           <ClearStaleServiceWorker />
-          <TikTokBrowserBanner />
-          <AuthHeader />
           <SubscriptionProvider>
+            <TikTokBrowserBanner />
+            <AuthHeader />
             <ProgressionProvider>
               {children}
               <FirstLoginTutorial />

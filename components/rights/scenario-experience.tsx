@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useAuth } from "@clerk/nextjs";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
@@ -12,6 +13,7 @@ import {
   XCircle,
 } from "lucide-react";
 
+import { DailyScenarioLimitModal } from "@/components/monetization/daily-scenario-limit-modal";
 import { GuardianCharacter } from "@/components/guardian/guardian-character";
 import { CHARACTER_NAME } from "@/lib/guardian";
 import { FieldDebriefPanel } from "@/components/rights/field-debrief-panel";
@@ -26,6 +28,11 @@ import {
   buildPerformanceSummary,
   getWeakAreas,
 } from "@/lib/progression";
+import {
+  markDailyLimitModalShown,
+  shouldOfferDailyLimitModal,
+  wasDailyLimitModalShownToday,
+} from "@/lib/daily-limit-modal";
 import {
   DIFFICULTY_LABELS,
   getDifficultyForRankObject,
@@ -570,8 +577,16 @@ function CompletionScreen({
 }
 
 export function ScenarioExperience() {
-  const { canAccess, openUnlockModal } = useSubscription();
+  const { isSignedIn } = useAuth();
+  const {
+    canAccess,
+    openUnlockModal,
+    unlock,
+    isPurchasing,
+    purchaseError,
+  } = useSubscription();
   const isPremium = canAccess("all_scenarios");
+  const [limitModalOpen, setLimitModalOpen] = useState(false);
 
   const {
     state: progressionState,
@@ -620,6 +635,38 @@ export function ScenarioExperience() {
   const [sessionPointsEarned, setSessionPointsEarned] = useState(0);
   const [sessionTopicIds, setSessionTopicIds] = useState<string[]>([]);
   const [isFirstDeploy, setIsFirstDeploy] = useState(true);
+
+  const offerDailyLimitModal = useCallback(() => {
+    if (
+      !shouldOfferDailyLimitModal({
+        isSignedIn: Boolean(isSignedIn),
+        isPremium,
+        scenariosGenerated: generationState.scenariosGenerated,
+      })
+    ) {
+      return;
+    }
+
+    if (wasDailyLimitModalShownToday()) return;
+
+    markDailyLimitModalShown();
+    setLimitModalOpen(true);
+  }, [isSignedIn, isPremium, generationState.scenariosGenerated]);
+
+  useEffect(() => {
+    if (!generationLoaded) return;
+    offerDailyLimitModal();
+  }, [generationLoaded, offerDailyLimitModal]);
+
+  const limitModal = (
+    <DailyScenarioLimitModal
+      open={limitModalOpen}
+      onOpenChange={setLimitModalOpen}
+      onUnlock={unlock}
+      isPurchasing={isPurchasing}
+      purchaseError={purchaseError}
+    />
+  );
 
   const fetchScenario = useCallback(
     async ({
@@ -753,7 +800,12 @@ export function ScenarioExperience() {
   );
 
   const deploySession = useCallback(async () => {
-    if (!progressionState || !canGenerate) return;
+    if (!progressionState) return;
+
+    if (!canGenerate) {
+      offerDailyLimitModal();
+      return;
+    }
 
     setPhase("generating");
     setIsFirstDeploy(true);
@@ -782,7 +834,7 @@ export function ScenarioExperience() {
       );
       setPhase("briefing");
     }
-  }, [progressionState, canGenerate, fetchScenario]);
+  }, [progressionState, canGenerate, fetchScenario, offerDailyLimitModal]);
 
   const resetToBriefing = useCallback(() => {
     setPhase("briefing");
@@ -834,7 +886,10 @@ export function ScenarioExperience() {
   }
 
   async function handleNextScenario() {
-    if (!canGenerateNext) return;
+    if (!canGenerateNext) {
+      offerDailyLimitModal();
+      return;
+    }
 
     setSelectedChoiceId(null);
     setLastPointsEarned(null);
@@ -867,17 +922,21 @@ export function ScenarioExperience() {
 
   if (!generationLoaded || !progressionState) {
     return (
-      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4">
-        <Loader2 className="size-10 animate-spin text-gold" />
-        <p className="text-sm text-muted-foreground">
-          Loading training systems...
-        </p>
-      </div>
+      <>
+        <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4">
+          <Loader2 className="size-10 animate-spin text-gold" />
+          <p className="text-sm text-muted-foreground">
+            Loading training systems...
+          </p>
+        </div>
+        {limitModal}
+      </>
     );
   }
 
   if (phase === "briefing") {
     return (
+      <>
       <div className="space-y-6">
         <TrainingBriefing
           rank={rank}
@@ -908,11 +967,14 @@ export function ScenarioExperience() {
           </p>
         )}
       </div>
+      {limitModal}
+      </>
     );
   }
 
   if (phase === "generating") {
     return (
+      <>
       <GeneratingScreen
         scenarioNumber={
           isFirstDeploy ? 1 : sessionScenarios.length + 1
@@ -921,11 +983,14 @@ export function ScenarioExperience() {
         defenderScore={defenderScore}
         isFirstScenario={isFirstDeploy}
       />
+      {limitModal}
+      </>
     );
   }
 
   if (phase === "complete") {
     return (
+      <>
       <div className="space-y-8">
         <TrainingSessionHeader
           scenarioNumber={sessionScenarios.length}
@@ -947,14 +1012,17 @@ export function ScenarioExperience() {
           canGenerate={canGenerate}
         />
       </div>
+      {limitModal}
+      </>
     );
   }
 
   if (!scenario) {
-    return null;
+    return limitModal;
   }
 
   return (
+    <>
     <div className="space-y-8">
       <TrainingSessionHeader
         scenarioNumber={currentIndex + 1}
@@ -1114,5 +1182,7 @@ export function ScenarioExperience() {
         />
       </div>
     </div>
+    {limitModal}
+    </>
   );
 }

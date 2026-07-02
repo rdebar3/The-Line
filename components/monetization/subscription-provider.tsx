@@ -26,6 +26,7 @@ type SubscriptionContextValue = {
   isLoading: boolean;
   isSignedIn: boolean;
   isModalOpen: boolean;
+  isPurchasing: boolean;
   purchaseError: string | null;
   justUnlocked: boolean;
   openUnlockModal: () => void;
@@ -189,6 +190,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       isLoading: !authLoaded || isLoading,
       isSignedIn: Boolean(isSignedIn),
       isModalOpen,
+      isPurchasing,
       purchaseError,
       justUnlocked,
       openUnlockModal,
@@ -204,6 +206,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       isLoading,
       isSignedIn,
       isModalOpen,
+      isPurchasing,
       purchaseError,
       justUnlocked,
       openUnlockModal,
