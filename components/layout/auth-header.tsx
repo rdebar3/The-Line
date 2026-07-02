@@ -1,18 +1,21 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useAuth, UserButton } from "@clerk/nextjs";
 import { Lock, Sparkles } from "lucide-react";
 
-import { SignInWithXButton } from "@/components/auth/sign-in-with-x-button";
+import { AuthSignInModal } from "@/components/auth/auth-sign-in-modal";
 import { useSubscription } from "@/hooks/use-subscription";
 
 export function AuthHeader() {
   const { isSignedIn, isLoaded } = useAuth();
   const { isPremium, isLoading, openUnlockModal } = useSubscription();
+  const [signInOpen, setSignInOpen] = useState(false);
   const showUserMenu = isLoaded && isSignedIn;
   const showUnlockCta = isLoaded && !isLoading && !isPremium;
   const showPremiumBadge = isLoaded && !isLoading && isPremium && isSignedIn;
+  const showSignIn = isLoaded && !isSignedIn;
 
   return (
     <header className="sticky top-[var(--tiktok-banner-offset,0px)] z-50 border-b border-gold/10 bg-navy/90 backdrop-blur-md">
@@ -51,7 +54,17 @@ export function AuthHeader() {
             </button>
           )}
 
-          {showUserMenu ? (
+          {showSignIn && (
+            <button
+              type="button"
+              onClick={() => setSignInOpen(true)}
+              className="auth-btn-signin inline-flex h-8 shrink-0 items-center justify-center rounded-lg border border-navy-border/80 bg-navy-elevated/50 px-3 text-[0.7rem] font-semibold tracking-wide text-foreground transition-all hover:border-gold/30 hover:bg-navy-elevated sm:h-9 sm:px-4 sm:text-xs"
+            >
+              Sign In
+            </button>
+          )}
+
+          {showUserMenu && (
             <UserButton
               appearance={{
                 elements: {
@@ -60,25 +73,11 @@ export function AuthHeader() {
                 },
               }}
             />
-          ) : (
-            <>
-              <SignInWithXButton mode="sign-in" variant="compact" />
-              <Link
-                href="/sign-in"
-                className="auth-btn-signin inline-flex h-8 items-center justify-center rounded-lg border border-navy-border/80 bg-navy-elevated/50 px-2.5 text-[0.7rem] font-semibold tracking-wide text-foreground transition-all hover:border-gold/30 hover:bg-navy-elevated sm:h-9 sm:px-4 sm:text-xs"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/sign-up"
-                className="auth-btn-signup btn-gold premium-button inline-flex h-8 shrink-0 items-center justify-center rounded-lg px-2.5 text-[0.7rem] font-semibold tracking-wide shadow-[0_0_20px_rgba(201,162,39,0.15)] sm:h-9 sm:px-4 sm:text-xs"
-              >
-                Sign Up
-              </Link>
-            </>
           )}
         </nav>
       </div>
+
+      <AuthSignInModal open={signInOpen} onOpenChange={setSignInOpen} />
     </header>
   );
 }
