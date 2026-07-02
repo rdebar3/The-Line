@@ -2,16 +2,14 @@
 
 import { useInAppBrowser } from "@/hooks/use-in-app-browser";
 import { useSocialOAuthRedirect } from "@/hooks/use-social-oauth-redirect";
-import {
-  X_OAUTH_EMAIL_SCOPE,
-  X_OAUTH_STRATEGY,
-} from "@/lib/clerk-x-oauth";
+import { X_OAUTH_STRATEGY } from "@/lib/clerk-x-oauth";
 import { cn } from "@/lib/utils";
 
 type SignInWithXButtonProps = {
   mode: "sign-in" | "sign-up";
   variant?: "default" | "compact";
   className?: string;
+  onEmailFallback?: () => void;
 };
 
 function XLogo({ className }: { className?: string }) {
@@ -30,12 +28,12 @@ export function SignInWithXButton({
   mode,
   variant = "default",
   className,
+  onEmailFallback,
 }: SignInWithXButtonProps) {
   const { isOAuthHostile, ready } = useInAppBrowser();
   const { isReady, loading, error, startRedirect } = useSocialOAuthRedirect({
     strategy: X_OAUTH_STRATEGY,
     mode,
-    additionalScopes: [X_OAUTH_EMAIL_SCOPE],
     fallbackErrorMessage:
       "Could not connect to X. Please try again or use email.",
   });
@@ -74,7 +72,22 @@ export function SignInWithXButton({
     <div className={cn("space-y-2", className)}>
       {button}
       {error ? (
-        <p className="text-center text-xs text-crimson-light">{error}</p>
+        <div className="space-y-2 text-center">
+          <p className="text-xs text-crimson-light">{error}</p>
+          {onEmailFallback ? (
+            <button
+              type="button"
+              onClick={onEmailFallback}
+              className="text-xs font-semibold text-gold underline-offset-2 transition-colors hover:underline"
+            >
+              Continue with email instead
+            </button>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              You can continue with email below.
+            </p>
+          )}
+        </div>
       ) : null}
     </div>
   );

@@ -11,11 +11,13 @@ import { useInAppBrowser } from "@/hooks/use-in-app-browser";
 type SocialAuthButtonsProps = {
   mode: "sign-in" | "sign-up";
   showTroubleshoot?: boolean;
+  onEmailFallback?: () => void;
 };
 
 export function SocialAuthButtons({
   mode,
   showTroubleshoot = mode === "sign-in",
+  onEmailFallback,
 }: SocialAuthButtonsProps) {
   const { isOAuthHostile, ready } = useInAppBrowser();
 
@@ -26,7 +28,7 @@ export function SocialAuthButtons({
   return (
     <div className="space-y-3">
       <SignInWithGoogleButton mode={mode} />
-      <SignInWithXButton mode={mode} />
+      <SignInWithXButton mode={mode} onEmailFallback={onEmailFallback} />
       {showTroubleshoot ? <XOAuthTroubleshoot /> : null}
       <AuthEmailDivider />
     </div>

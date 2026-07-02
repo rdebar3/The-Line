@@ -85,7 +85,10 @@ export function AuthSignInModal({ open, onOpenChange }: AuthSignInModalProps) {
 
             {view === "welcome" && (
               <div className="space-y-4">
-                <SocialAuthButtons mode="sign-in" />
+                <SocialAuthButtons
+                  mode="sign-in"
+                  onEmailFallback={() => setView("email-sign-in")}
+                />
 
                 <Button
                   type="button"

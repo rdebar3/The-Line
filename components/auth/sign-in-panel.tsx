@@ -5,6 +5,7 @@ import { SignIn } from "@clerk/nextjs";
 
 import { ClerkAuthShell } from "@/components/auth/clerk-auth-shell";
 import { InAppBrowserAuthGate } from "@/components/auth/in-app-browser-auth-gate";
+import { OAuthDebugBanner } from "@/components/auth/oauth-debug-banner";
 import { SocialAuthButtons } from "@/components/auth/social-auth-buttons";
 import { useInAppBrowser } from "@/hooks/use-in-app-browser";
 import { getClerkAppearance } from "@/lib/clerk-appearance";
@@ -29,6 +30,7 @@ export function SignInPanel() {
   return (
     <ClerkAuthShell>
       <div className="space-y-4">
+        <OAuthDebugBanner />
         <SocialAuthButtons mode="sign-in" />
         <SignIn
           routing="path"
