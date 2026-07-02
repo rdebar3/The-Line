@@ -24,9 +24,7 @@ const hiddenSocialElements = {
 
 export const clerkAppearance = clerkAppearanceBase;
 
-export function getClerkAppearance(options?: { hideSocial?: boolean }) {
-  if (!options?.hideSocial) return clerkAppearanceBase;
-
+export function getClerkAppearance() {
   return {
     ...clerkAppearanceBase,
     elements: hiddenSocialElements,

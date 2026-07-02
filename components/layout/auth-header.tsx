@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useAuth, UserButton } from "@clerk/nextjs";
 import { Lock, Sparkles } from "lucide-react";
 
+import { SignInWithXButton } from "@/components/auth/sign-in-with-x-button";
 import { useSubscription } from "@/hooks/use-subscription";
 
 export function AuthHeader() {
@@ -61,6 +62,7 @@ export function AuthHeader() {
             />
           ) : (
             <>
+              <SignInWithXButton mode="sign-in" variant="compact" />
               <Link
                 href="/sign-in"
                 className="auth-btn-signin inline-flex h-8 items-center justify-center rounded-lg border border-navy-border/80 bg-navy-elevated/50 px-2.5 text-[0.7rem] font-semibold tracking-wide text-foreground transition-all hover:border-gold/30 hover:bg-navy-elevated sm:h-9 sm:px-4 sm:text-xs"

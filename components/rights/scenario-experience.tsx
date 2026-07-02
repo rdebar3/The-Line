@@ -21,6 +21,7 @@ import { FieldDebriefPanel } from "@/components/rights/field-debrief-panel";
 import { RankBadge } from "@/components/progression/rank-badge";
 import { GuardianReaction } from "@/components/rights/guardian-reaction";
 import { TrainingBriefing } from "@/components/rights/training-briefing";
+import { TrainingFocusHeader } from "@/components/rights/training-focus-header";
 import { Button } from "@/components/ui/button";
 import { useProgression } from "@/hooks/use-progression";
 import { useScenarioGeneration } from "@/hooks/use-scenario-generation";
@@ -28,6 +29,7 @@ import { useSubscription } from "@/hooks/use-subscription";
 import {
   buildPerformanceSummary,
   getWeakAreas,
+  type ProgressionState,
 } from "@/lib/progression";
 import {
   markDailyLimitModalShown,
@@ -40,20 +42,12 @@ import {
   SCENARIOS_PER_REQUEST,
   type ScenarioDifficulty,
 } from "@/lib/scenario-difficulty";
-import {
-  DOCUMENT_FAMILY_LABELS,
-  getDocumentFamilyFromSource,
-  pickNextTopicAssignment,
-  type DocumentFamily,
-} from "@/lib/scenario-curriculum";
+import { pickNextTopicAssignment } from "@/lib/scenario-curriculum";
 import {
   getSituationHeading,
   QUESTION_FORMAT_LABELS,
 } from "@/lib/question-formats";
-import {
-  getScenarioSourceBadge,
-  getScenarioSourceDocument,
-} from "@/lib/scenario-display";
+import { getScenarioSourceDocument } from "@/lib/scenario-display";
 import {
   readScenarioGenerationState,
   recordScenarioGeneration,
@@ -89,28 +83,6 @@ type SessionMeta = {
 
 type Phase = "briefing" | "generating" | "training" | "complete";
 
-function DefenderScoreBadge({
-  score,
-  pointsEarned,
-}: {
-  score: number;
-  pointsEarned: number | null;
-}) {
-  return (
-    <div className="rounded-xl border border-gold/25 bg-navy-elevated/80 px-4 py-3 text-center sm:text-right">
-      <p className="text-[0.65rem] font-semibold tracking-[0.3em] text-gold uppercase">
-        Defender Score
-      </p>
-      <p className="score-glow font-heading text-3xl font-bold text-foreground">
-        {score}
-      </p>
-      {pointsEarned !== null && pointsEarned > 0 && (
-        <p className="mt-1 text-xs font-medium text-gold">+{pointsEarned} pts</p>
-      )}
-    </div>
-  );
-}
-
 function DifficultyBadge({ difficulty }: { difficulty: ScenarioDifficulty }) {
   const meta = DIFFICULTY_LABELS[difficulty];
   return (
@@ -128,209 +100,32 @@ function DifficultyBadge({ difficulty }: { difficulty: ScenarioDifficulty }) {
   );
 }
 
-function SessionDocumentCoverage({
-  sessionScenarios,
-}: {
-  sessionScenarios: Scenario[];
-}) {
-  const coveredFamilies = new Set<DocumentFamily>(
-    sessionScenarios.map((scenario) =>
-      getDocumentFamilyFromSource(
-        scenario.sourceDocument ?? getScenarioSourceDocument(scenario)
-      )
-    )
-  );
-
-  const trackFamilies: DocumentFamily[] = [
-    "declaration",
-    "constitution",
-    "bill-of-rights",
-    "principles",
-    "later-amendments",
-  ];
-
-  return (
-    <div className="rounded-xl border border-navy-border/70 bg-navy/40 px-4 py-3">
-      <p className="font-heading text-[0.65rem] font-semibold tracking-[0.25em] text-muted-foreground uppercase">
-        Corpus coverage this session
-      </p>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {trackFamilies.map((family) => {
-          const covered = coveredFamilies.has(family);
-          return (
-            <span
-              key={family}
-              className={cn(
-                "rounded-lg border px-2.5 py-1 text-[0.65rem] font-medium tracking-wide",
-                covered
-                  ? "border-gold/30 bg-gold/10 text-gold"
-                  : "border-navy-border/60 bg-navy-elevated/40 text-muted-foreground/70"
-              )}
-            >
-              {DOCUMENT_FAMILY_LABELS[family]}
-              {covered && (
-                <CheckCircle2 className="ml-1 inline size-3" />
-              )}
-            </span>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function ScenarioProgress({
-  sessionScenarios,
-  currentIndex,
-  answers,
-}: {
-  sessionScenarios: Scenario[];
-  currentIndex: number;
-  answers: AnswerRecord[];
-}) {
-  return (
-    <>
-      <div role="list" className="flex items-center gap-2 sm:hidden">
-        {sessionScenarios.map((scenario, index) => {
-          const answer = answers.find((item) => item.scenarioId === scenario.id);
-          const isCurrent = index === currentIndex;
-          const isComplete = Boolean(answer);
-
-          return (
-            <div
-              key={scenario.id}
-              role="listitem"
-              className={cn(
-                "h-2.5 flex-1 rounded-full transition-all duration-300",
-                isCurrent && "bg-gold",
-                !isCurrent &&
-                  isComplete &&
-                  answer?.correct &&
-                  "bg-gold/50",
-                !isCurrent &&
-                  isComplete &&
-                  !answer?.correct &&
-                  "bg-crimson/50",
-                !isCurrent && !isComplete && "bg-navy-border/60"
-              )}
-            />
-          );
-        })}
-      </div>
-      <p className="text-center text-xs text-muted-foreground sm:hidden">
-        Scenario {currentIndex + 1} · Session active
-      </p>
-
-      <div className="hidden flex-wrap gap-2 sm:flex">
-        {sessionScenarios.map((scenario, index) => {
-          const answer = answers.find((item) => item.scenarioId === scenario.id);
-          const isCurrent = index === currentIndex;
-          const isComplete = Boolean(answer);
-
-          return (
-            <div
-              key={scenario.id}
-              className={cn(
-                "flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors",
-                isCurrent && "border-gold/40 bg-gold/10 text-gold",
-                !isCurrent &&
-                  isComplete &&
-                  answer?.correct &&
-                  "border-gold/20 bg-gold/5 text-gold/80",
-                !isCurrent &&
-                  isComplete &&
-                  !answer?.correct &&
-                  "border-crimson/20 bg-crimson/5 text-crimson/80",
-                !isCurrent &&
-                  !isComplete &&
-                  "border-navy-border/60 bg-navy-elevated/40 text-muted-foreground"
-              )}
-            >
-              <span className="font-heading tracking-wide">
-                {getScenarioSourceBadge(scenario)}
-              </span>
-              {scenario.generated && (
-                <Sparkles className="size-3 text-gold/70" />
-              )}
-              {isComplete &&
-                (answer?.correct ? (
-                  <CheckCircle2 className="size-3.5" />
-                ) : (
-                  <XCircle className="size-3.5" />
-                ))}
-            </div>
-          );
-        })}
-      </div>
-    </>
-  );
-}
-
-function TrainingSessionHeader({
-  scenarioNumber,
-  difficulty,
-  defenderScore,
-  pointsEarned,
-  correctStreak,
-}: {
-  scenarioNumber: number;
-  difficulty: ScenarioDifficulty;
-  defenderScore: number;
-  pointsEarned: number | null;
-  correctStreak: number;
-}) {
-  return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-      <div>
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="font-heading text-xs font-semibold tracking-[0.35em] text-crimson uppercase">
-            Training Session
-          </p>
-          {scenarioNumber > 0 && (
-            <p className="font-heading text-xs font-semibold tracking-[0.35em] text-muted-foreground uppercase">
-              Scenario {scenarioNumber}
-            </p>
-          )}
-          <span className="rounded-md border border-gold/20 bg-gold/5 px-2 py-0.5 text-[0.65rem] font-medium tracking-wide text-gold">
-            Open session
-          </span>
-          <DifficultyBadge difficulty={difficulty} />
-        </div>
-        <h1 className="mt-2 font-heading text-3xl font-bold tracking-wide text-foreground sm:text-4xl">
-          Rights Under Pressure
-        </h1>
-      </div>
-      <div className="flex flex-col items-center gap-3 sm:items-end">
-        <DefenderScoreBadge score={defenderScore} pointsEarned={pointsEarned} />
-        {correctStreak > 0 && (
-          <p className="text-xs font-medium tracking-wide text-gold">
-            {correctStreak} correct streak
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function GeneratingScreen({
-  scenarioNumber,
-  difficulty,
+  focusLabel,
+  progressionState,
+  sessionScenarios,
+  answers,
   defenderScore,
   isFirstScenario,
 }: {
-  scenarioNumber: number;
-  difficulty: ScenarioDifficulty;
+  focusLabel: string;
+  progressionState: ProgressionState | null;
+  sessionScenarios: Scenario[];
+  answers: AnswerRecord[];
   defenderScore: number;
   isFirstScenario: boolean;
 }) {
   return (
     <div className="space-y-8">
-      <TrainingSessionHeader
-        scenarioNumber={scenarioNumber}
-        difficulty={difficulty}
+      <TrainingFocusHeader
+        focusLabel={focusLabel}
+        progressionState={progressionState}
+        sessionScenarios={sessionScenarios}
+        answers={answers}
         defenderScore={defenderScore}
         pointsEarned={null}
         correctStreak={0}
+        loading
       />
 
       <Card className="premium-card rounded-2xl border-gold/25 py-0">
@@ -637,6 +432,20 @@ export function ScenarioExperience() {
   const [sessionPointsEarned, setSessionPointsEarned] = useState(0);
   const [sessionTopicIds, setSessionTopicIds] = useState<string[]>([]);
   const [isFirstDeploy, setIsFirstDeploy] = useState(true);
+
+  const generatingFocusLabel = useMemo(() => {
+    const lastScenario = sessionScenarios[sessionScenarios.length - 1];
+    if (lastScenario?.amendmentLabel) return lastScenario.amendmentLabel;
+    if (weakAreas[0]?.amendment) return weakAreas[0].amendment;
+    return "Rights Under Pressure";
+  }, [sessionScenarios, weakAreas]);
+
+  const sessionFocusLabel = useMemo(() => {
+    const current = sessionScenarios[currentIndex];
+    if (current?.amendmentLabel) return current.amendmentLabel;
+    const last = sessionScenarios[sessionScenarios.length - 1];
+    return last?.amendmentLabel ?? "Rights Under Pressure";
+  }, [sessionScenarios, currentIndex]);
 
   const offerDailyLimitModal = useCallback(() => {
     if (
@@ -979,10 +788,10 @@ export function ScenarioExperience() {
     return (
       <>
       <GeneratingScreen
-        scenarioNumber={
-          isFirstDeploy ? 1 : sessionScenarios.length + 1
-        }
-        difficulty={difficulty}
+        focusLabel={generatingFocusLabel}
+        progressionState={progressionState}
+        sessionScenarios={sessionScenarios}
+        answers={answers}
         defenderScore={defenderScore}
         isFirstScenario={isFirstDeploy}
       />
@@ -995,12 +804,15 @@ export function ScenarioExperience() {
     return (
       <>
       <div className="space-y-8">
-        <TrainingSessionHeader
-          scenarioNumber={sessionScenarios.length}
-          difficulty={sessionMeta.difficulty}
+        <TrainingFocusHeader
+          focusLabel={sessionFocusLabel}
+          progressionState={progressionState}
+          sessionScenarios={sessionScenarios}
+          answers={answers}
           defenderScore={defenderScore}
           pointsEarned={null}
           correctStreak={correctStreak}
+          generated={sessionMeta.generated}
         />
         <CompletionScreen
           sessionScore={sessionPointsEarned}
@@ -1026,48 +838,32 @@ export function ScenarioExperience() {
 
   return (
     <>
-    <div className="space-y-8">
-      <TrainingSessionHeader
-        scenarioNumber={currentIndex + 1}
-        difficulty={sessionMeta.difficulty}
+    <div className="space-y-6 sm:space-y-8">
+      <TrainingFocusHeader
+        focusLabel={scenario.amendmentLabel}
+        progressionState={progressionState}
+        sessionScenarios={sessionScenarios}
+        answers={answers}
         defenderScore={defenderScore}
         pointsEarned={lastPointsEarned}
         correctStreak={correctStreak}
-      />
-
-      {scenario.generated && (
-        <p className="-mt-4 flex items-center gap-1.5 text-xs font-medium tracking-wide text-gold">
-          <Sparkles className="size-3" />
-          Grok-generated scenario
-        </p>
-      )}
-
-      <SessionDocumentCoverage sessionScenarios={sessionScenarios} />
-
-      <ScenarioProgress
-        sessionScenarios={sessionScenarios}
-        currentIndex={currentIndex}
-        answers={answers}
+        generated={scenario.generated}
       />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
         <Card className="premium-card rounded-2xl py-0">
-          <CardHeader className="gap-3 border-b border-navy-border/60">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="rounded-lg border border-gold/25 bg-gold/10 px-3 py-1 font-heading text-sm font-semibold tracking-wide text-gold">
-                {getScenarioSourceBadge(scenario)}
-              </span>
-              <span className="text-sm font-medium text-foreground/90">
+          <CardHeader className="gap-3 border-b border-navy-border/60 px-5 py-5 sm:px-6">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-md border border-navy-border/70 bg-navy/50 px-2.5 py-1 text-[0.65rem] font-medium tracking-wide text-muted-foreground">
                 {getScenarioSourceDocument(scenario)}
               </span>
+              {scenario.questionFormat && (
+                <span className="rounded-md border border-navy-border/70 bg-navy/50 px-2.5 py-1 text-[0.65rem] font-medium tracking-wide text-muted-foreground">
+                  {QUESTION_FORMAT_LABELS[scenario.questionFormat]}
+                </span>
+              )}
             </div>
-            <p className="text-sm text-muted-foreground">{scenario.amendmentLabel}</p>
-            {scenario.questionFormat && (
-              <span className="inline-flex w-fit rounded-md border border-navy-border/70 bg-navy/50 px-2.5 py-1 text-[0.65rem] font-medium tracking-wide text-muted-foreground">
-                {QUESTION_FORMAT_LABELS[scenario.questionFormat]}
-              </span>
-            )}
-            <CardTitle className="font-heading text-2xl font-semibold text-foreground">
+            <CardTitle className="font-heading text-xl font-semibold text-foreground sm:text-2xl">
               {scenario.title}
             </CardTitle>
             <div className="space-y-2">
