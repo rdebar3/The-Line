@@ -1,12 +1,14 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useClerk, useSignIn, useSignUp } from "@clerk/nextjs";
+import { useClerk } from "@clerk/nextjs";
+import { useSignIn, useSignUp } from "@clerk/nextjs/legacy";
+import { isClerkAPIResponseError } from "@clerk/nextjs/errors";
 
 import { useInAppBrowser } from "@/hooks/use-in-app-browser";
 import {
   getPostAuthRedirectUrl,
-  getSsoCallbackUrl,
+  getSsoCallbackPath,
   X_OAUTH_STRATEGY,
 } from "@/lib/clerk-x-oauth";
 import { cn } from "@/lib/utils";
@@ -29,15 +31,16 @@ function XLogo({ className }: { className?: string }) {
   );
 }
 
-function getClerkErrorMessage(
-  error: { message?: string; longMessage?: string } | null | undefined
-): string {
-  if (!error) return "Could not connect to X. Please try again or use email.";
-  return (
-    error.longMessage ??
-    error.message ??
-    "Could not connect to X. Please try again or use email."
-  );
+function getClerkErrorMessage(err: unknown): string {
+  if (isClerkAPIResponseError(err)) {
+    const first = err.errors[0];
+    return (
+      first?.longMessage ??
+      first?.message ??
+      "Could not connect to X. Please try again or use email."
+    );
+  }
+  return "Could not connect to X. Please try again or use email.";
 }
 
 export function SignInWithXButton({
@@ -46,18 +49,16 @@ export function SignInWithXButton({
   className,
 }: SignInWithXButtonProps) {
   const clerk = useClerk();
-  const { signIn, errors: signInErrors, fetchStatus: signInStatus } = useSignIn();
-  const { signUp, errors: signUpErrors, fetchStatus: signUpStatus } = useSignUp();
+  const { isLoaded: signInLoaded, signIn } = useSignIn();
+  const { isLoaded: signUpLoaded, signUp } = useSignUp();
   const { isOAuthHostile, ready } = useInAppBrowser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isBusy =
-    loading ||
-    (mode === "sign-in" ? signInStatus === "fetching" : signUpStatus === "fetching");
+  const isReady = mode === "sign-in" ? signInLoaded : signUpLoaded;
 
   const handleClick = useCallback(async () => {
-    if (!clerk.loaded || isBusy) return;
+    if (!isReady || loading) return;
 
     setLoading(true);
     setError(null);
@@ -66,50 +67,49 @@ export function SignInWithXButton({
       typeof window !== "undefined"
         ? new URLSearchParams(window.location.search)
         : null;
-    const redirectUrl = getPostAuthRedirectUrl(searchParams);
-    const redirectCallbackUrl = getSsoCallbackUrl(
-      mode,
-      typeof window !== "undefined" ? window.location.origin : undefined
-    );
+    const redirectUrlComplete = getPostAuthRedirectUrl(searchParams);
+    const redirectUrl = getSsoCallbackPath(mode);
 
     try {
-      if (mode === "sign-in") {
-        const { error: ssoError } = await signIn.sso({
+      if (mode === "sign-in" && signIn) {
+        await signIn.authenticateWithRedirect({
           strategy: X_OAUTH_STRATEGY,
           redirectUrl,
-          redirectCallbackUrl,
+          redirectUrlComplete,
         });
-
-        if (ssoError) {
-          setError(getClerkErrorMessage(ssoError));
-          setLoading(false);
-        }
         return;
       }
 
-      const { error: ssoError } = await signUp.sso({
-        strategy: X_OAUTH_STRATEGY,
-        redirectUrl,
-        redirectCallbackUrl,
-      });
-
-      if (ssoError) {
-        setError(getClerkErrorMessage(ssoError));
-        setLoading(false);
+      if (mode === "sign-up" && signUp) {
+        await signUp.authenticateWithRedirect({
+          strategy: X_OAUTH_STRATEGY,
+          redirectUrl,
+          redirectUrlComplete,
+        });
+        return;
       }
-    } catch {
-      setError("Could not connect to X. Please try again or use email.");
+
+      setError("Sign-in is still loading. Please try again.");
+      setLoading(false);
+    } catch (err) {
+      if (
+        isClerkAPIResponseError(err) &&
+        err.errors.some((e) => e.code === "session_exists")
+      ) {
+        const sessionId = clerk.client?.lastActiveSessionId;
+        if (sessionId) {
+          await clerk.setActive({ session: sessionId });
+          window.location.assign(redirectUrlComplete);
+          return;
+        }
+      }
+
+      setError(getClerkErrorMessage(err));
       setLoading(false);
     }
-  }, [clerk.loaded, isBusy, mode, signIn, signUp]);
+  }, [clerk, isReady, loading, mode, signIn, signUp]);
 
   if (ready && isOAuthHostile) return null;
-
-  const hookError =
-    mode === "sign-in"
-      ? signInErrors?.global?.[0] ?? signInErrors?.raw?.[0]
-      : signUpErrors?.global?.[0] ?? signUpErrors?.raw?.[0];
-  const displayError = error ?? (hookError ? getClerkErrorMessage(hookError) : null);
 
   const isCompact = variant === "compact";
 
@@ -117,18 +117,20 @@ export function SignInWithXButton({
     <button
       type="button"
       onClick={handleClick}
-      disabled={!clerk.loaded || isBusy}
+      disabled={!isReady || loading}
       aria-label="Sign in with X"
+      title={error ?? undefined}
       className={cn(
         "inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-navy-border/80 bg-[#0f1419] font-semibold text-foreground transition-all hover:border-foreground/25 hover:bg-[#161b22] disabled:cursor-not-allowed disabled:opacity-60",
         isCompact
           ? "h-8 px-2.5 text-[0.7rem] sm:h-9 sm:px-3 sm:text-xs"
-          : "h-11 w-full px-4 text-sm"
+          : "h-11 w-full px-4 text-sm",
+        error && isCompact && "border-crimson/50"
       )}
     >
       <XLogo className={isCompact ? "size-3.5" : "size-4"} />
       <span className={cn(isCompact && "hidden min-[420px]:inline")}>
-        {isBusy ? "Connecting…" : "Sign in with X"}
+        {loading ? "Connecting…" : "Sign in with X"}
       </span>
     </button>
   );
@@ -140,8 +142,8 @@ export function SignInWithXButton({
   return (
     <div className={cn("space-y-2", className)}>
       {button}
-      {displayError ? (
-        <p className="text-center text-xs text-crimson-light">{displayError}</p>
+      {error ? (
+        <p className="text-center text-xs text-crimson-light">{error}</p>
       ) : null}
     </div>
   );
