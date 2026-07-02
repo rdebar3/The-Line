@@ -51,16 +51,38 @@ export function HubHero() {
             <ArrowRight className="size-5 shrink-0" />
           </Button>
         </motion.div>
-        <p className="mt-2.5 text-xs text-muted-foreground sm:text-sm">
-          No account required to begin · {FREE_DAILY_SCENARIO_GENERATION_LIMIT}{" "}
-          scenarios free every day
-        </p>
       </div>
 
-      <p className="mx-auto mt-5 max-w-lg text-pretty text-sm leading-relaxed text-muted-foreground sm:mt-6 sm:text-base">
-        Train on the founding text with {CHARACTER_NAME} — before the moment
-        finds you unprepared.
-      </p>
+      {showAuthCta && (
+        <section
+          aria-label="Welcome"
+          className="mx-auto mt-5 max-w-md rounded-xl border border-gold/20 bg-gradient-to-b from-gold/[0.06] to-transparent px-4 py-4 text-center sm:mt-6 sm:max-w-lg sm:px-5 sm:py-5"
+        >
+          <div
+            aria-hidden
+            className="mx-auto mb-3 h-px w-16 bg-gradient-to-r from-transparent via-gold/50 to-transparent"
+          />
+          <p className="font-heading text-sm font-semibold tracking-wide text-gold sm:text-base">
+            Welcome to The Line.
+          </p>
+          <p className="mx-auto mt-2 max-w-md text-pretty text-sm leading-relaxed text-foreground/85">
+            Train on real constitutional scenarios with {CHARACTER_NAME}.
+            Build your Defender Score, study the founding documents, and prepare
+            to hold the line.
+          </p>
+          <p className="mt-2.5 text-xs font-medium tracking-wide text-gold/90 sm:text-sm">
+            Start with {FREE_DAILY_SCENARIO_GENERATION_LIMIT} free scenarios — no
+            sign-up required.
+          </p>
+        </section>
+      )}
+
+      {!showAuthCta && isLoaded && (
+        <p className="mx-auto mt-5 max-w-lg text-pretty text-sm leading-relaxed text-muted-foreground sm:mt-6 sm:text-base">
+          Train on the founding text with {CHARACTER_NAME} — before the moment
+          finds you unprepared.
+        </p>
+      )}
 
       <div className="relative mx-auto mt-6 max-w-md sm:mt-8 lg:mt-10">
         <div
