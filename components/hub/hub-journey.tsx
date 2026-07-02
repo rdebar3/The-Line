@@ -3,7 +3,6 @@
 import { Fragment } from "react";
 import Link from "next/link";
 import {
-  ArrowRight,
   BookOpen,
   ChevronRight,
   Medal,
@@ -90,7 +89,7 @@ function PathCard({
   const isAnchor = step.href.startsWith("#");
 
   const className = cn(
-    "path-card group premium-card relative flex h-full min-h-[9.5rem] flex-col items-center rounded-2xl border border-navy-border/70 bg-navy-elevated/60 p-4 text-center transition-all duration-300 hover:-translate-y-1 sm:min-h-[10.5rem] sm:p-5 lg:min-h-[11.5rem] lg:p-6",
+    "path-card group relative flex h-full min-h-[7.5rem] flex-col items-center rounded-xl border border-navy-border/60 bg-navy-elevated/40 p-3 text-center transition-all duration-300 hover:-translate-y-0.5 sm:min-h-[8rem] sm:p-4 lg:min-h-[8.5rem]",
     step.hoverClass
   );
 
@@ -101,22 +100,17 @@ function PathCard({
       </span>
       <span
         className={cn(
-          "mt-1 flex size-12 items-center justify-center rounded-xl border transition-all duration-300 group-hover:scale-110 sm:size-14 lg:size-16",
-          step.iconClass,
-          step.glowClass
+          "mt-0.5 flex size-9 items-center justify-center rounded-lg border transition-all duration-300 sm:size-10",
+          step.iconClass
         )}
       >
-        <Icon className="size-6 sm:size-7 lg:size-8" strokeWidth={1.75} />
+        <Icon className="size-4 sm:size-[1.125rem]" strokeWidth={1.75} />
       </span>
-      <span className="mt-3 font-heading text-base font-bold tracking-[0.12em] text-foreground uppercase sm:mt-4 sm:text-lg lg:text-xl">
+      <span className="mt-2 font-heading text-sm font-semibold tracking-[0.1em] text-foreground/90 uppercase sm:text-base">
         {step.label}
       </span>
-      <span className="mt-1.5 max-w-[11rem] text-pretty text-[0.7rem] leading-relaxed text-muted-foreground sm:text-xs lg:max-w-none lg:text-sm">
+      <span className="mt-1 max-w-[10rem] text-pretty text-[0.65rem] leading-relaxed text-muted-foreground/80 sm:text-[0.7rem] lg:max-w-none">
         {step.description}
-      </span>
-      <span className="mt-auto flex items-center gap-1 pt-3 text-[0.65rem] font-semibold tracking-wide text-gold/70 opacity-0 transition-opacity duration-300 group-hover:opacity-100 sm:text-xs">
-        Go
-        <ArrowRight className="size-3.5" />
       </span>
     </>
   );
@@ -140,19 +134,15 @@ export function HubJourney() {
   return (
     <section
       aria-label="Training path"
-      className="hub-card-shell shadow-[0_0_80px_rgba(201,162,39,0.08)]"
+      className="rounded-2xl border border-navy-border/50 bg-navy-elevated/30"
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(201,162,39,0.1)_0%,transparent_65%)]"
-      />
-      <div aria-hidden className="hub-card-accent" />
-
-      <div className="relative px-3 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-8">
-        <header className="hub-section-header">
-          <p className="section-eyebrow">Your Path</p>
-          <p className="hub-section-subtitle sm:text-base">
-            Five steps from first drill to full constitutional command.
+      <div className="relative px-3 py-4 sm:px-5 sm:py-5 lg:px-6">
+        <header className="mb-4 text-center sm:mb-5">
+          <p className="font-heading text-[0.65rem] font-semibold tracking-[0.28em] text-muted-foreground uppercase sm:text-xs">
+            Explore more
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground/80 sm:text-sm">
+            Track, rank, study, and ask counsel after your first drill.
           </p>
         </header>
 
@@ -191,31 +181,7 @@ export function HubJourney() {
           </ol>
         </nav>
 
-        {/* Flow indicator */}
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-2 sm:mt-6">
-          {steps.map((step, index) => (
-            <span key={step.id} className="flex items-center gap-1.5">
-              <span
-                className={cn(
-                  "font-heading text-xs font-bold tracking-[0.15em] uppercase sm:text-sm",
-                  index === 1
-                    ? "text-crimson"
-                    : index === 3
-                      ? "text-constitution-blue-light"
-                      : "text-gold"
-                )}
-              >
-                {step.label}
-              </span>
-              {index < steps.length - 1 && (
-                <ArrowRight
-                  className="size-3.5 text-muted-foreground/50 sm:size-4"
-                  aria-hidden
-                />
-              )}
-            </span>
-          ))}
-        </div>
+
       </div>
     </section>
   );

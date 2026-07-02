@@ -44,9 +44,10 @@ export default function Home() {
   return (
     <PageBackground>
       <div className="page-shell max-w-6xl pb-2">
+        {/* Hero: single primary CTA for new users (see hub-hero.tsx) */}
         <HubHero />
 
-        <div className="hub-section-tight animate-fade-up-delay-1">
+        <div className="hub-section-tight animate-fade-up-delay-1 opacity-95">
           <HubJourney />
         </div>
 

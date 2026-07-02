@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
 import { ArrowRight, BookOpen, Shield } from "lucide-react";
+import { motion } from "motion/react";
 
 import { GuardianCharacter } from "@/components/guardian/guardian-character";
 import { Button } from "@/components/ui/button";
 import { useInAppBrowser } from "@/hooks/use-in-app-browser";
 import { CHARACTER_NAME } from "@/lib/guardian";
+import { FREE_DAILY_SCENARIO_GENERATION_LIMIT } from "@/lib/scenario-difficulty";
 
 export function HubHero() {
   const { isSignedIn, isLoaded } = useAuth();
@@ -31,21 +33,45 @@ export function HubHero() {
       <p className="mx-auto mt-4 max-w-xl text-pretty text-lg font-semibold leading-snug tracking-wide text-foreground/95 sm:mt-5 sm:text-xl">
         When power pushes, the Constitution answers.
       </p>
-      <p className="mx-auto mt-2 max-w-lg text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
+
+      {/* Primary path for new visitors — one obvious action above the fold */}
+      <div className="mx-auto mt-6 max-w-md sm:mt-7">
+        <motion.div
+          whileHover={{ scale: 1.02, y: -2 }}
+          whileTap={{ scale: 0.98 }}
+          transition={{ type: "spring", stiffness: 400, damping: 24 }}
+        >
+          <Button
+            nativeButton={false}
+            render={<Link href="/rights-under-pressure" />}
+            className="btn-cta premium-button h-14 w-full gap-2.5 rounded-2xl border border-gold/40 bg-gradient-to-r from-crimson via-crimson-dark to-gold-dark px-6 text-base font-bold tracking-wide text-white shadow-[0_8px_40px_rgba(185,28,28,0.45),0_0_24px_rgba(201,162,39,0.2)] hover:from-crimson-hover hover:via-crimson hover:to-gold sm:h-[3.75rem] sm:text-lg"
+          >
+            <Shield className="size-5 shrink-0" />
+            Start Free Training ({FREE_DAILY_SCENARIO_GENERATION_LIMIT} Scenarios)
+            <ArrowRight className="size-5 shrink-0" />
+          </Button>
+        </motion.div>
+        <p className="mt-2.5 text-xs text-muted-foreground sm:text-sm">
+          No account required to begin · {FREE_DAILY_SCENARIO_GENERATION_LIMIT}{" "}
+          scenarios free every day
+        </p>
+      </div>
+
+      <p className="mx-auto mt-5 max-w-lg text-pretty text-sm leading-relaxed text-muted-foreground sm:mt-6 sm:text-base">
         Train on the founding text with {CHARACTER_NAME} — before the moment
         finds you unprepared.
       </p>
 
-      <div className="relative mx-auto mt-8 max-w-md sm:mt-10 lg:mt-12">
+      <div className="relative mx-auto mt-6 max-w-md sm:mt-8 lg:mt-10">
         <div
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(201,162,39,0.16)_0%,transparent_68%)] sm:h-72 sm:w-72"
+          className="pointer-events-none absolute left-1/2 top-1/2 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(201,162,39,0.14)_0%,transparent_68%)] sm:h-64 sm:w-64"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-[58%] h-px w-[min(100%,20rem)] -translate-x-1/2 bg-gradient-to-r from-transparent via-gold/25 to-transparent"
+          className="pointer-events-none absolute left-1/2 top-[58%] h-px w-[min(100%,20rem)] -translate-x-1/2 bg-gradient-to-r from-transparent via-gold/20 to-transparent"
         />
-        <div className="relative flex justify-center px-4 py-2 sm:px-6 sm:py-4">
+        <div className="relative flex justify-center px-4 py-2 sm:px-6">
           <GuardianCharacter
             mood="neutral"
             size="hero"
@@ -56,49 +82,54 @@ export function HubHero() {
         </div>
       </div>
 
-      <div className="mx-auto mt-6 flex max-w-md flex-col items-stretch gap-3 sm:mt-8 sm:max-w-lg sm:flex-row sm:justify-center">
-        <Button
-          nativeButton={false}
-          render={<Link href="/rights-under-pressure" />}
-          className="btn-crimson btn-cta premium-button h-12 w-full gap-2 rounded-xl sm:min-w-[11.5rem] sm:flex-none"
-        >
-          <Shield className="size-4 shrink-0" />
-          Start Training
-          <ArrowRight className="size-4 shrink-0" />
-        </Button>
+      {/* Secondary actions — visible but not competing with the primary CTA */}
+      <div className="mx-auto mt-5 flex max-w-sm flex-wrap items-center justify-center gap-2 sm:mt-6 sm:max-w-md sm:gap-2.5">
         <Button
           nativeButton={false}
           render={<Link href="#documents" />}
           variant="outline"
-          className="premium-button h-12 w-full rounded-xl border-gold/30 bg-navy/50 px-6 text-gold hover:border-gold/50 hover:bg-gold/10 sm:min-w-[11.5rem] sm:flex-none"
+          size="sm"
+          className="h-9 rounded-lg border-navy-border/80 bg-navy/30 px-3.5 text-xs font-medium text-muted-foreground hover:border-gold/30 hover:bg-navy-elevated/60 hover:text-foreground sm:text-sm"
         >
-          <BookOpen className="size-4 shrink-0" />
+          <BookOpen className="size-3.5 shrink-0" />
           Founding Documents
+        </Button>
+        <Button
+          nativeButton={false}
+          render={<Link href="#progression" />}
+          variant="outline"
+          size="sm"
+          className="h-9 rounded-lg border-navy-border/80 bg-navy/30 px-3.5 text-xs font-medium text-muted-foreground hover:border-gold/30 hover:bg-navy-elevated/60 hover:text-foreground sm:text-sm"
+        >
+          Track Progress
         </Button>
       </div>
 
       {showAuthCta && (
-        <>
-          <p className="mx-auto mt-5 max-w-sm text-pretty text-xs leading-relaxed text-muted-foreground sm:mt-6">
+        <div className="mx-auto mt-6 max-w-sm border-t border-navy-border/50 pt-5 sm:mt-7">
+          <p className="text-pretty text-xs leading-relaxed text-muted-foreground/90">
             {isTikTokBrowser
-              ? "TikTok blocks Google sign-in. Tap Sign Up, then use Open in Safari/Chrome — or continue with email only."
-              : "Sign in to save your Defender Score and climb the leaderboard."}
+              ? "TikTok blocks Google sign-in. Use Open in Safari/Chrome from the banner, or continue with email."
+              : "Optional: sign in to save your Defender Score and join the leaderboard."}
           </p>
-          <div className="mx-auto mt-3 flex max-w-[16rem] flex-col items-stretch gap-2 sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-2.5">
+          <div className="mt-2.5 flex items-center justify-center gap-3 text-sm">
             <Link
               href="/sign-in"
-              className="auth-btn-signin inline-flex h-10 w-full items-center justify-center rounded-xl border border-navy-border/80 bg-navy-elevated/60 px-4 text-sm font-semibold tracking-wide text-foreground transition-all hover:border-gold/35 hover:bg-navy-elevated sm:w-auto sm:px-5"
+              className="font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-gold hover:underline"
             >
-              Sign In
+              Sign in
             </Link>
+            <span aria-hidden className="text-navy-border">
+              ·
+            </span>
             <Link
               href="/sign-up"
-              className="auth-btn-signup btn-gold premium-button inline-flex h-10 w-full items-center justify-center rounded-xl px-4 text-sm font-semibold tracking-wide sm:w-auto sm:px-5"
+              className="font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-gold hover:underline"
             >
-              Create Account
+              Create account
             </Link>
           </div>
-        </>
+        </div>
       )}
     </header>
   );
