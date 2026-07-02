@@ -1,5 +1,8 @@
 import { getAppUrl } from "@/lib/app-url";
 
+/** Set to `true` to show the Sign in with X button across the app. */
+export const X_SIGN_IN_UI_ENABLED = false;
+
 export const X_OAUTH_STRATEGY = "oauth_x" as const;
 export const GOOGLE_OAUTH_STRATEGY = "oauth_google" as const;
 
