@@ -47,7 +47,9 @@ export async function GET() {
             rank: me.rank,
             score: me.score,
             username: me.username,
+            displayName: me.displayName,
             totalPlayers: me.totalPlayers,
+            isDefaultUsername: me.isDefaultUsername,
           }
         : null,
       isSignedIn: true,

@@ -1,5 +1,12 @@
 import { Redis } from "@upstash/redis";
 
+import {
+  DEFAULT_USERNAME_FALLBACK,
+  formatLeaderboardDisplayName,
+  generatePatriotCallsign,
+  isDefaultLeaderboardUsername,
+} from "@/lib/leaderboard-username";
+
 const LEADERBOARD_KEY = "theline:leaderboard";
 const PROFILE_PREFIX = "theline:profile:";
 const USERNAME_PREFIX = "theline:username:";
@@ -15,7 +22,9 @@ export type LeaderboardMe = {
   rank: number;
   score: number;
   username: string | null;
+  displayName: string | null;
   totalPlayers: number;
+  isDefaultUsername: boolean;
 };
 
 export type LeaderboardSyncResult = {
@@ -23,12 +32,15 @@ export type LeaderboardSyncResult = {
   totalPlayers: number;
   rankDelta: number | null;
   username: string | null;
+  displayName: string | null;
   hasUsername: boolean;
+  isDefaultUsername: boolean;
 };
 
 type UserProfile = {
   username: string | null;
   lastRank: number | null;
+  isDefaultUsername: boolean;
 };
 
 let redisClient: Redis | null = null;
@@ -67,11 +79,17 @@ async function readProfile(userId: string): Promise<UserProfile> {
   const profile = await redis.hgetall<{
     username?: string;
     lastRank?: string;
+    isDefaultUsername?: string;
   }>(profileKey(userId));
 
+  const username = profile?.username?.trim() || null;
+
   return {
-    username: profile?.username ?? null,
+    username,
     lastRank: profile?.lastRank ? Number(profile.lastRank) : null,
+    isDefaultUsername:
+      profile?.isDefaultUsername === "1" ||
+      (username !== null && isDefaultLeaderboardUsername(username)),
   };
 }
 
@@ -88,10 +106,62 @@ async function writeProfile(
   if (updates.lastRank !== undefined) {
     payload.lastRank = updates.lastRank === null ? "" : String(updates.lastRank);
   }
+  if (updates.isDefaultUsername !== undefined) {
+    payload.isDefaultUsername = updates.isDefaultUsername ? "1" : "0";
+  }
 
   if (Object.keys(payload).length > 0) {
     await redis.hset(profileKey(userId), payload);
   }
+}
+
+async function isUsernameAvailable(username: string): Promise<boolean> {
+  const redis = getRedis();
+  const existingOwner = await redis.get<string>(usernameKey(username));
+  return !existingOwner;
+}
+
+async function claimUsername(
+  userId: string,
+  username: string,
+  isDefault: boolean
+): Promise<string> {
+  const redis = getRedis();
+  const key = usernameKey(username);
+  await redis.set(key, userId);
+  await writeProfile(userId, { username, isDefaultUsername: isDefault });
+  return username;
+}
+
+export async function ensureDefaultUsername(userId: string): Promise<string> {
+  const profile = await readProfile(userId);
+  if (profile.username) {
+    return profile.username;
+  }
+
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    const candidate = generatePatriotCallsign();
+    if (await isUsernameAvailable(candidate)) {
+      return claimUsername(userId, candidate, true);
+    }
+  }
+
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const digits = String(Math.floor(100000 + Math.random() * 900000));
+    const candidate = `Patriot-${digits}`;
+    if (await isUsernameAvailable(candidate)) {
+      return claimUsername(userId, candidate, true);
+    }
+  }
+
+  const fallbackDigits = String(Math.floor(1000 + Math.random() * 9000));
+  const fallback = `${DEFAULT_USERNAME_FALLBACK}_${fallbackDigits}`;
+  if (await isUsernameAvailable(fallback)) {
+    return claimUsername(userId, fallback, true);
+  }
+
+  const lastResort = `${DEFAULT_USERNAME_FALLBACK}_${Date.now().toString().slice(-6)}`;
+  return claimUsername(userId, lastResort, true);
 }
 
 export async function getRankForScore(
@@ -127,15 +197,9 @@ function applyCompetitionRanks(entries: LeaderboardEntry[]): LeaderboardEntry[] 
   });
 }
 
-export function formatLeaderboardDisplayName(
-  username: string | null
-): string | null {
-  return username || null;
-}
-
 export async function getTopEntries(limit = 10): Promise<LeaderboardEntry[]> {
   const redis = getRedis();
-  const rows = await redis.zrange(LEADERBOARD_KEY, 0, 99, {
+  const rows = await redis.zrange(LEADERBOARD_KEY, 0, limit - 1, {
     rev: true,
     withScores: true,
   });
@@ -146,9 +210,8 @@ export async function getTopEntries(limit = 10): Promise<LeaderboardEntry[]> {
     const userId = String(rows[index]);
     const score = Number(rows[index + 1]);
     const profile = await readProfile(userId);
-    const displayName = formatLeaderboardDisplayName(profile.username);
-
-    if (!displayName) continue;
+    const rawUsername = profile.username ?? (await ensureDefaultUsername(userId));
+    const displayName = formatLeaderboardDisplayName(rawUsername);
 
     entries.push({
       rank: entries.length + 1,
@@ -156,8 +219,6 @@ export async function getTopEntries(limit = 10): Promise<LeaderboardEntry[]> {
       username: displayName,
       score,
     });
-
-    if (entries.length >= limit) break;
   }
 
   return applyCompetitionRanks(entries);
@@ -173,27 +234,34 @@ export async function getLeaderboardForUser(
 
   if (score === null) {
     const profile = await readProfile(userId);
+    const username = profile.username;
     return {
       top10,
       me: {
         rank: totalPlayers + 1,
         score: 0,
-        username: profile.username,
+        username,
+        displayName: username ? formatLeaderboardDisplayName(username) : null,
         totalPlayers,
+        isDefaultUsername: profile.isDefaultUsername,
       },
     };
   }
 
   const numericScore = Number(score);
   const profile = await readProfile(userId);
+  const username =
+    profile.username ?? (await ensureDefaultUsername(userId));
 
   return {
     top10,
     me: {
       rank: await getRankForScore(userId, numericScore),
       score: numericScore,
-      username: profile.username,
+      username,
+      displayName: formatLeaderboardDisplayName(username),
       totalPlayers,
+      isDefaultUsername: profile.isDefaultUsername,
     },
   };
 }
@@ -218,6 +286,7 @@ export async function syncUserScore(
     });
   }
 
+  const username = await ensureDefaultUsername(userId);
   const profile = await readProfile(userId);
   const rank = await getRankForScore(userId, scoreToStore);
   const totalPlayers = await getTotalPlayers();
@@ -236,8 +305,10 @@ export async function syncUserScore(
     rank,
     totalPlayers,
     rankDelta,
-    username: profile.username,
-    hasUsername: Boolean(profile.username),
+    username,
+    displayName: formatLeaderboardDisplayName(username),
+    hasUsername: true,
+    isDefaultUsername: profile.isDefaultUsername,
   };
 }
 
@@ -272,7 +343,10 @@ export async function setUsername(
   }
 
   await redis.set(key, userId);
-  await writeProfile(userId, { username: normalized });
+  await writeProfile(userId, {
+    username: normalized,
+    isDefaultUsername: false,
+  });
 
   return { username: normalized };
 }

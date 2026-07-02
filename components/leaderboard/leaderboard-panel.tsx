@@ -15,6 +15,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { useLeaderboard } from "@/hooks/use-leaderboard";
+import { useLeaderboardSync } from "@/hooks/use-leaderboard-sync";
 import { useProgression } from "@/hooks/use-progression";
 import { cn } from "@/lib/utils";
 
@@ -63,11 +64,14 @@ function RankMovementBanner({
   );
 }
 
-function UsernameSetup({
+function CallsignCustomizer({
+  currentName,
   onSave,
 }: {
+  currentName: string;
   onSave: (username: string) => Promise<string>;
 }) {
+  const [open, setOpen] = useState(false);
   const [username, setUsername] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -79,26 +83,44 @@ function UsernameSetup({
 
     try {
       await onSave(username);
+      setOpen(false);
+      setUsername("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save username.");
+      setError(err instanceof Error ? err.message : "Could not save call sign.");
     } finally {
       setSaving(false);
     }
   }
 
+  if (!open) {
+    return (
+      <div className="mb-4 rounded-xl border border-navy-border/70 bg-navy/40 px-4 py-3 text-center text-sm text-muted-foreground">
+        You&apos;re listed as{" "}
+        <span className="font-semibold text-foreground">{currentName}</span>.{" "}
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="font-semibold text-gold underline-offset-2 hover:underline"
+        >
+          Claim your call sign
+        </button>
+      </div>
+    );
+  }
+
   return (
     <form
       onSubmit={(event) => void handleSubmit(event)}
-      className="rounded-xl border border-gold/20 bg-gold/5 px-4 py-4"
+      className="mb-4 rounded-xl border border-gold/20 bg-gold/5 px-4 py-4"
     >
       <div className="flex items-center gap-2">
         <UserRoundPen className="size-4 text-gold" />
         <p className="font-heading text-sm font-semibold text-foreground">
-          Choose your leaderboard name
+          Claim your call sign
         </p>
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
-        3–20 characters · letters, numbers, underscores
+        3–20 characters · letters, numbers, hyphens, underscores
       </p>
       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
         <input
@@ -117,6 +139,13 @@ function UsernameSetup({
         </Button>
       </div>
       {error && <p className="mt-2 text-xs text-crimson">{error}</p>}
+      <button
+        type="button"
+        onClick={() => setOpen(false)}
+        className="mt-3 text-xs text-muted-foreground transition-colors hover:text-foreground"
+      >
+        Cancel
+      </button>
     </form>
   );
 }
@@ -128,15 +157,14 @@ type LeaderboardPanelProps = {
 
 export function LeaderboardPanel({ configured = true }: LeaderboardPanelProps) {
   const { defenderScore, isLoaded, rank } = useProgression();
-  const {
-    data,
-    isLoading,
-    error,
-    rankDelta,
-    dismissRankDelta,
-    saveUsername,
-    refresh,
-  } = useLeaderboard(defenderScore, isLoaded);
+  const { data, isLoading, error, saveUsername, refresh } = useLeaderboard(
+    defenderScore,
+    isLoaded
+  );
+  const { rankDelta, dismissRankDelta } = useLeaderboardSync(
+    defenderScore,
+    isLoaded
+  );
 
   const isLive = configured || data?.configured === true;
 
@@ -191,14 +219,11 @@ export function LeaderboardPanel({ configured = true }: LeaderboardPanelProps) {
         </div>
       )}
 
-      {data?.isSignedIn && !data.me?.username && (
-        <div className="mb-4 space-y-2">
-          <UsernameSetup onSave={saveUsername} />
-          <p className="text-center text-xs text-muted-foreground">
-            Pick a name to appear on the public top 10 — until then only your
-            private standing below is shown.
-          </p>
-        </div>
+      {data?.isSignedIn && data.me?.isDefaultUsername && data.me.displayName && (
+        <CallsignCustomizer
+          currentName={data.me.displayName}
+          onSave={saveUsername}
+        />
       )}
 
       {error && (
@@ -234,8 +259,8 @@ export function LeaderboardPanel({ configured = true }: LeaderboardPanelProps) {
               {data.top10.length === 0 ? (
                 <li className="px-4 py-6 text-center text-sm text-muted-foreground">
                   {data.isSignedIn
-                    ? "No public names on the board yet. Save a username to be the first."
-                    : "No defenders on the board yet. Sign in and claim a name."}
+                    ? "You're on the board — train to climb the ranks."
+                    : "No defenders on the board yet. Sign in to join the ranks."}
                 </li>
               ) : (
                 data.top10.map((entry) => (
@@ -279,9 +304,9 @@ export function LeaderboardPanel({ configured = true }: LeaderboardPanelProps) {
                       account{data.me.totalPlayers === 1 ? "" : "s"}
                     </span>
                   </p>
-                  {!data.me.username && (
+                  {data.me.isDefaultUsername && (
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Not listed publicly until you choose a username.
+                      Claim a custom call sign when you&apos;re ready.
                     </p>
                   )}
                 </div>
@@ -298,7 +323,7 @@ export function LeaderboardPanel({ configured = true }: LeaderboardPanelProps) {
                 <Medal className="size-3.5 text-gold" />
                 <span>
                   {rank.title} ({rank.abbreviation}) ·{" "}
-                  {data.me.username ?? "Set a username above"}
+                  {data.me.displayName ?? data.me.username ?? "Defender"}
                 </span>
               </div>
             </div>

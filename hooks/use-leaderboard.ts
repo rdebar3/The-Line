@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export type LeaderboardRow = {
   rank: number;
@@ -14,7 +14,9 @@ export type LeaderboardMe = {
   rank: number;
   score: number;
   username: string | null;
+  displayName: string | null;
   totalPlayers: number;
+  isDefaultUsername: boolean;
 };
 
 type LeaderboardResponse = {
@@ -24,24 +26,12 @@ type LeaderboardResponse = {
   isSignedIn?: boolean;
 };
 
-type SyncResponse = {
-  rank: number;
-  totalPlayers: number;
-  rankDelta: number | null;
-  username: string | null;
-  hasUsername: boolean;
-};
-
-const CHECK_IN_KEY = "theline_leaderboard_checkin";
-
 export function useLeaderboard(defenderScore: number, isProgressionLoaded: boolean) {
   const { isSignedIn, isLoaded: authLoaded } = useAuth();
   const [data, setData] = useState<LeaderboardResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [rankDelta, setRankDelta] = useState<number | null>(null);
-  const [syncing, setSyncing] = useState(false);
-  const lastSyncedScore = useRef<number | null>(null);
 
   const refresh = useCallback(async () => {
     setIsLoading(true);
@@ -65,43 +55,6 @@ export function useLeaderboard(defenderScore: number, isProgressionLoaded: boole
     }
   }, []);
 
-  const syncScore = useCallback(
-    async (score: number, checkIn = false) => {
-      if (!isSignedIn) return null;
-
-      setSyncing(true);
-
-      try {
-        const response = await fetch("/api/leaderboard/sync", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ defenderScore: score, checkIn }),
-        });
-
-        const payload = (await response.json()) as SyncResponse & {
-          error?: string;
-        };
-
-        if (!response.ok) {
-          throw new Error(payload.error ?? "Failed to sync score.");
-        }
-
-        if (checkIn && payload.rankDelta !== null) {
-          setRankDelta(payload.rankDelta);
-        }
-
-        await refresh();
-        return payload;
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to sync score.");
-        return null;
-      } finally {
-        setSyncing(false);
-      }
-    },
-    [isSignedIn, refresh]
-  );
-
   const saveUsername = useCallback(
     async (username: string) => {
       const response = await fetch("/api/leaderboard/username", {
@@ -123,37 +76,24 @@ export function useLeaderboard(defenderScore: number, isProgressionLoaded: boole
   );
 
   useEffect(() => {
-    if (!isSignedIn && typeof window !== "undefined") {
-      sessionStorage.removeItem(CHECK_IN_KEY);
-      lastSyncedScore.current = null;
-    }
-  }, [isSignedIn]);
-
-  useEffect(() => {
     void refresh();
   }, [refresh, isSignedIn]);
 
   useEffect(() => {
     if (!authLoaded || !isProgressionLoaded || !isSignedIn) return;
-    if (lastSyncedScore.current === defenderScore) return;
+    void refresh();
+  }, [authLoaded, defenderScore, isProgressionLoaded, isSignedIn, refresh]);
 
-    const shouldCheckIn =
-      typeof window !== "undefined" &&
-      sessionStorage.getItem(CHECK_IN_KEY) !== "1";
+  useEffect(() => {
+    function handleSynced() {
+      void refresh();
+    }
 
-    void syncScore(defenderScore, shouldCheckIn).then(() => {
-      if (shouldCheckIn && typeof window !== "undefined") {
-        sessionStorage.setItem(CHECK_IN_KEY, "1");
-      }
-      lastSyncedScore.current = defenderScore;
-    });
-  }, [
-    authLoaded,
-    isProgressionLoaded,
-    isSignedIn,
-    defenderScore,
-    syncScore,
-  ]);
+    window.addEventListener("theline:leaderboard-synced", handleSynced);
+    return () => {
+      window.removeEventListener("theline:leaderboard-synced", handleSynced);
+    };
+  }, [refresh]);
 
   const dismissRankDelta = useCallback(() => {
     setRankDelta(null);
@@ -163,11 +103,9 @@ export function useLeaderboard(defenderScore: number, isProgressionLoaded: boole
     data,
     isLoading,
     error,
-    syncing,
     rankDelta,
     dismissRankDelta,
     refresh,
     saveUsername,
-    syncScore,
   };
 }

@@ -11,6 +11,8 @@ import { UserScopeSync } from "@/components/auth/user-scope-sync";
 import { ClearStaleServiceWorker } from "@/components/dev/clear-stale-service-worker";
 import { AuthHeader } from "@/components/layout/auth-header";
 import { TikTokBrowserBanner } from "@/components/layout/tiktok-browser-banner";
+import { CallsignPrompt } from "@/components/leaderboard/callsign-prompt";
+import { LeaderboardAutoSync } from "@/components/leaderboard/leaderboard-auto-sync";
 import { FirstLoginTutorial } from "@/components/onboarding/first-login-tutorial";
 import { UnlockCelebration } from "@/components/monetization/unlock-celebration";
 import { ProgressionProvider } from "@/components/progression/progression-provider";
@@ -99,8 +101,10 @@ export default function RootLayout({
             <TikTokBrowserBanner />
             <AuthHeader />
             <ProgressionProvider>
+              <LeaderboardAutoSync />
               {children}
               <FirstLoginTutorial />
+              <CallsignPrompt />
               <UnlockCelebration />
             </ProgressionProvider>
           </SubscriptionProvider>
