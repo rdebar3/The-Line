@@ -1,17 +1,8 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useClerk } from "@clerk/nextjs";
-import { useSignIn, useSignUp } from "@clerk/nextjs/legacy";
-import { isClerkAPIResponseError } from "@clerk/nextjs/errors";
-
 import { useInAppBrowser } from "@/hooks/use-in-app-browser";
-import {
-  getAbsoluteAppUrl,
-  getPostAuthRedirectUrl,
-  getSsoCallbackPath,
-  GOOGLE_OAUTH_STRATEGY,
-} from "@/lib/clerk-x-oauth";
+import { useSocialOAuthRedirect } from "@/hooks/use-social-oauth-redirect";
+import { GOOGLE_OAUTH_STRATEGY } from "@/lib/clerk-x-oauth";
 import { cn } from "@/lib/utils";
 
 type SignInWithGoogleButtonProps = {
@@ -43,97 +34,29 @@ function GoogleLogo({ className }: { className?: string }) {
   );
 }
 
-function getClerkErrorMessage(err: unknown): string {
-  if (isClerkAPIResponseError(err)) {
-    const first = err.errors[0];
-    return (
-      first?.longMessage ??
-      first?.message ??
-      "Could not connect to Google. Please try again or use email."
-    );
-  }
-  return "Could not connect to Google. Please try again or use email.";
-}
-
 export function SignInWithGoogleButton({
   mode,
   variant = "default",
   className,
 }: SignInWithGoogleButtonProps) {
-  const clerk = useClerk();
-  const { isLoaded: signInLoaded, signIn } = useSignIn();
-  const { isLoaded: signUpLoaded, signUp } = useSignUp();
   const { isOAuthHostile, ready } = useInAppBrowser();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const isReady = mode === "sign-in" ? signInLoaded : signUpLoaded;
-
-  const handleClick = useCallback(async () => {
-    if (!isReady || loading) return;
-
-    setLoading(true);
-    setError(null);
-
-    const searchParams =
-      typeof window !== "undefined"
-        ? new URLSearchParams(window.location.search)
-        : null;
-    const origin =
-      typeof window !== "undefined" ? window.location.origin : undefined;
-    const redirectPath = getPostAuthRedirectUrl(searchParams);
-    const redirectUrlComplete = getAbsoluteAppUrl(redirectPath, origin);
-    const redirectUrl = getAbsoluteAppUrl(getSsoCallbackPath(mode), origin);
-
-    try {
-      if (mode === "sign-in" && signIn) {
-        await signIn.authenticateWithRedirect({
-          strategy: GOOGLE_OAUTH_STRATEGY,
-          redirectUrl,
-          redirectUrlComplete,
-        });
-        return;
-      }
-
-      if (mode === "sign-up" && signUp) {
-        await signUp.authenticateWithRedirect({
-          strategy: GOOGLE_OAUTH_STRATEGY,
-          redirectUrl,
-          redirectUrlComplete,
-        });
-        return;
-      }
-
-      setError("Sign-in is still loading. Please try again.");
-      setLoading(false);
-    } catch (err) {
-      if (
-        isClerkAPIResponseError(err) &&
-        err.errors.some((e) => e.code === "session_exists")
-      ) {
-        const sessionId = clerk.client?.lastActiveSessionId;
-        if (sessionId) {
-          await clerk.setActive({ session: sessionId });
-          window.location.assign(redirectUrlComplete);
-          return;
-        }
-      }
-
-      setError(getClerkErrorMessage(err));
-      setLoading(false);
-    }
-  }, [clerk, isReady, loading, mode, signIn, signUp]);
+  const label =
+    mode === "sign-in" ? "Sign in with Google" : "Sign up with Google";
+  const { isReady, loading, error, startRedirect } = useSocialOAuthRedirect({
+    strategy: GOOGLE_OAUTH_STRATEGY,
+    mode,
+    fallbackErrorMessage:
+      "Could not connect to Google. Please try again or use email.",
+  });
 
   if (ready && isOAuthHostile) return null;
 
   const isCompact = variant === "compact";
-  const label =
-    mode === "sign-in" ? "Sign in with Google" : "Sign up with Google";
 
   const button = (
     <button
       type="button"
-      onClick={handleClick}
+      onClick={startRedirect}
       disabled={!isReady || loading}
       aria-label={label}
       title={error ?? undefined}

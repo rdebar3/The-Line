@@ -7,6 +7,24 @@ export type SocialOAuthStrategy =
   | typeof X_OAUTH_STRATEGY
   | typeof GOOGLE_OAUTH_STRATEGY;
 
+/** X OAuth 2.0 scope required for Clerk to receive the user's email address. */
+export const X_OAUTH_EMAIL_SCOPE = "users.email" as const;
+
+/**
+ * Recommended scopes for Clerk production X connection (Dashboard → SSO → X → Scopes).
+ * `users.email` is required — without it Clerk shows "Fill in missing fields".
+ */
+export const X_OAUTH_RECOMMENDED_SCOPES = [
+  "users.read",
+  "tweet.read",
+  "offline.access",
+  X_OAUTH_EMAIL_SCOPE,
+] as const;
+
+/** Clerk Dashboard — production SSO connections (add scopes here). */
+export const CLERK_SSO_CONNECTIONS_URL =
+  "https://dashboard.clerk.com/last-active?path=user-authentication/sso-connections";
+
 export const SIGN_IN_SSO_CALLBACK = "/sign-in/sso-callback";
 export const SIGN_UP_SSO_CALLBACK = "/sign-up/sso-callback";
 
