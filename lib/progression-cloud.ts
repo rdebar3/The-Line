@@ -50,6 +50,7 @@ export async function saveCloudProgression(
     weakAreas: state.weakAreas,
     topicPerformance: state.topicPerformance,
     earnedBadges: state.earnedBadges,
+    certifications: state.certifications,
     weeklyChallenge: state.weeklyChallenge,
     onboarding: state.onboarding,
     squadId: state.squadId,

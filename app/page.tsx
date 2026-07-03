@@ -10,6 +10,7 @@ import { IntelligenceReportPanel } from "@/components/hub/intelligence-report-pa
 import { DocumentCard } from "@/components/hub/document-card";
 import { GuardianPlaceholder } from "@/components/hub/guardian-placeholder";
 import { HubJourney } from "@/components/hub/hub-journey";
+import { CertificationsHubCard } from "@/components/hub/certifications-hub-card";
 import { MyLinesHubCard } from "@/components/hub/my-lines-hub-card";
 import { LeaderboardPanel } from "@/components/leaderboard/leaderboard-panel";
 import { HubMonetizationFooter } from "@/components/hub/hub-monetization-footer";
@@ -73,8 +74,9 @@ export default function Home() {
             </p>
           </header>
 
-          <div className="mb-5 sm:mb-6">
+          <div className="mb-5 grid gap-4 sm:mb-6 sm:grid-cols-2">
             <MyLinesHubCard />
+            <CertificationsHubCard />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4 xl:gap-6">

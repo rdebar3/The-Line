@@ -55,7 +55,9 @@ import {
 import { SourceLinksPanel } from "@/components/rights/source-links-panel";
 import { PressureReplayDebrief } from "@/components/rights/pressure-replay-debrief";
 import { SaveLineButton } from "@/components/my-lines/save-line-button";
+import { CertificationUnlockModal } from "@/components/certifications/certification-unlock-modal";
 import { FieldCardShare } from "@/components/share/field-card-share";
+import type { CertificationId } from "@/lib/certifications";
 import { getDocumentSlugFromSource } from "@/lib/document-links";
 import { buildScenarioLineId } from "@/lib/saved-lines";
 import { EducationalDisclaimer } from "@/components/legal/educational-disclaimer";
@@ -454,6 +456,11 @@ export function ScenarioExperience() {
   const [sessionPointsEarned, setSessionPointsEarned] = useState(0);
   const [sessionTopicIds, setSessionTopicIds] = useState<string[]>([]);
   const [isFirstDeploy, setIsFirstDeploy] = useState(true);
+  const [certUnlockOpen, setCertUnlockOpen] = useState(false);
+  const [pendingCertId, setPendingCertId] = useState<CertificationId | null>(
+    null
+  );
+  const [pendingCertBonus, setPendingCertBonus] = useState(0);
 
   const generatingFocusLabel = useMemo(() => {
     const lastScenario = sessionScenarios[sessionScenarios.length - 1];
@@ -498,6 +505,23 @@ export function ScenarioExperience() {
       onUnlock={unlock}
       isPurchasing={isPurchasing}
       purchaseError={purchaseError}
+    />
+  );
+
+  const pendingCertRecord =
+    pendingCertId && progressionState?.certifications
+      ? progressionState.certifications.find((cert) => cert.id === pendingCertId) ??
+        null
+      : null;
+
+  const certModal = (
+    <CertificationUnlockModal
+      open={certUnlockOpen}
+      onOpenChange={setCertUnlockOpen}
+      certificationId={pendingCertId}
+      record={pendingCertRecord}
+      rankTitle={rank.title}
+      bonusPoints={pendingCertBonus}
     />
   );
 
@@ -715,6 +739,13 @@ export function ScenarioExperience() {
     if (result) {
       setLastPointsEarned(result.pointsEarned);
       setSessionPointsEarned((previous) => previous + result.pointsEarned);
+
+      if (result.newCertifications.length > 0) {
+        const certId = result.newCertifications[0]!;
+        setPendingCertId(certId);
+        setPendingCertBonus(result.certificationBonus);
+        setCertUnlockOpen(true);
+      }
     }
   }
 
@@ -763,6 +794,8 @@ export function ScenarioExperience() {
           </p>
         </div>
         {limitModal}
+      {certModal}
+        {certModal}
       </>
     );
   }
@@ -802,6 +835,7 @@ export function ScenarioExperience() {
         )}
       </div>
       {limitModal}
+      {certModal}
       </>
     );
   }
@@ -818,6 +852,7 @@ export function ScenarioExperience() {
         isFirstScenario={isFirstDeploy}
       />
       {limitModal}
+      {certModal}
       </>
     );
   }
@@ -850,6 +885,7 @@ export function ScenarioExperience() {
         />
       </div>
       {limitModal}
+      {certModal}
       </>
     );
   }
@@ -1004,6 +1040,7 @@ export function ScenarioExperience() {
       </div>
     </div>
     {limitModal}
+    {certModal}
     </>
   );
 }

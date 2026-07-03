@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { checkAndAwardCertifications } from "@/lib/certifications";
 import {
   clearPromotionCommentary,
   completeOnboardingPath,
@@ -130,6 +131,12 @@ export function ProgressionProvider({ children }: { children: ReactNode }) {
           /* local only */
         }
       }
+      const certResult = checkAndAwardCertifications(local);
+      if (certResult.newlyAwarded.length > 0) {
+        local = certResult.state;
+        writeProgressionState(local);
+      }
+
       setState(local);
       setIsLoaded(true);
     }

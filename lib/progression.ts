@@ -12,6 +12,12 @@ import {
   type OnboardingGoal,
   type OnboardingState,
 } from "@/lib/onboarding-path";
+import {
+  checkAndAwardCertifications,
+  mergeCertifications,
+  type CertificationId,
+  type CertificationRecord,
+} from "@/lib/certifications";
 import { getEarnedBadges } from "@/lib/mastery-tracks";
 import {
   SCRIBE_OF_LIBERTY_BONUS,
@@ -226,6 +232,7 @@ export type ProgressionState = {
   onboarding: OnboardingState;
   weeklyChallenge: WeeklyChallengeState;
   earnedBadges: string[];
+  certifications?: CertificationRecord[];
   squadId: string | null;
   cloudSyncedAt: string | null;
 };
@@ -277,6 +284,7 @@ export function createInitialProgressionState(): ProgressionState {
     onboarding: createInitialOnboardingState(),
     weeklyChallenge: createInitialWeeklyChallengeState(),
     earnedBadges: [],
+    certifications: [],
     squadId: null,
     cloudSyncedAt: null,
   };
@@ -502,6 +510,8 @@ export function recordScenarioAnswer(
   promoted: boolean;
   newRank: MilitaryRank;
   streakBroken: boolean;
+  newCertifications: CertificationId[];
+  certificationBonus: number;
 } {
   let next = refreshDayState(state);
   const today = getTodayDateString();
@@ -606,12 +616,21 @@ export function recordScenarioAnswer(
     earnedBadges: getEarnedBadges(next),
   };
 
+  const certResult = checkAndAwardCertifications(next);
+  next = certResult.state;
+  pointsEarned += certResult.bonusPoints;
+
+  const startingRank = getRankForScore(state.defenderScore);
+  const finalRank = getRankForScore(next.defenderScore);
+
   return {
     state: next,
     pointsEarned,
-    promoted: scored.promoted,
-    newRank: scored.newRank,
+    promoted: finalRank.id !== startingRank.id,
+    newRank: finalRank,
     streakBroken,
+    newCertifications: certResult.newlyAwarded,
+    certificationBonus: certResult.bonusPoints,
   };
 }
 
@@ -859,14 +878,20 @@ export function answerAdaptiveMissionScenario(
   };
 
   const scored = applyScore(next, pointsEarned);
-  next = scored.state;
+  next = {
+    ...scored.state,
+    earnedBadges: getEarnedBadges(scored.state),
+  };
+
+  const certResult = checkAndAwardCertifications(next);
+  next = certResult.state;
 
   const allAnswered = updatedScenarios.every((item) => item.answered);
 
   return {
     state: next,
     correct,
-    pointsEarned,
+    pointsEarned: pointsEarned + certResult.bonusPoints,
     missionComplete: allAnswered,
   };
 }
@@ -900,15 +925,23 @@ export function finalizeAdaptiveMission(
     debrief,
   };
 
+  let finalState: ProgressionState = {
+    ...scored.state,
+    adaptiveMission: completedMission,
+    earnedBadges: getEarnedBadges(scored.state),
+  };
+
+  const certResult = checkAndAwardCertifications(finalState);
+  finalState = certResult.state;
+
+  const startingRank = getRankForScore(state.defenderScore);
+  const finalRank = getRankForScore(finalState.defenderScore);
+
   return {
-    state: {
-      ...scored.state,
-      adaptiveMission: completedMission,
-      earnedBadges: getEarnedBadges(scored.state),
-    },
-    bonusAwarded,
-    promoted: scored.promoted,
-    newRank: scored.newRank,
+    state: finalState,
+    bonusAwarded: bonusAwarded + certResult.bonusPoints,
+    promoted: finalRank.id !== startingRank.id,
+    newRank: finalRank,
   };
 }
 
@@ -933,6 +966,10 @@ export function mergeCloudProgressionState(
     earnedBadges: [
       ...new Set([...(local.earnedBadges ?? []), ...(remote.earnedBadges ?? [])]),
     ],
+    certifications: mergeCertifications(
+      local.certifications,
+      remote.certifications
+    ),
     cloudSyncedAt: new Date().toISOString(),
   };
   return merged;
