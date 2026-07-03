@@ -7,13 +7,14 @@ import {
 } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 
+import { PatrioticBackground } from "@/components/background/PatrioticScene";
 import { UserScopeSync } from "@/components/auth/user-scope-sync";
 import { ClearStaleServiceWorker } from "@/components/dev/clear-stale-service-worker";
 import { AuthHeader } from "@/components/layout/auth-header";
 import { TikTokBrowserBanner } from "@/components/layout/tiktok-browser-banner";
 import { SavedLinesProvider } from "@/components/my-lines/saved-lines-provider";
 import { CallsignPrompt } from "@/components/leaderboard/callsign-prompt";
-import { LeaderboardAutoSync } from "@/components/leaderboard/leaderboard-auto-sync";
+import { LeaderboardSyncProvider } from "@/components/leaderboard/leaderboard-sync-provider";
 import { FirstLoginTutorial } from "@/components/onboarding/first-login-tutorial";
 import { UnlockCelebration } from "@/components/monetization/unlock-celebration";
 import { ProgressionProvider } from "@/components/progression/progression-provider";
@@ -88,7 +89,8 @@ export default function RootLayout({
       lang="en"
       className={`${cinzel.variable} ${sourceSans.variable} ${geistMono.variable} ${libreBaskerville.variable} dark h-full antialiased`}
     >
-      <body className="flex min-h-full min-w-0 flex-col overflow-x-hidden">
+      <body className="relative flex min-h-full min-w-0 flex-col overflow-x-hidden">
+        <PatrioticBackground />
         <ClerkProvider
           appearance={clerkAppearance}
           signInUrl="/sign-in"
@@ -102,13 +104,14 @@ export default function RootLayout({
             <TikTokBrowserBanner />
             <AuthHeader />
             <ProgressionProvider>
-              <SavedLinesProvider>
-                <LeaderboardAutoSync />
-                {children}
-              <FirstLoginTutorial />
-              <CallsignPrompt />
-              <UnlockCelebration />
-              </SavedLinesProvider>
+              <LeaderboardSyncProvider>
+                <SavedLinesProvider>
+                  {children}
+                  <FirstLoginTutorial />
+                  <CallsignPrompt />
+                  <UnlockCelebration />
+                </SavedLinesProvider>
+              </LeaderboardSyncProvider>
             </ProgressionProvider>
           </SubscriptionProvider>
         </ClerkProvider>
