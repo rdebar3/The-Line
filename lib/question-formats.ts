@@ -76,23 +76,25 @@ export function pickQuestionFormat(
 
 export const QUESTION_FORMAT_PROMPTS: Record<QuestionFormat, string> = {
   passage: `FORMAT: FROM THE TEXT
-- situation: Quote or closely paraphrase 1–2 sentences from the assigned founding passage (lib/documents), then ONE plain sentence of context. No fictional plot.
-- question: Ask what the text means, what it limits, what right/principle it names, or why the Framers included it.
-- choices: Test comprehension of the actual document — not a convoluted story.
+- situation: Quote or closely paraphrase 1–2 sentences from the assigned founding passage (lib/documents), then ONE plain sentence of context. No fictional plot. High-school reading level.
+- question: Ask in plain English what the text means, what it limits, what right it names, or why the Framers included it.
+- choices: Test comprehension of the actual document — short, parallel options; no legal jargon.
 - modernImplication: One concrete way this text still protects or guides citizens today.`,
   teach: `FORMAT: KEY IDEA (direct teaching)
-- situation: 2–3 plain-English sentences explaining the assigned topic from the founding documents — like a brief lesson, NOT a legal thriller or tech dystopia.
-- question: Straightforward multiple choice — "What does this provision do?", "Who is limited?", "What is the core principle?"
-- choices: Each distractor should reflect a common misconception a citizen might hold. Keep all four options similar in length and tone — no obvious "throwaway" answers.
-- modernImplication: Practical takeaway the user can use when engaging government, voting, or defending their rights.`,
+- situation: 2–3 short sentences explaining the assigned topic — like a brief civics lesson, NOT a legal thriller or tech dystopia.
+- question: Straightforward — "What does this rule do?", "Who is limited?", "What is the main idea?"
+- choices: Each distractor reflects a common misconception. All four options similar length and tone — no throwaway answers, no jargon.
+- modernImplication: Practical takeaway for engaging government, voting, or defending rights.`,
   apply: `FORMAT: REAL-WORLD APPLICATION
-- situation: 2–4 sentences describing ONE everyday situation Americans actually encounter (search, speech, voting, taxes, permits, courts, federal vs state rules). The doctrine must fit NATURALLY — no Rube Goldberg fact chains.
-- question: Which protection, limit, or principle governs?
-- choices: Plausible options with parallel structure; one clearly best under the assigned source. Vary which letter is correct across sessions.
+- situation: 2–4 short sentences describing ONE everyday situation Americans actually face (search, speech, voting, taxes, permits, courts). The right must fit naturally — no Rube Goldberg fact chains.
+- question: Plain English — "Which right or limit applies?" or "What is the main constitutional problem?"
+- choices: Parallel structure, everyday language; one clearly best. Vary which letter is correct across sessions.
 - modernImplication: Specific, actionable insight for the user's own life.`,
   scenario: `FORMAT: CASE STUDY (use only when a realistic dispute naturally fits)
-- situation: 3–5 sentences — a believable dispute where the assigned doctrine clearly applies. Must sound like something that could happen, not forced analogy.
-- FORBIDDEN: Stretching rare amendments onto unrelated tech plots (e.g., data brokers + Third Amendment quartering). If the topic does not fit a natural case, use teach or passage format instead.
+- situation: 3–4 short sentences — a believable dispute where the assigned doctrine clearly applies. Must sound real, not forced.
+- question: Direct — "What is the main constitutional problem?" or "Which right protects…?"
+- choices: Plain language; correct answer obvious once the core principle is understood.
+- FORBIDDEN: Stretching rare amendments onto unrelated tech plots. If the topic does not fit a natural case, use teach or passage format instead.
 - modernImplication: Why getting this right matters for ordinary citizens.`,
 };
 

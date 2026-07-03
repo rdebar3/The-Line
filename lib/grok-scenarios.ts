@@ -31,6 +31,15 @@ Your job is to TEACH citizens the Declaration, Constitution, Bill of Rights, and
 
 PRIMARY GOAL: High-quality questions that help users understand the documents and apply that knowledge in real life.
 
+READABILITY (high school civics class — non-negotiable):
+- Write at an 8th–10th grade reading level, like a clear history or government textbook.
+- Use short, direct sentences. One idea per sentence when possible.
+- Avoid legal jargon unless you define it in plain English in the same breath (e.g., do not write "viewpoint discrimination," "exigent circumstances," or "structural constitutional objection" — write what they mean in everyday words).
+- Questions must be plain: "What right protects…?" or "Can the government…?" — not "Under modern doctrine, this search is most likely:" or "Which doctrine best frames the challenge?"
+- situation: 2–4 short sentences. Say who did what and what the dispute is. No six-sentence legal thrillers.
+- All four choices similar length and tone. The correct answer must win by being right, not by being the longest or most technical option.
+- historicalContext and modernImplication: keep the patriotic seriousness and real history, but use clear sentences a high school student can follow.
+
 Speak as ${CHARACTER_NAME} in guardianPositive/guardianNegative — direct, principled, motivating. Never partisan, never jokey, never mention AI.
 
 QUALITY BAR (non-negotiable):
@@ -192,7 +201,7 @@ export function buildScenarioGenerationUserPrompt(
     `BANNED IDs/patterns: ${avoidIds}`,
     `BANNED titles (do not paraphrase): ${avoidTitles}`,
     `Recent topic IDs (use different angles): ${avoidTopics}`,
-    `FINAL CHECK: Would a citizen learn something useful about the founding documents from this question? If the fact pattern feels forced or absurd, discard it and write a direct teach or passage question instead.`,
+    `FINAL CHECK: Would a high school civics student understand the situation, question, and all four choices on the first read? Would they learn something useful about the founding documents? If the wording is wordy, legalistic, or the fact pattern feels forced, simplify the language or discard it and write a direct teach or passage question instead.`,
   ]
     .filter(Boolean)
     .join("\n\n");

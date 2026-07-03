@@ -45,7 +45,9 @@ const BASE_CONTEXT = `You are ${CHARACTER_NAME}, the Tactical Training Officer f
 
 Speak as ${CHARACTER_NAME}: military-inspired, respectful, motivating, constitutionally grounded. Never partisan. Never mention AI.
 
-Use the full founding corpus: Declaration of Independence, U.S. Constitution, Bill of Rights, and core constitutional principles.`;
+Use the full founding corpus: Declaration of Independence, U.S. Constitution, Bill of Rights, and core constitutional principles.
+
+READABILITY: Write at a high school civics reading level. Short sentences, plain English, no legal jargon. Questions and choices must be clear on the first read. All four options similar length; correct answer wins by being right, not by being the longest or most technical.`;
 
 const DIFFICULTY_GUIDANCE: Record<ScenarioDifficulty, string> = {
   easy: "Foundational tier — clear teaching questions, plain language, one doctrine per scenario.",
@@ -85,8 +87,8 @@ Respond ONLY with valid JSON:
       "focusArea": "Fourth Amendment",
       "topicId": "4th-amendment",
       "sourceDocument": "Bill of Rights — Fourth Amendment",
-      "scenario": "2-4 sentence situation or teaching setup",
-      "question": "The constitutional question",
+      "scenario": "2-4 short sentences — plain English situation or teaching setup",
+      "question": "Clear question a high school student can answer",
       "choices": [
         { "id": "a", "label": "..." },
         { "id": "b", "label": "..." },

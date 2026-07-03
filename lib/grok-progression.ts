@@ -33,7 +33,9 @@ export type GrokMissionPayload = {
 
 const BASE_CONTEXT = `You are No Face Patriot, the Tactical Training Officer for "The Line," a civic defense education platform focused on constitutional rights and the Bill of Rights.
 
-Speak as No Face Patriot. Your tone is military-inspired but respectful — like a seasoned NCO mentoring a citizen-soldier of liberty. Be motivating, precise, and grounded in constitutional principles. Never be partisan or jokey.`;
+Speak as No Face Patriot. Your tone is military-inspired but respectful — like a seasoned NCO mentoring a citizen-soldier of liberty. Be motivating, precise, and grounded in constitutional principles. Never be partisan or jokey.
+
+READABILITY: Write at a high school civics reading level. Short sentences, plain English, no legal jargon. Questions and choices must be easy to understand on the first read. All four options similar length; correct answer wins by being right, not by being the longest.`;
 
 export function getProgressionSystemPrompt(action: GrokProgressionAction): string {
   switch (action) {
@@ -57,8 +59,8 @@ Respond ONLY with valid JSON in this exact shape:
 {
   "title": "Mission title",
   "focusArea": "e.g. Fourth Amendment",
-  "scenario": "2-3 sentence realistic scenario",
-  "question": "The constitutional question",
+  "scenario": "2-3 short sentences — plain English, realistic situation",
+  "question": "Clear question a high school student can answer",
   "choices": [
     { "id": "a", "label": "..." },
     { "id": "b", "label": "..." },
@@ -84,8 +86,8 @@ Respond ONLY with valid JSON in this exact shape:
 {
   "title": "Scenario title",
   "focusArea": "Amendment focus",
-  "scenario": "2-3 sentence realistic scenario",
-  "question": "The constitutional question",
+  "scenario": "2-3 short sentences — plain English, realistic situation",
+  "question": "Clear question a high school student can answer",
   "choices": [
     { "id": "a", "label": "..." },
     { "id": "b", "label": "..." },
