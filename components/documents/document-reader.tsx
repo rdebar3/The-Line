@@ -10,6 +10,7 @@ import { GuardianCharacter } from "@/components/guardian/guardian-character";
 import { CHARACTER_NAME } from "@/lib/guardian";
 import { Button } from "@/components/ui/button";
 import { useSubscription } from "@/hooks/use-subscription";
+import type { DocumentSlug } from "@/lib/document-links";
 import { FREE_PASSAGE_LIMIT, UNLOCK_FULL_LABEL } from "@/lib/subscription";
 import type { FoundingDocument } from "@/lib/documents/types";
 import { cn } from "@/lib/utils";
@@ -189,13 +190,23 @@ export function DocumentReader({ document }: { document: FoundingDocument }) {
           ref={panelRef}
           className="hidden xl:sticky xl:top-[calc(var(--site-header-height)+1rem)] xl:z-10 xl:max-h-[calc(100dvh-var(--site-header-height)-2rem)] xl:self-start xl:overflow-y-auto xl:overscroll-y-contain xl:scroll-smooth xl:block"
         >
-          <PassagePanel passage={selectedPassage} accent={document.accent} />
+          <PassagePanel
+            passage={selectedPassage}
+            accent={document.accent}
+            documentSlug={document.slug as DocumentSlug}
+            documentTitle={document.title}
+          />
         </aside>
       </div>
 
       {selectedPassage && (
         <div ref={mobilePanelRef} className="xl:hidden">
-          <PassagePanel passage={selectedPassage} accent={document.accent} />
+          <PassagePanel
+            passage={selectedPassage}
+            accent={document.accent}
+            documentSlug={document.slug as DocumentSlug}
+            documentTitle={document.title}
+          />
         </div>
       )}
 

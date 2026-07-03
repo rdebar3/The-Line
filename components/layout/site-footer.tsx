@@ -11,6 +11,7 @@ const footerLinks = [
   { label: "Constitution", href: "/constitution" },
   { label: "Bill of Rights", href: "/bill-of-rights" },
   { label: "Training", href: "/rights-under-pressure" },
+  { label: "My Lines", href: "/my-lines" },
   { label: "Arsenal", href: "/arsenal" },
   { label: "Privacy", href: "/privacy" },
 ];

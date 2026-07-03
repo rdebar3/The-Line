@@ -13,6 +13,10 @@ import {
   type OnboardingState,
 } from "@/lib/onboarding-path";
 import { getEarnedBadges } from "@/lib/mastery-tracks";
+import {
+  SCRIBE_OF_LIBERTY_BONUS,
+  SCRIBE_OF_LIBERTY_THRESHOLD,
+} from "@/lib/saved-lines";
 import type { ScenarioDifficulty } from "@/lib/scenario-difficulty";
 import {
   createInitialWeeklyChallengeState,
@@ -965,4 +969,35 @@ export function buildPerformanceSummary(state: ProgressionState): string {
     `Weak areas: ${weakSummary}`,
     `Recent performance: ${recentSummary || "No scenarios completed yet"}`,
   ].join("\n");
+}
+
+export function awardScribeOfLibertyIfEligible(
+  state: ProgressionState,
+  savedLinesCount: number
+): { state: ProgressionState; awarded: boolean } {
+  if (savedLinesCount < SCRIBE_OF_LIBERTY_THRESHOLD) {
+    return { state, awarded: false };
+  }
+
+  if (state.earnedBadges.includes("scribe-of-liberty")) {
+    return { state, awarded: false };
+  }
+
+  const previousRank = getRankForScore(state.defenderScore);
+  const defenderScore = state.defenderScore + SCRIBE_OF_LIBERTY_BONUS;
+  const newRank = getRankForScore(defenderScore);
+  const promoted = newRank.id !== previousRank.id;
+
+  return {
+    state: {
+      ...state,
+      defenderScore,
+      lastRankId: newRank.id,
+      earnedBadges: [...state.earnedBadges, "scribe-of-liberty"],
+      pendingPromotionCommentary: promoted
+        ? newRank.id
+        : state.pendingPromotionCommentary,
+    },
+    awarded: true,
+  };
 }

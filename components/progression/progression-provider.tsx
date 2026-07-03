@@ -137,6 +137,23 @@ export function ProgressionProvider({ children }: { children: ReactNode }) {
     void hydrate();
   }, [authLoaded, isSignedIn, userId]);
 
+  useEffect(() => {
+    function handleLocalProgressionUpdate() {
+      setState(readProgressionState());
+    }
+
+    window.addEventListener(
+      "theline:progression-local-updated",
+      handleLocalProgressionUpdate
+    );
+    return () => {
+      window.removeEventListener(
+        "theline:progression-local-updated",
+        handleLocalProgressionUpdate
+      );
+    };
+  }, []);
+
   const persist = useCallback(
     (next: ProgressionState) => {
       setState(next);

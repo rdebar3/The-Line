@@ -1,17 +1,28 @@
 import { BookOpen, Lightbulb, Scale } from "lucide-react";
 
+import { SaveLineButton } from "@/components/my-lines/save-line-button";
 import { GuardianCharacter } from "@/components/guardian/guardian-character";
 import { accentStyles } from "@/components/documents/accent-styles";
+import type { DocumentSlug } from "@/lib/document-links";
+import { buildDocumentLineId } from "@/lib/saved-lines";
 import type { DocumentAccent, DocumentPassage } from "@/lib/documents/types";
 import { cn } from "@/lib/utils";
 
 type PassagePanelProps = {
   passage: DocumentPassage | null;
   accent: DocumentAccent;
+  documentSlug: DocumentSlug;
+  documentTitle: string;
   className?: string;
 };
 
-export function PassagePanel({ passage, accent, className }: PassagePanelProps) {
+export function PassagePanel({
+  passage,
+  accent,
+  documentSlug,
+  documentTitle,
+  className,
+}: PassagePanelProps) {
   const styles = accentStyles[accent];
 
   if (!passage) {
@@ -42,14 +53,27 @@ export function PassagePanel({ passage, accent, className }: PassagePanelProps) 
         className
       )}
     >
-      <p
-        className={cn(
-          "font-heading text-xs font-semibold tracking-[0.25em] uppercase",
-          styles.text
-        )}
-      >
-        {passage.section}
-      </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <p
+          className={cn(
+            "font-heading text-xs font-semibold tracking-[0.25em] uppercase",
+            styles.text
+          )}
+        >
+          {passage.section}
+        </p>
+        <SaveLineButton
+          draft={{
+            id: buildDocumentLineId(documentSlug, passage.id),
+            source: "document",
+            passageText: passage.text,
+            title: passage.section,
+            subtitle: documentTitle,
+            documentSlug,
+            passageId: passage.id,
+          }}
+        />
+      </div>
 
       <div className="mt-6 space-y-5">
         <div>

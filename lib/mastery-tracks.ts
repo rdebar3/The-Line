@@ -6,7 +6,8 @@ export type MasteryBadgeId =
   | "bill-of-rights-starter"
   | "constitution-starter"
   | "sharp-shooter"
-  | "line-holder";
+  | "line-holder"
+  | "scribe-of-liberty";
 
 export type MasteryTrack = {
   id: string;
@@ -84,4 +85,5 @@ export const BADGE_LABELS: Record<MasteryBadgeId, string> = {
   "constitution-starter": "Constitution Ready",
   "sharp-shooter": "5-Answer Streak",
   "line-holder": "7-Day Streak",
+  "scribe-of-liberty": "Scribe of Liberty",
 };

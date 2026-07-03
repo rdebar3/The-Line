@@ -54,9 +54,11 @@ import {
 } from "@/lib/scenario-generation";
 import { SourceLinksPanel } from "@/components/rights/source-links-panel";
 import { PressureReplayDebrief } from "@/components/rights/pressure-replay-debrief";
+import { SaveLineButton } from "@/components/my-lines/save-line-button";
 import { FieldCardShare } from "@/components/share/field-card-share";
-import { EducationalDisclaimer } from "@/components/legal/educational-disclaimer";
 import { getDocumentSlugFromSource } from "@/lib/document-links";
+import { buildScenarioLineId } from "@/lib/saved-lines";
+import { EducationalDisclaimer } from "@/components/legal/educational-disclaimer";
 import { SCENARIO_DISCLAIMER } from "@/lib/legal-disclaimers";
 import { UNLOCK_FULL_LABEL } from "@/lib/subscription";
 import {
@@ -160,6 +162,11 @@ function FeedbackPanel({
   const correctChoice = scenario.choices.find(
     (choice) => choice.id === scenario.correctChoiceId
   );
+  const lineToSave =
+    scenario.rememberLine ??
+    (isCorrect ? scenario.guardianPositive : scenario.guardianNegative);
+  const documentSlug =
+    scenario.documentSlug ?? getDocumentSlugFromSource(scenario.sourceDocument);
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-2 space-y-5 duration-300">
@@ -200,6 +207,21 @@ function FeedbackPanel({
           </p>
         )}
       </div>
+
+      {lineToSave ? (
+        <SaveLineButton
+          draft={{
+            id: buildScenarioLineId(scenario.id),
+            source: "scenario",
+            passageText: lineToSave,
+            title: scenario.amendmentLabel,
+            subtitle: scenario.title,
+            documentSlug: documentSlug ?? undefined,
+            passageId: scenario.passageIds?.[0],
+            scenarioId: scenario.id,
+          }}
+        />
+      ) : null}
 
       <SourceLinksPanel
         passageIds={scenario.passageIds}
