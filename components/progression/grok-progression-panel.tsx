@@ -16,12 +16,11 @@ import { useProgression } from "@/hooks/use-progression";
 import { useSubscription } from "@/hooks/use-subscription";
 import { CHARACTER_NAME } from "@/lib/guardian";
 import { UNLOCK_CTA_LABEL } from "@/lib/subscription";
-import type { GrokMissionPayload } from "@/lib/grok-progression";
 import {
-  buildPerformanceSummary,
-  getWeakAreas,
-  type GrokMission,
-} from "@/lib/progression";
+  getWeakestDrillTarget,
+  type GrokMissionPayload,
+} from "@/lib/grok-progression";
+import { buildPerformanceSummary, type GrokMission } from "@/lib/progression";
 import { cn } from "@/lib/utils";
 
 function GrokMissionCard({
@@ -188,13 +187,21 @@ export function GrokProgressionPanel() {
   const { state, grokMissions, saveGrokMission, finishGrokMission } =
     useProgression();
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadingAction, setLoadingAction] = useState<
+    "next_mission" | "personalized_scenario" | null
+  >(null);
   const [error, setError] = useState<string | null>(null);
+  const [lastMissionType, setLastMissionType] = useState<string | null>(null);
   const [missionPoints, setMissionPoints] = useState<Record<string, number>>({});
   const [reviewMissionId, setReviewMissionId] = useState<string | null>(null);
 
   const canUseGrok = canAccess("grok_progression");
   const showLocked = !subscriptionLoading && !canUseGrok;
+
+  const weakestTarget = useMemo(
+    () => (state ? getWeakestDrillTarget(state) : null),
+    [state]
+  );
 
   async function requestGrokMission(
     action: "next_mission" | "personalized_scenario"
@@ -206,11 +213,15 @@ export function GrokProgressionPanel() {
 
     if (!state) return;
 
-    setIsLoading(true);
-    setError(null);
+    if (action === "personalized_scenario" && !weakestTarget) {
+      setError(
+        "Complete a few training scenarios first so we can identify your weakest area."
+      );
+      return;
+    }
 
-    const weakAreas = getWeakAreas(state.weakAreas);
-    const focusArea = weakAreas[0]?.amendment;
+    setLoadingAction(action);
+    setError(null);
 
     try {
       const response = await fetch("/api/grok/progression", {
@@ -219,7 +230,10 @@ export function GrokProgressionPanel() {
         body: JSON.stringify({
           action,
           performanceSummary: buildPerformanceSummary(state),
-          focusArea,
+          focusArea:
+            action === "personalized_scenario"
+              ? weakestTarget?.focusArea
+              : undefined,
         }),
       });
 
@@ -235,11 +249,16 @@ export function GrokProgressionPanel() {
       if (data.mission) {
         setReviewMissionId(null);
         saveGrokMission(data.mission);
+        setLastMissionType(
+          action === "next_mission"
+            ? `General mission deployed — ${data.mission.focusArea}`
+            : `Weak area drill — ${data.mission.focusArea}`
+        );
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
-      setIsLoading(false);
+      setLoadingAction(null);
     }
   }
 
@@ -303,8 +322,8 @@ export function GrokProgressionPanel() {
             </h3>
             <p className="mt-1.5 max-w-prose text-pretty text-sm leading-relaxed text-muted-foreground">
               {showLocked
-                ? `${CHARACTER_NAME} issues short missions on your weak areas — unlock for personalized drills and rank debriefs.`
-                : `Short missions from ${CHARACTER_NAME} targeting your weak areas — run them right from the hub.`}
+                ? `${CHARACTER_NAME} issues short missions from the hub — unlock for general drills, weak-area targeting, and rank debriefs.`
+                : `${CHARACTER_NAME} issues two kinds of hub drills: general missions across any topic, or focused remedial drills on your weakest area.`}
             </p>
           </div>
         </div>
@@ -343,11 +362,19 @@ export function GrokProgressionPanel() {
                   <p className="mt-4 font-heading text-sm font-semibold tracking-[0.1em] text-balance text-foreground uppercase">
                     Awaiting Mission Orders
                   </p>
-                  <p className="mt-2 max-w-xs text-pretty text-sm leading-relaxed text-muted-foreground">
-                    Request a drill below — {CHARACTER_NAME} will target your
-                    weakest amendment.
+                  <p className="mt-2 max-w-sm text-pretty text-sm leading-relaxed text-muted-foreground">
+                    <strong className="font-medium text-foreground">Next Mission</strong>{" "}
+                    — random constitutional topic for general training.{" "}
+                    <strong className="font-medium text-gold">Weak Area Drill</strong>{" "}
+                    — focused remedial mission on your lowest-accuracy topic.
                   </p>
                 </div>
+              )}
+
+              {lastMissionType && !error && (
+                <p className="mt-4 rounded-xl border border-gold/20 bg-gold/5 px-4 py-3 text-sm text-foreground/90">
+                  {lastMissionType}
+                </p>
               )}
 
               {error && (
@@ -356,30 +383,70 @@ export function GrokProgressionPanel() {
                 </p>
               )}
 
-              <div className="mt-5 grid gap-2.5 sm:grid-cols-2">
-                <Button
-                  disabled={isLoading || reviewMissionId !== null}
-                  onClick={() => void requestGrokMission("next_mission")}
-                  className="btn-crimson btn-cta h-12 w-full rounded-xl text-sm font-semibold"
-                >
-                  {isLoading ? (
-                    <Loader2 className="size-4 shrink-0 animate-spin" />
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Button
+                    disabled={
+                      loadingAction !== null || reviewMissionId !== null
+                    }
+                    onClick={() => void requestGrokMission("next_mission")}
+                    className="btn-crimson btn-cta h-12 w-full rounded-xl text-sm font-semibold shadow-[0_4px_24px_rgba(185,28,28,0.25)]"
+                  >
+                    {loadingAction === "next_mission" ? (
+                      <Loader2 className="size-4 shrink-0 animate-spin" />
+                    ) : (
+                      <Target className="size-4 shrink-0" />
+                    )}
+                    {loadingAction === "next_mission"
+                      ? "Deploying…"
+                      : "Next Mission"}
+                  </Button>
+                  <p className="text-center text-[0.65rem] leading-relaxed text-muted-foreground sm:text-left">
+                    Random topic · repeatable general training
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  {weakestTarget ? (
+                    <p className="rounded-lg border border-gold/20 bg-gold/5 px-2.5 py-1.5 text-center text-[0.65rem] leading-snug text-gold sm:text-left">
+                      Targeting your weakest area:{" "}
+                      <span className="font-semibold text-foreground">
+                        {weakestTarget.displayLabel}
+                      </span>
+                      <span className="text-muted-foreground">
+                        {" "}
+                        ({weakestTarget.accuracy}% accuracy)
+                      </span>
+                    </p>
                   ) : (
-                    <Target className="size-4 shrink-0" />
+                    <p className="rounded-lg border border-navy-border/60 bg-navy/40 px-2.5 py-1.5 text-center text-[0.65rem] text-muted-foreground sm:text-left">
+                      Complete training to unlock weak-area targeting
+                    </p>
                   )}
-                  Next Mission
-                </Button>
-                <Button
-                  variant="outline"
-                  disabled={isLoading || reviewMissionId !== null}
-                  onClick={() =>
-                    void requestGrokMission("personalized_scenario")
-                  }
-                  className="h-12 w-full rounded-xl border-gold/30 bg-gold/5 text-sm font-semibold text-gold hover:border-gold/45 hover:bg-gold/10"
-                >
-                  <Sparkles className="size-4 shrink-0" />
-                  Weak Area Drill
-                </Button>
+                  <Button
+                    disabled={
+                      loadingAction !== null ||
+                      reviewMissionId !== null ||
+                      !weakestTarget
+                    }
+                    onClick={() =>
+                      void requestGrokMission("personalized_scenario")
+                    }
+                    className="btn-gold h-12 w-full rounded-xl text-sm font-semibold shadow-[0_4px_24px_rgba(201,162,39,0.2)]"
+                  >
+                    {loadingAction === "personalized_scenario" ? (
+                      <Loader2 className="size-4 shrink-0 animate-spin" />
+                    ) : (
+                      <Sparkles className="size-4 shrink-0" />
+                    )}
+                    {loadingAction === "personalized_scenario"
+                      ? "Targeting…"
+                      : "Weak Area Drill"}
+                  </Button>
+                  <p className="text-center text-[0.65rem] leading-relaxed text-muted-foreground sm:text-left">
+                    Focused remedial drill on your lowest score
+                  </p>
+                </div>
               </div>
 
               {completedCount > 0 && (

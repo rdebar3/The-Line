@@ -11,7 +11,15 @@ export type GrokProgressionRequest = {
   focusArea?: string;
 };
 
+export type WeakestDrillTarget = {
+  focusArea: string;
+  displayLabel: string;
+  accuracy: number;
+};
+
+import { getIntelligenceReport } from "@/lib/adaptive-intelligence";
 import { shuffleMissionChoices } from "@/lib/choice-shuffle";
+import { getWeakAreas, type ProgressionState } from "@/lib/progression";
 
 export type GrokMissionPayload = {
   title: string;
@@ -43,7 +51,7 @@ Do not use markdown headers. Write in second person ("you").`;
     case "next_mission":
       return `${BASE_CONTEXT}
 
-Based on the user's performance summary, design their next tailored training mission targeting their weakest constitutional areas.
+Design a GENERAL training mission — not a weak-area remedial drill. Pick a fresh constitutional topic at random across the Declaration of Independence, U.S. Constitution, Bill of Rights, and core founding principles. Vary topics between missions; do not repeat the user's weakest areas by default.
 
 Respond ONLY with valid JSON in this exact shape:
 {
@@ -61,7 +69,7 @@ Respond ONLY with valid JSON in this exact shape:
   "explanation": "Brief explanation of the correct answer"
 }
 
-Target their weakest areas. Make the scenario realistic and educational.
+Make the scenario realistic and educational. The focusArea field should name the topic you chose (not necessarily a weak area).
 
 MULTIPLE-CHOICE DESIGN:
 - Vary correctChoiceId across a, b, c, and d — do not always use "a".
@@ -70,7 +78,7 @@ MULTIPLE-CHOICE DESIGN:
     case "personalized_scenario":
       return `${BASE_CONTEXT}
 
-Generate a personalized constitutional scenario targeting the user's weak area.
+Generate a WEAK AREA REMEDIAL DRILL. The user prompt names their lowest-accuracy topic — focus EXCLUSIVELY on that area. Every part of the scenario, question, distractors, and explanation must drill that specific constitutional topic.
 
 Respond ONLY with valid JSON in this exact shape:
 {
@@ -102,11 +110,54 @@ export function buildProgressionUserPrompt(
     lines.push(`New rank: ${request.rankTitle} (${request.rankAbbreviation})`);
   }
 
-  if (request.focusArea) {
-    lines.push(`Priority weak area: ${request.focusArea}`);
+  if (request.action === "next_mission") {
+    lines.push(
+      "Mission type: GENERAL TRAINING — select a varied constitutional topic for broad practice. Do not target weak areas."
+    );
+  }
+
+  if (request.action === "personalized_scenario") {
+    if (request.focusArea) {
+      lines.push(
+        `Mission type: WEAK AREA DRILL — focus EXCLUSIVELY on: ${request.focusArea}`
+      );
+      lines.push(
+        `The focusArea field in your JSON must be "${request.focusArea}" (or a clear variant of this label).`
+      );
+    } else {
+      lines.push(
+        "Mission type: WEAK AREA DRILL — no specific weak area provided; choose the most foundational gap from the performance summary."
+      );
+    }
   }
 
   return lines.join("\n\n");
+}
+
+export function getWeakestDrillTarget(
+  state: ProgressionState
+): WeakestDrillTarget | null {
+  const weakAreas = getWeakAreas(state.weakAreas);
+  if (weakAreas.length > 0) {
+    const weakest = weakAreas[0]!;
+    return {
+      focusArea: weakest.amendment,
+      displayLabel: weakest.amendment,
+      accuracy: Math.round(weakest.accuracy * 100),
+    };
+  }
+
+  const report = getIntelligenceReport(state);
+  if (report.weakAreas.length > 0) {
+    const weakest = report.weakAreas[0]!;
+    return {
+      focusArea: weakest.label,
+      displayLabel: weakest.label,
+      accuracy: weakest.accuracy,
+    };
+  }
+
+  return null;
 }
 
 export function parseGrokMissionPayload(
