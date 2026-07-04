@@ -1,6 +1,7 @@
 import { FoundingDocumentsHighlight } from "@/components/hub/founding-documents-highlight";
 import { HubHero } from "@/components/hub/hub-hero";
 import { HubJourney } from "@/components/hub/hub-journey";
+import { LivingOathHubCard } from "@/components/hub/living-oath-hub-card";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { PageBackground } from "@/components/rights/page-background";
 
@@ -14,7 +15,11 @@ export default function Home() {
           <FoundingDocumentsHighlight />
         </div>
 
-        <div className="hub-section-tight animate-fade-up-delay-2">
+        <div className="mt-8 animate-fade-up-delay-2 sm:mt-10">
+          <LivingOathHubCard />
+        </div>
+
+        <div className="hub-section-tight animate-fade-up-delay-3">
           <HubJourney />
         </div>
 
