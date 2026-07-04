@@ -1,6 +1,11 @@
-import { FileText, Landmark, ScrollText } from "lucide-react";
+"use client";
+
+import { FileText, Landmark, ScrollText, Sparkles } from "lucide-react";
 
 import { DocumentCard } from "@/components/hub/document-card";
+import { Button } from "@/components/ui/button";
+import { useSubscription } from "@/hooks/use-subscription";
+import { PREMIUM_PRICE_LABEL } from "@/lib/subscription";
 
 const documents = [
   {
@@ -37,6 +42,8 @@ const valuePoints = [
 ];
 
 export function FoundingDocumentsHighlight() {
+  const { isPremium, isLoading, openUnlockModal } = useSubscription();
+
   return (
     <section
       id="documents"
@@ -59,7 +66,35 @@ export function FoundingDocumentsHighlight() {
               Declaration • Constitution • Bill of Rights + Training Tools,
               Notes &amp; Scenarios
             </p>
-            <p className="mx-auto mt-3 max-w-xl text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
+
+            {!isLoading && isPremium ? (
+              <p className="mx-auto mt-4 inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-4 py-2 text-sm font-semibold text-gold">
+                <Sparkles className="size-4 shrink-0" />
+                Full access active — all documents unlocked
+              </p>
+            ) : (
+              <div className="mx-auto mt-5 max-w-lg">
+                <p className="font-heading text-xl font-bold tracking-wide text-foreground sm:text-2xl">
+                  All for one-time{" "}
+                  <span className="text-gold">{PREMIUM_PRICE_LABEL}</span>
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Every passage, full training depth, unlimited scenarios — no
+                  subscription.
+                </p>
+                {!isLoading && (
+                  <Button
+                    type="button"
+                    onClick={openUnlockModal}
+                    className="btn-gold btn-cta mt-4 h-11 rounded-xl px-6 text-sm font-bold sm:text-base"
+                  >
+                    Unlock Full Access — {PREMIUM_PRICE_LABEL}
+                  </Button>
+                )}
+              </div>
+            )}
+
+            <p className="mx-auto mt-4 max-w-xl text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
               Read the actual text that limits power — not summaries. Every
               document is built for study, saving, and training that connects
               back to your Defender Score.
