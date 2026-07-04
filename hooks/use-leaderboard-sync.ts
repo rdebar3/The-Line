@@ -10,12 +10,17 @@ type SyncResponse = {
   error?: string;
 };
 
+function checkInStorageKey(userId: string | null | undefined) {
+  return userId ? `${CHECK_IN_KEY}:${userId}` : CHECK_IN_KEY;
+}
+
 export function useLeaderboardSync(
   defenderScore: number,
   isProgressionLoaded: boolean
 ) {
-  const { isSignedIn, isLoaded: authLoaded } = useAuth();
+  const { isSignedIn, isLoaded: authLoaded, userId } = useAuth();
   const lastSyncedScore = useRef<number | null>(null);
+  const lastSyncedUserId = useRef<string | null>(null);
   const [rankDelta, setRankDelta] = useState<number | null>(null);
 
   const syncScore = useCallback(
@@ -53,25 +58,40 @@ export function useLeaderboardSync(
 
   useEffect(() => {
     if (!isSignedIn && typeof window !== "undefined") {
-      sessionStorage.removeItem(CHECK_IN_KEY);
       lastSyncedScore.current = null;
+      lastSyncedUserId.current = null;
       setRankDelta(null);
     }
   }, [isSignedIn]);
 
   useEffect(() => {
-    if (!authLoaded || !isProgressionLoaded || !isSignedIn) return;
-    if (lastSyncedScore.current === defenderScore) return;
+    if (userId !== lastSyncedUserId.current) {
+      lastSyncedScore.current = null;
+      lastSyncedUserId.current = userId ?? null;
+      setRankDelta(null);
+    }
+  }, [userId]);
 
+  useEffect(() => {
+    if (!authLoaded || !isProgressionLoaded || !isSignedIn || !userId) return;
+    if (
+      lastSyncedScore.current === defenderScore &&
+      lastSyncedUserId.current === userId
+    ) {
+      return;
+    }
+
+    const storageKey = checkInStorageKey(userId);
     const shouldCheckIn =
       typeof window !== "undefined" &&
-      sessionStorage.getItem(CHECK_IN_KEY) !== "1";
+      sessionStorage.getItem(storageKey) !== "1";
 
     void syncScore(defenderScore, shouldCheckIn).then(() => {
       if (shouldCheckIn && typeof window !== "undefined") {
-        sessionStorage.setItem(CHECK_IN_KEY, "1");
+        sessionStorage.setItem(storageKey, "1");
       }
       lastSyncedScore.current = defenderScore;
+      lastSyncedUserId.current = userId;
     });
   }, [
     authLoaded,
@@ -79,6 +99,7 @@ export function useLeaderboardSync(
     isProgressionLoaded,
     isSignedIn,
     syncScore,
+    userId,
   ]);
 
   const dismissRankDelta = useCallback(() => {

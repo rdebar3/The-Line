@@ -15,7 +15,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { useLeaderboard, type LeaderboardRow } from "@/hooks/use-leaderboard";
-import { useLeaderboardSync } from "@/hooks/use-leaderboard-sync";
+import { useLeaderboardSyncState } from "@/components/leaderboard/leaderboard-sync-provider";
 import { useProgression } from "@/hooks/use-progression";
 import { cn } from "@/lib/utils";
 
@@ -208,10 +208,7 @@ export function LeaderboardPanel({ configured = true }: LeaderboardPanelProps) {
     defenderScore,
     isLoaded
   );
-  const { rankDelta, dismissRankDelta } = useLeaderboardSync(
-    defenderScore,
-    isLoaded
-  );
+  const { rankDelta, dismissRankDelta } = useLeaderboardSyncState();
 
   const isLive = configured || data?.configured === true;
   const highlightYou = data?.isSignedIn === true;
