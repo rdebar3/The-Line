@@ -1,3 +1,4 @@
+import { FoundingDocumentsHighlight } from "@/components/hub/founding-documents-highlight";
 import { HubHero } from "@/components/hub/hub-hero";
 import { HubJourney } from "@/components/hub/hub-journey";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -9,7 +10,11 @@ export default function Home() {
       <div className="page-shell max-w-5xl pb-2">
         <HubHero />
 
-        <div className="hub-section-tight animate-fade-up-delay-1">
+        <div className="mt-8 animate-fade-up-delay-1 sm:mt-10">
+          <FoundingDocumentsHighlight />
+        </div>
+
+        <div className="hub-section-tight animate-fade-up-delay-2">
           <HubJourney />
         </div>
 
