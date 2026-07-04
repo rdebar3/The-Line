@@ -29,7 +29,7 @@ export function SignUpPanel() {
   return (
     <ClerkAuthShell>
       <div className="space-y-4">
-        <SocialAuthButtons mode="sign-up" showTroubleshoot={false} />
+        <SocialAuthButtons mode="sign-up" />
         <SignUp
           routing="path"
           path="/sign-up"

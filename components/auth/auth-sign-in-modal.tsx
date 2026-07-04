@@ -137,7 +137,7 @@ export function AuthSignInModal({ open, onOpenChange }: AuthSignInModalProps) {
 
             {view === "email-sign-up" && (
               <div className="max-h-[min(52dvh,28rem)] overflow-y-auto pr-1">
-                <SocialAuthButtons mode="sign-up" showTroubleshoot={false} />
+                <SocialAuthButtons mode="sign-up" />
                 <SignUp
                   routing="hash"
                   appearance={appearance}
