@@ -2,6 +2,16 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@clerk/ui/themes/shadcn.css";
+@import "@fontsource/cinzel/400.css";
+@import "@fontsource/cinzel/600.css";
+@import "@fontsource/cinzel/700.css";
+@import "@fontsource/source-sans-3/400.css";
+@import "@fontsource/source-sans-3/500.css";
+@import "@fontsource/source-sans-3/600.css";
+@import "@fontsource/source-sans-3/700.css";
+@import "@fontsource/libre-baskerville/400.css";
+@import "@fontsource/libre-baskerville/700.css";
+@import "@fontsource/geist-mono/latin-400.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -64,6 +74,10 @@
 }
 
 :root {
+  --font-cinzel: "Cinzel", Georgia, "Times New Roman", serif;
+  --font-source-sans: "Source Sans 3", system-ui, -apple-system, sans-serif;
+  --font-geist-mono: "Geist Mono", ui-monospace, monospace;
+  --font-libre-baskerville: "Libre Baskerville", Georgia, serif;
   --background: #0a0f1c;
   --foreground: #e8edf5;
   --card: #121a2e;

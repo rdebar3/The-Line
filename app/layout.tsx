@@ -1,10 +1,4 @@
 import type { Metadata } from "next";
-import {
-  Cinzel,
-  Geist_Mono,
-  Libre_Baskerville,
-  Source_Sans_3,
-} from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 
 import { PatrioticBackground } from "@/components/background/PatrioticScene";
@@ -23,29 +17,6 @@ import { SubscriptionProvider } from "@/components/monetization/subscription-pro
 import { getAppUrl } from "@/lib/app-url";
 import { clerkAppearance } from "@/lib/clerk-appearance";
 import "./globals.css";
-
-const cinzel = Cinzel({
-  variable: "--font-cinzel",
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
-});
-
-const sourceSans = Source_Sans_3({
-  variable: "--font-source-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const libreBaskerville = Libre_Baskerville({
-  variable: "--font-libre-baskerville",
-  subsets: ["latin"],
-  weight: ["400", "700"],
-});
 
 const appUrl = getAppUrl();
 
@@ -88,9 +59,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${cinzel.variable} ${sourceSans.variable} ${geistMono.variable} ${libreBaskerville.variable} dark h-full antialiased`}
+      className="dark h-full antialiased"
     >
-      <body className="relative flex min-h-full min-w-0 flex-col overflow-x-hidden">
+      <body className="relative flex min-h-full min-w-0 flex-col overflow-x-hidden font-sans">
         <PatrioticBackground />
         <ClerkProvider
           appearance={clerkAppearance}
