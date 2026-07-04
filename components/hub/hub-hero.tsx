@@ -60,28 +60,13 @@ export function HubHero() {
           </Button>
         </motion.div>
 
-        <div className="mt-3 flex items-center justify-center gap-3 text-sm">
-          <Link
-            href="/quick-drills"
-            className="inline-flex items-center gap-1.5 font-semibold text-muted-foreground transition-colors hover:text-gold"
-          >
-            <Zap className="size-3.5" />
-            Quick Drills
-          </Link>
-          {isGuest && (
-            <>
-              <span aria-hidden className="text-navy-border">
-                ·
-              </span>
-              <Link
-                href="/sign-in"
-                className="font-medium text-muted-foreground/80 transition-colors hover:text-foreground"
-              >
-                Sign in
-              </Link>
-            </>
-          )}
-        </div>
+        <Link
+          href="/quick-drills"
+          className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-gold"
+        >
+          <Zap className="size-3.5" />
+          Or start with Quick Drills
+        </Link>
 
         {showFreeLabel && (
           <p className="mt-4 text-xs font-medium tracking-wide text-gold/90 sm:text-sm">

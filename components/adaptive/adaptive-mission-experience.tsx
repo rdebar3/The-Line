@@ -156,14 +156,14 @@ export function AdaptiveMissionExperience() {
           No Active Mission
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          Generate a personalized mission from the Intelligence Report on the hub.
+          Generate a personalized mission from Quick Drills on the hub.
         </p>
         <Button
           nativeButton={false}
-          render={<Link href="/#intelligence" />}
+          render={<Link href="/quick-drills" />}
           className="btn-gold mt-8 min-w-[220px]"
         >
-          Open Intelligence Report
+          Open Quick Drills
         </Button>
       </div>
     );
@@ -241,11 +241,11 @@ export function AdaptiveMissionExperience() {
           <Button
             onClick={() => {
               dismissAdaptiveMission();
-              router.push("/#intelligence");
+              router.push("/quick-drills");
             }}
             className="btn-gold min-w-[200px]"
           >
-            Return to Intelligence Report
+            Return to Quick Drills
           </Button>
           <Button
             nativeButton={false}

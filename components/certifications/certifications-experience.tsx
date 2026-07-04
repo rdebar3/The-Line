@@ -1,12 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Award, Swords } from "lucide-react";
+import { Award, Bookmark, Swords } from "lucide-react";
 
+import { PageHeader } from "@/components/layout/page-header";
 import { CertificationCard } from "@/components/certifications/certification-card";
+import { Button } from "@/components/ui/button";
 import { useProgression } from "@/hooks/use-progression";
 import { getAllCertificationProgress } from "@/lib/certifications";
 import { CHARACTER_NAME } from "@/lib/guardian";
+import {
+  SCRIBE_OF_LIBERTY_BONUS,
+  SCRIBE_OF_LIBERTY_THRESHOLD,
+} from "@/lib/saved-lines";
 
 export function CertificationsExperience() {
   const { state, isLoaded, rank } = useProgression();
@@ -32,27 +38,12 @@ export function CertificationsExperience() {
 
   return (
     <div className="space-y-8">
-      <header className="space-y-3">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-gold"
-        >
-          <ArrowLeft className="size-4" />
-          Back to Hub
-        </Link>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="section-eyebrow">Defender Credentials</p>
-            <h1 className="font-heading text-3xl font-bold text-foreground sm:text-4xl">
-              Certifications
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Earn official credentials by mastering the founding documents.
-              {CHARACTER_NAME} awards certificates for accuracy, training volume,
-              and Defender Score milestones.
-            </p>
-          </div>
-          <div className="rounded-2xl border border-gold/30 bg-gold/10 px-5 py-4 text-center">
+      <PageHeader
+        eyebrow="Defender Credentials"
+        title="Certifications"
+        description={`Earn official credentials by mastering the founding documents. ${CHARACTER_NAME} awards certificates for accuracy, training volume, and Defender Score milestones.`}
+        aside={
+          <div className="rounded-xl border border-gold/30 bg-gold/10 px-5 py-4 text-center">
             <Award className="mx-auto size-6 text-gold" />
             <p className="mt-2 font-heading text-2xl font-bold text-gold">
               {earnedCount}/{progressList.length}
@@ -61,15 +52,20 @@ export function CertificationsExperience() {
               Earned
             </p>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       {earnedCount === 0 && (
         <div className="rounded-2xl border border-gold/20 bg-gold/[0.06] px-5 py-4 text-sm leading-relaxed text-muted-foreground">
           <span className="font-semibold text-gold">Your path starts here.</span>{" "}
-          Complete scenarios in Rights Under Pressure to build accuracy and
-          Defender Score. Each certificate unlocks a shareable credential and a
-          bonus score award.
+          Complete scenarios in Rights Under Pressure and Quick Drills to build
+          accuracy and Defender Score. Save passages in{" "}
+          <Link href="/my-lines" className="font-semibold text-foreground hover:text-gold">
+            My Lines
+          </Link>{" "}
+          — at {SCRIBE_OF_LIBERTY_THRESHOLD} saves you earn the Scribe of Liberty
+          badge (+{SCRIBE_OF_LIBERTY_BONUS} Defender Score) toward certification
+          thresholds.
         </div>
       )}
 
@@ -107,14 +103,31 @@ export function CertificationsExperience() {
             Earn all three document certificates, then hit 3,000 Defender Score
             with strong overall accuracy.
           </li>
+          <li>
+            <span className="font-semibold text-foreground">Study & save:</span>{" "}
+            Save founding passages in My Lines to earn the Scribe of Liberty badge
+            — a {SCRIBE_OF_LIBERTY_BONUS}-point boost toward Defender Score goals.
+          </li>
         </ul>
-        <Link
-          href="/rights-under-pressure"
-          className="btn-crimson mt-5 inline-flex items-center gap-2"
-        >
-          <Swords className="size-4" />
-          Start training
-        </Link>
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+          <Button
+            nativeButton={false}
+            render={<Link href="/rights-under-pressure" />}
+            className="btn-crimson btn-cta h-11 rounded-xl"
+          >
+            <Swords className="size-4" />
+            Start training
+          </Button>
+          <Button
+            nativeButton={false}
+            render={<Link href="/my-lines" />}
+            variant="outline"
+            className="btn-cta h-11 rounded-xl border-gold/30 text-gold hover:bg-gold/10"
+          >
+            <Bookmark className="size-4" />
+            Open My Lines
+          </Button>
+        </div>
       </div>
     </div>
   );

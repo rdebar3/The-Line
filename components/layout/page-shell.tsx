@@ -12,7 +12,7 @@ type PageShellProps = {
   footerTagline?: string;
   showBack?: boolean;
   animate?: boolean;
-  maxWidth?: "4xl" | "6xl";
+  maxWidth?: "4xl" | "5xl" | "6xl";
   compactFooter?: boolean;
 };
 
@@ -21,7 +21,7 @@ export function PageShell({
   footerTagline,
   showBack = true,
   animate = true,
-  maxWidth = "6xl",
+  maxWidth = "5xl",
   compactFooter = true,
 }: PageShellProps) {
   return (
@@ -29,19 +29,24 @@ export function PageShell({
       <div
         className={cn(
           "page-shell",
-          maxWidth === "4xl" ? "max-w-4xl" : "max-w-6xl"
+          maxWidth === "4xl"
+            ? "max-w-4xl"
+            : maxWidth === "6xl"
+              ? "max-w-6xl"
+              : "max-w-5xl"
         )}
       >
         {showBack && (
-          <nav className={cn("mb-8", animate && "animate-fade-up")}>
+          <nav className={cn("mb-6", animate && "animate-fade-up")}>
             <Button
               nativeButton={false}
               render={<Link href="/" />}
               variant="ghost"
-              className="gap-2 px-0 text-muted-foreground hover:bg-transparent hover:text-gold"
+              size="sm"
+              className="gap-1.5 px-0 text-muted-foreground hover:bg-transparent hover:text-gold"
             >
-              <ArrowLeft className="size-4" />
-              Back to The Line
+              <ArrowLeft className="size-3.5" />
+              Hub
             </Button>
           </nav>
         )}

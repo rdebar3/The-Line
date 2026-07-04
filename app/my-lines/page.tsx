@@ -1,6 +1,5 @@
 import { MyLinesExperience } from "@/components/my-lines/my-lines-experience";
 import { PageShell } from "@/components/layout/page-shell";
-import { PageBackground } from "@/components/rights/page-background";
 
 export const metadata = {
   title: "My Lines | The Line",
@@ -10,10 +9,8 @@ export const metadata = {
 
 export default function MyLinesPage() {
   return (
-    <PageBackground>
-      <PageShell footerTagline="Hold the passages that hold the line.">
-        <MyLinesExperience />
-      </PageShell>
-    </PageBackground>
+    <PageShell footerTagline="Hold the passages that hold the line.">
+      <MyLinesExperience />
+    </PageShell>
   );
 }

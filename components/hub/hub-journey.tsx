@@ -11,6 +11,14 @@ export function HubJourney() {
 
   return (
     <section aria-label="Hub navigation" className="flex flex-col gap-6 sm:gap-8">
+      <header className="text-center">
+        <p className="section-eyebrow">Defender Toolkit</p>
+        <p className="mx-auto mt-2 max-w-md text-pretty text-sm text-muted-foreground">
+          Train, save, certify, and rank up — every feature builds your Defender
+          Score.
+        </p>
+      </header>
+
       <StartTrainingHubCard />
 
       <nav aria-label="Hub features">

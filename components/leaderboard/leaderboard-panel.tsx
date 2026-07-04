@@ -235,14 +235,13 @@ export function LeaderboardPanel({ configured = true }: LeaderboardPanelProps) {
       <div aria-hidden className="hub-card-accent" />
 
       <div className="relative p-5 sm:p-8">
-        <header className="hub-section-header">
-          <p className="section-eyebrow">Defender Leaderboard</p>
-          <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+        <header className="mb-5 text-center sm:mb-6">
+          <p className="section-eyebrow">Leaderboard</p>
+          <h2 className="mt-1 font-heading text-xl font-bold tracking-wide text-foreground sm:text-2xl">
             All-Time Patriots
           </h2>
-          <p className="hub-section-subtitle">
-            Lifetime Defender Score — ranked by total points earned across all
-            training.
+          <p className="mx-auto mt-2 max-w-md text-pretty text-sm text-muted-foreground">
+            Lifetime Defender Score across all training.
           </p>
         </header>
 

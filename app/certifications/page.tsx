@@ -1,6 +1,5 @@
 import { CertificationsExperience } from "@/components/certifications/certifications-experience";
 import { PageShell } from "@/components/layout/page-shell";
-import { PageBackground } from "@/components/rights/page-background";
 
 export const metadata = {
   title: "Certifications | The Line",
@@ -10,10 +9,8 @@ export const metadata = {
 
 export default function CertificationsPage() {
   return (
-    <PageBackground>
-      <PageShell footerTagline="Hold the line. Earn the credential.">
-        <CertificationsExperience />
-      </PageShell>
-    </PageBackground>
+    <PageShell footerTagline="Hold the line. Earn the credential.">
+      <CertificationsExperience />
+    </PageShell>
   );
 }

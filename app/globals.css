@@ -297,7 +297,11 @@
   }
 
   .btn-cta {
-    @apply min-h-12 rounded-xl px-6 text-base font-semibold;
+    @apply min-h-11 rounded-xl px-5 text-sm font-semibold sm:min-h-12 sm:px-6 sm:text-base;
+  }
+
+  .btn-outline-gold {
+    @apply rounded-xl border border-gold/30 bg-transparent text-gold transition-colors hover:bg-gold/10;
   }
 
   .score-glow {
