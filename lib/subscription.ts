@@ -7,6 +7,7 @@ export const PREMIUM_PRICE = 7.99;
 export const PREMIUM_PRICE_LABEL = "$7.99";
 export const UNLOCK_CTA_LABEL = `Unlock for ${PREMIUM_PRICE_LABEL}`;
 export const UNLOCK_FULL_LABEL = `Unlock Full Experience — ${PREMIUM_PRICE_LABEL}`;
+export const UNLOCK_DOCUMENTS_TRAINING_CTA = `Unlock All Documents + Full Training – Only ${PREMIUM_PRICE_LABEL}`;
 
 export const STORAGE_KEY = "theline_premium";
 export const PURCHASE_DATE_KEY = "theline_premium_purchased_at";
