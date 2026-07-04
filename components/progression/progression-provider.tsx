@@ -21,6 +21,7 @@ import {
   getRankProgress,
   mergeCloudProgressionState,
   recordHubActivity,
+  recordRepublicSimulatorCompletion,
   recordScenarioAnswer,
   recordWeeklyChallengeSession,
   addGrokMission,
@@ -97,6 +98,12 @@ type ProgressionContextValue = {
   completeOnboarding: (goal: OnboardingGoal) => void;
   recordWeeklySession: (sessionScore: number) => void;
   setSquadId: (squadId: string | null) => void;
+  completeRepublicSimulator: (record: {
+    scenarioId: string;
+    roleId: string;
+    fidelityScore: number;
+    pointsEarned: number;
+  }) => ReturnType<typeof recordRepublicSimulatorCompletion> | null;
 };
 
 const ProgressionContext = createContext<ProgressionContextValue | null>(null);
@@ -292,6 +299,21 @@ export function ProgressionProvider({ children }: { children: ReactNode }) {
     [persist, state]
   );
 
+  const completeRepublicSimulator = useCallback(
+    (record: {
+      scenarioId: string;
+      roleId: string;
+      fidelityScore: number;
+      pointsEarned: number;
+    }) => {
+      if (!state) return null;
+      const result = recordRepublicSimulatorCompletion(state, record);
+      persist(result.state);
+      return result;
+    },
+    [persist, state]
+  );
+
   const rank = useMemo(
     () => getRankForScore(state?.defenderScore ?? 0),
     [state?.defenderScore]
@@ -341,6 +363,7 @@ export function ProgressionProvider({ children }: { children: ReactNode }) {
       completeOnboarding,
       recordWeeklySession,
       setSquadId,
+      completeRepublicSimulator,
     }),
     [
       state,
@@ -361,6 +384,7 @@ export function ProgressionProvider({ children }: { children: ReactNode }) {
       completeOnboarding,
       recordWeeklySession,
       setSquadId,
+      completeRepublicSimulator,
     ]
   );
 

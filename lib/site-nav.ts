@@ -14,6 +14,11 @@ export const PRIMARY_NAV: SiteNavItem[] = [
     match: ["/rights-under-pressure"],
   },
   { label: "Drills", href: "/quick-drills", match: ["/quick-drills"] },
+  {
+    label: "Simulator",
+    href: "/republic-simulator",
+    match: ["/republic-simulator"],
+  },
   { label: "My Lines", href: "/my-lines", match: ["/my-lines"] },
   {
     label: "Certs",

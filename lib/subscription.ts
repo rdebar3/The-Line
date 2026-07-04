@@ -20,7 +20,8 @@ export type PremiumFeature =
   | "grok_progression"
   | "all_scenarios"
   | "full_arsenal"
-  | "unlimited_passages";
+  | "unlimited_passages"
+  | "republic_simulator";
 
 /** Daily free-tier cap for fresh Grok scenarios */
 export const FREE_SCENARIO_LIMIT = FREE_DAILY_SCENARIO_GENERATION_LIMIT;
@@ -101,10 +102,18 @@ export function hasFeature(
     case "all_scenarios":
     case "full_arsenal":
     case "unlimited_passages":
+    case "republic_simulator":
       return false;
     default:
       return false;
   }
+}
+
+export function canAccessRepublicSimulator(
+  isPremium: boolean,
+  demoUsed: boolean
+): boolean {
+  return isPremium || !demoUsed;
 }
 
 export const FREE_VS_PREMIUM_ROWS = [

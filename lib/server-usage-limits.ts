@@ -2,6 +2,7 @@ import { Redis } from "@upstash/redis";
 
 import { FREE_GROK_DAILY_LIMIT, getTodayDateString } from "@/lib/grok-teaser";
 import { isLeaderboardConfigured } from "@/lib/leaderboard";
+import { FREE_REPUBLIC_SIMULATOR_LIMIT } from "@/lib/subscription";
 import { FREE_DAILY_SCENARIO_GENERATION_LIMIT } from "@/lib/scenario-difficulty";
 
 import { ADAPTIVE_MISSION_LIMITS } from "@/lib/adaptive-intelligence";
@@ -9,6 +10,7 @@ import { ADAPTIVE_MISSION_LIMITS } from "@/lib/adaptive-intelligence";
 const TEASER_PREFIX = "theline:teaser:";
 const SCENARIO_GEN_PREFIX = "theline:scenegen:";
 const ADAPTIVE_MISSION_PREFIX = "theline:adaptive:";
+const REPUBLIC_SIMULATOR_PREFIX = "theline:repsim:";
 
 let redisClient: Redis | null = null;
 
@@ -156,6 +158,75 @@ export async function consumeAdaptiveMissionGeneration(
 
   return {
     allowed: true,
+    remaining: Math.max(0, limit - uses),
+    uses,
+    tracked: true,
+  };
+}
+
+/** Lifetime demo completions for free-tier Republic Simulator access. */
+export async function consumeRepublicSimulatorDemo(userId: string): Promise<{
+  allowed: boolean;
+  remaining: number;
+  uses: number;
+  tracked: boolean;
+}> {
+  const limit = FREE_REPUBLIC_SIMULATOR_LIMIT;
+  const redis = getRedis();
+
+  if (!redis) {
+    return {
+      allowed: true,
+      remaining: limit,
+      uses: 0,
+      tracked: false,
+    };
+  }
+
+  const key = `${REPUBLIC_SIMULATOR_PREFIX}${userId}`;
+  const uses = await redis.incr(key);
+
+  if (uses > limit) {
+    await redis.decr(key);
+    return {
+      allowed: false,
+      remaining: 0,
+      uses: limit,
+      tracked: true,
+    };
+  }
+
+  return {
+    allowed: true,
+    remaining: Math.max(0, limit - uses),
+    uses,
+    tracked: true,
+  };
+}
+
+export async function getRepublicSimulatorDemoUsage(userId: string): Promise<{
+  allowed: boolean;
+  remaining: number;
+  uses: number;
+  tracked: boolean;
+}> {
+  const limit = FREE_REPUBLIC_SIMULATOR_LIMIT;
+  const redis = getRedis();
+
+  if (!redis) {
+    return {
+      allowed: true,
+      remaining: limit,
+      uses: 0,
+      tracked: false,
+    };
+  }
+
+  const key = `${REPUBLIC_SIMULATOR_PREFIX}${userId}`;
+  const uses = (await redis.get<number>(key)) ?? 0;
+
+  return {
+    allowed: uses < limit,
     remaining: Math.max(0, limit - uses),
     uses,
     tracked: true,

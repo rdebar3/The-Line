@@ -203,6 +203,14 @@ export type GrokMission = {
   completed: boolean;
 };
 
+export type RepublicSimulatorHistoryRecord = {
+  scenarioId: string;
+  roleId: string;
+  fidelityScore: number;
+  pointsEarned: number;
+  completedAt: string;
+};
+
 export type ProgressionState = {
   defenderScore: number;
   dailyStreak: number;
@@ -235,6 +243,7 @@ export type ProgressionState = {
   certifications?: CertificationRecord[];
   squadId: string | null;
   cloudSyncedAt: string | null;
+  republicSimulatorHistory?: RepublicSimulatorHistoryRecord[];
 };
 
 export const SCORE_AWARDS = {
@@ -497,13 +506,19 @@ export function recordHubActivity(state: ProgressionState): ProgressionState {
   return next;
 }
 
+export type ScenarioAnswerOptions = {
+  correctPoints?: number;
+  incorrectPoints?: number;
+};
+
 export function recordScenarioAnswer(
   state: ProgressionState,
   record: {
     scenarioId: string;
     amendment: string;
     correct: boolean;
-  }
+  },
+  options?: ScenarioAnswerOptions
 ): {
   state: ProgressionState;
   pointsEarned: number;
@@ -521,8 +536,8 @@ export function recordScenarioAnswer(
   const streakBroken = !record.correct && next.correctStreak > 0;
 
   let pointsEarned = record.correct
-    ? SCORE_AWARDS.correctAnswer
-    : SCORE_AWARDS.incorrectAnswer;
+    ? (options?.correctPoints ?? SCORE_AWARDS.correctAnswer)
+    : (options?.incorrectPoints ?? SCORE_AWARDS.incorrectAnswer);
 
   if (record.correct && correctStreak > 1) {
     const bonus = Math.min(
@@ -661,23 +676,42 @@ export function completeGrokMission(
   state: ProgressionState,
   missionId: string,
   correct: boolean
-): { state: ProgressionState; pointsEarned: number } {
+): {
+  state: ProgressionState;
+  pointsEarned: number;
+  newCertifications: CertificationId[];
+  certificationBonus: number;
+} {
   const mission = state.grokMissions.find((item) => item.id === missionId);
   if (!mission || mission.completed) {
-    return { state, pointsEarned: 0 };
+    return {
+      state,
+      pointsEarned: 0,
+      newCertifications: [],
+      certificationBonus: 0,
+    };
   }
 
-  const pointsEarned = correct ? 125 : 25;
-  const scored = applyScore(state, pointsEarned);
+  const result = recordScenarioAnswer(
+    state,
+    {
+      scenarioId: missionId,
+      amendment: mission.focusArea,
+      correct,
+    },
+    { correctPoints: 125, incorrectPoints: 25 }
+  );
 
   return {
     state: {
-      ...scored.state,
-      grokMissions: scored.state.grokMissions.map((item) =>
+      ...result.state,
+      grokMissions: result.state.grokMissions.map((item) =>
         item.id === missionId ? { ...item, completed: true } : item
       ),
     },
-    pointsEarned,
+    pointsEarned: result.pointsEarned,
+    newCertifications: result.newCertifications,
+    certificationBonus: result.certificationBonus,
   };
 }
 
@@ -949,20 +983,58 @@ export function clearAdaptiveMission(state: ProgressionState): ProgressionState 
   return { ...state, adaptiveMission: null };
 }
 
+function mergeWeakAreas(
+  local: ProgressionState["weakAreas"],
+  remote: ProgressionState["weakAreas"] | undefined
+): ProgressionState["weakAreas"] {
+  const merged = { ...local };
+  if (!remote) return merged;
+
+  for (const [label, stats] of Object.entries(remote)) {
+    const existing = merged[label] ?? { correct: 0, total: 0 };
+    merged[label] = {
+      correct: Math.max(existing.correct, stats.correct),
+      total: Math.max(existing.total, stats.total),
+    };
+  }
+
+  return merged;
+}
+
 export function mergeCloudProgressionState(
   local: ProgressionState,
   remote: Partial<ProgressionState>
 ): ProgressionState {
   const remoteScore = remote.defenderScore ?? 0;
+  const remoteHistory = remote.scenarioHistory ?? [];
+  const mergedHistory = [...local.scenarioHistory, ...remoteHistory]
+    .sort((a, b) => a.answeredAt.localeCompare(b.answeredAt))
+    .slice(-100);
+
+  const grokMissionMap = new Map(
+    [...(remote.grokMissions ?? []), ...local.grokMissions].map((mission) => [
+      mission.id,
+      mission,
+    ])
+  );
+
   const merged: ProgressionState = {
     ...local,
     ...remote,
     defenderScore: Math.max(local.defenderScore, remoteScore),
-    weakAreas: { ...local.weakAreas, ...remote.weakAreas },
+    weakAreas: mergeWeakAreas(local.weakAreas, remote.weakAreas),
     topicPerformance: mergeTopicPerformance(
       local.topicPerformance ?? {},
       remote.topicPerformance
     ),
+    scenarioHistory: mergedHistory,
+    grokMissions: [...grokMissionMap.values()].slice(0, 10),
+    adaptiveMission: local.adaptiveMission ?? remote.adaptiveMission ?? null,
+    adaptiveMissionHistory:
+      local.adaptiveMissionHistory?.missionsGenerated >=
+      (remote.adaptiveMissionHistory?.missionsGenerated ?? 0)
+        ? local.adaptiveMissionHistory
+        : (remote.adaptiveMissionHistory ?? local.adaptiveMissionHistory),
     earnedBadges: [
       ...new Set([...(local.earnedBadges ?? []), ...(remote.earnedBadges ?? [])]),
     ],
@@ -970,9 +1042,62 @@ export function mergeCloudProgressionState(
       local.certifications,
       remote.certifications
     ),
+    republicSimulatorHistory: [
+      ...(remote.republicSimulatorHistory ?? []),
+      ...(local.republicSimulatorHistory ?? []),
+    ]
+      .sort((a, b) => a.completedAt.localeCompare(b.completedAt))
+      .slice(-20),
     cloudSyncedAt: new Date().toISOString(),
   };
   return merged;
+}
+
+export function recordRepublicSimulatorCompletion(
+  state: ProgressionState,
+  record: {
+    scenarioId: string;
+    roleId: string;
+    fidelityScore: number;
+    pointsEarned: number;
+  }
+): {
+  state: ProgressionState;
+  pointsEarned: number;
+  promoted: boolean;
+  newRank: MilitaryRank;
+} {
+  let next = refreshDayState(state);
+  const today = getTodayDateString();
+  const streakUpdate = updateDailyStreak(next, today);
+
+  const scored = applyScore(next, record.pointsEarned);
+  next = {
+    ...scored.state,
+    ...streakUpdate,
+    todayStats: {
+      ...next.todayStats,
+      activityLogged: true,
+      scenariosCompleted: next.todayStats.scenariosCompleted + 1,
+    },
+    republicSimulatorHistory: [
+      ...(next.republicSimulatorHistory ?? []),
+      {
+        scenarioId: record.scenarioId,
+        roleId: record.roleId,
+        fidelityScore: record.fidelityScore,
+        pointsEarned: record.pointsEarned,
+        completedAt: new Date().toISOString(),
+      },
+    ].slice(-20),
+  };
+
+  return {
+    state: next,
+    pointsEarned: record.pointsEarned,
+    promoted: scored.promoted,
+    newRank: scored.newRank,
+  };
 }
 
 export function buildPerformanceSummary(state: ProgressionState): string {

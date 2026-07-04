@@ -3,6 +3,7 @@ import { isLeaderboardConfigured } from "@/lib/leaderboard";
 import { CertificationsHubCard } from "@/components/hub/certifications-hub-card";
 import { MyLinesHubCard } from "@/components/hub/my-lines-hub-card";
 import { QuickDrillsHubCard } from "@/components/hub/quick-drills-hub-card";
+import { RepublicSimulatorHubCard } from "@/components/hub/republic-simulator-hub-card";
 import { StartTrainingHubCard } from "@/components/hub/start-training-hub-card";
 import { LeaderboardPanel } from "@/components/leaderboard/leaderboard-panel";
 
@@ -34,6 +35,8 @@ export function HubJourney() {
           </li>
         </ol>
       </nav>
+
+      <RepublicSimulatorHubCard />
 
       <LeaderboardPanel configured={leaderboardConfigured} />
     </section>

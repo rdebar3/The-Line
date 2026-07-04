@@ -5,7 +5,7 @@ export const SCRIBE_OF_LIBERTY_THRESHOLD = 10;
 export const SCRIBE_OF_LIBERTY_BONUS = 500;
 export const SAVED_LINE_NOTE_MAX = 500;
 
-export type SavedLineSource = "document" | "scenario";
+export type SavedLineSource = "document" | "scenario" | "republic-simulator";
 
 export type SavedLine = {
   id: string;
@@ -40,6 +40,13 @@ export function buildDocumentLineId(
 
 export function buildScenarioLineId(scenarioId: string): string {
   return `scenario:${scenarioId}`;
+}
+
+export function buildRepublicSimulatorLineId(
+  scenarioId: string,
+  momentId: string
+): string {
+  return `republic-sim:${scenarioId}:${momentId}`;
 }
 
 export function mergeSavedLines(

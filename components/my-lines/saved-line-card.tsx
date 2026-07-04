@@ -38,9 +38,11 @@ export function SavedLineCard({ line, index }: SavedLineCardProps) {
   const href =
     line.documentSlug && line.passageId
       ? getPassageUrl(line.documentSlug, line.passageId)
-      : line.source === "scenario"
-        ? "/rights-under-pressure"
-        : null;
+      : line.source === "republic-simulator"
+        ? "/republic-simulator"
+        : line.source === "scenario"
+          ? "/rights-under-pressure"
+          : null;
 
   async function handleSaveNote() {
     setSaving(true);
