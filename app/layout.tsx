@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 
-import { PatrioticBackground } from "@/components/background/PatrioticScene";
+import { AppBackground } from "@/components/background/app-background";
 import { UserScopeSync } from "@/components/auth/user-scope-sync";
 import { ClearStaleServiceWorker } from "@/components/dev/clear-stale-service-worker";
 import { AuthHeader } from "@/components/layout/auth-header";
@@ -61,8 +61,8 @@ export default function RootLayout({
       lang="en"
       className="dark h-full antialiased"
     >
-      <body className="relative flex min-h-full min-w-0 flex-col overflow-x-hidden font-sans">
-        <PatrioticBackground />
+      <body className="relative flex min-h-full min-w-0 flex-col overflow-x-hidden bg-navy font-sans">
+        <AppBackground />
         <ClerkProvider
           appearance={clerkAppearance}
           signInUrl="/sign-in"
