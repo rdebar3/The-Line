@@ -19,6 +19,7 @@ import {
   FREE_DAILY_SCENARIO_GENERATION_LIMIT,
   type ScenarioDifficulty,
 } from "@/lib/scenario-difficulty";
+import { FeatureHint } from "@/components/onboarding/feature-hint";
 import { cn } from "@/lib/utils";
 
 type TrainingBriefingProps = {
@@ -181,25 +182,31 @@ export function TrainingBriefing({
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-          <Button
-            onClick={onDeploy}
-            disabled={!canGenerate || isDeploying}
-            className="btn-crimson min-h-12 w-full max-w-sm rounded-xl text-base font-semibold"
-          >
-            {isDeploying ? (
-              <>
-                <Loader2 className="size-4 animate-spin" />
-                {CHARACTER_NAME} is composing your first scenario...
-              </>
-            ) : (
-              <>
-                <Swords className="size-4" />
-                Deploy Training Session
-              </>
-            )}
-          </Button>
-        </div>
+        <FeatureHint
+          hintId="rights_under_pressure"
+          title="Your first training session"
+          message="Tap Deploy to receive a constitutional scenario scaled to your rank. Answer honestly — the field debrief is where the real learning happens."
+        >
+          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <Button
+              onClick={onDeploy}
+              disabled={!canGenerate || isDeploying}
+              className="btn-crimson min-h-12 w-full max-w-sm rounded-xl text-base font-semibold"
+            >
+              {isDeploying ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  {CHARACTER_NAME} is composing your first scenario...
+                </>
+              ) : (
+                <>
+                  <Swords className="size-4" />
+                  Deploy Training Session
+                </>
+              )}
+            </Button>
+          </div>
+        </FeatureHint>
 
         {!canGenerate && !isPremium && (
           <div className="mt-6 rounded-xl border border-gold/20 bg-gold/5 p-4 text-center">

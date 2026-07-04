@@ -16,6 +16,7 @@ import { SavedLinesProvider } from "@/components/my-lines/saved-lines-provider";
 import { CallsignPrompt } from "@/components/leaderboard/callsign-prompt";
 import { LeaderboardSyncProvider } from "@/components/leaderboard/leaderboard-sync-provider";
 import { FirstLoginTutorial } from "@/components/onboarding/first-login-tutorial";
+import { WelcomeOnboarding } from "@/components/onboarding/welcome-onboarding";
 import { UnlockCelebration } from "@/components/monetization/unlock-celebration";
 import { ProgressionProvider } from "@/components/progression/progression-provider";
 import { SubscriptionProvider } from "@/components/monetization/subscription-provider";
@@ -107,6 +108,7 @@ export default function RootLayout({
               <LeaderboardSyncProvider>
                 <SavedLinesProvider>
                   {children}
+                  <WelcomeOnboarding />
                   <FirstLoginTutorial />
                   <CallsignPrompt />
                   <UnlockCelebration />

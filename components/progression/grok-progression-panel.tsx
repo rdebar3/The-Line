@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { GuardianCharacter } from "@/components/guardian/guardian-character";
+import { FeatureHint } from "@/components/onboarding/feature-hint";
 import { Button } from "@/components/ui/button";
 import { useProgression } from "@/hooks/use-progression";
 import { useSubscription } from "@/hooks/use-subscription";
@@ -371,7 +372,7 @@ export function GrokProgressionPanel() {
                 </div>
               )}
 
-              {lastMissionType && !error && (
+              {lastMissionType && !error && displayedMissions.length === 0 && (
                 <p className="mt-4 rounded-xl border border-gold/20 bg-gold/5 px-4 py-3 text-sm text-foreground/90">
                   {lastMissionType}
                 </p>
@@ -383,71 +384,77 @@ export function GrokProgressionPanel() {
                 </p>
               )}
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Button
-                    disabled={
-                      loadingAction !== null || reviewMissionId !== null
-                    }
-                    onClick={() => void requestGrokMission("next_mission")}
-                    className="btn-crimson btn-cta h-12 w-full rounded-xl text-sm font-semibold shadow-[0_4px_24px_rgba(185,28,28,0.25)]"
-                  >
-                    {loadingAction === "next_mission" ? (
-                      <Loader2 className="size-4 shrink-0 animate-spin" />
-                    ) : (
-                      <Target className="size-4 shrink-0" />
-                    )}
-                    {loadingAction === "next_mission"
-                      ? "Deploying…"
-                      : "Next Mission"}
-                  </Button>
-                  <p className="text-center text-[0.65rem] leading-relaxed text-muted-foreground sm:text-left">
-                    Random topic · repeatable general training
-                  </p>
-                </div>
+              <FeatureHint
+                hintId="quick_drills"
+                title="Quick Drills — how they work"
+                message="Next Mission covers a random topic for general practice. Weak Area Drill targets your lowest-accuracy topic once you've completed a few training sessions."
+              >
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Button
+                      disabled={
+                        loadingAction !== null || reviewMissionId !== null
+                      }
+                      onClick={() => void requestGrokMission("next_mission")}
+                      className="btn-crimson btn-cta h-12 w-full rounded-xl text-sm font-semibold shadow-[0_4px_24px_rgba(185,28,28,0.25)]"
+                    >
+                      {loadingAction === "next_mission" ? (
+                        <Loader2 className="size-4 shrink-0 animate-spin" />
+                      ) : (
+                        <Target className="size-4 shrink-0" />
+                      )}
+                      {loadingAction === "next_mission"
+                        ? "Deploying…"
+                        : "Next Mission"}
+                    </Button>
+                    <p className="text-center text-[0.65rem] leading-relaxed text-muted-foreground sm:text-left">
+                      Random topic · repeatable general training
+                    </p>
+                  </div>
 
-                <div className="space-y-2">
-                  {weakestTarget ? (
-                    <p className="rounded-lg border border-gold/20 bg-gold/5 px-2.5 py-1.5 text-center text-[0.65rem] leading-snug text-gold sm:text-left">
-                      Targeting your weakest area:{" "}
-                      <span className="font-semibold text-foreground">
-                        {weakestTarget.displayLabel}
-                      </span>
-                      <span className="text-muted-foreground">
-                        {" "}
-                        ({weakestTarget.accuracy}% accuracy)
-                      </span>
-                    </p>
-                  ) : (
-                    <p className="rounded-lg border border-navy-border/60 bg-navy/40 px-2.5 py-1.5 text-center text-[0.65rem] text-muted-foreground sm:text-left">
-                      Complete training to unlock weak-area targeting
-                    </p>
-                  )}
-                  <Button
-                    disabled={
-                      loadingAction !== null ||
-                      reviewMissionId !== null ||
-                      !weakestTarget
-                    }
-                    onClick={() =>
-                      void requestGrokMission("personalized_scenario")
-                    }
-                    className="btn-gold h-12 w-full rounded-xl text-sm font-semibold shadow-[0_4px_24px_rgba(201,162,39,0.2)]"
-                  >
-                    {loadingAction === "personalized_scenario" ? (
-                      <Loader2 className="size-4 shrink-0 animate-spin" />
+                  <div className="space-y-2">
+                    {weakestTarget ? (
+                      <p className="rounded-lg border border-gold/20 bg-gold/5 px-2.5 py-1.5 text-center text-[0.65rem] leading-snug text-gold sm:text-left">
+                        Targeting your weakest area:{" "}
+                        <span className="font-semibold text-foreground">
+                          {weakestTarget.displayLabel}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {" "}
+                          ({weakestTarget.accuracy}% accuracy)
+                        </span>
+                      </p>
                     ) : (
-                      <Sparkles className="size-4 shrink-0" />
+                      <p className="rounded-lg border border-navy-border/60 bg-navy/40 px-2.5 py-1.5 text-center text-[0.65rem] text-muted-foreground sm:text-left">
+                        Complete training to unlock weak-area targeting
+                      </p>
                     )}
-                    {loadingAction === "personalized_scenario"
-                      ? "Targeting…"
-                      : "Weak Area Drill"}
-                  </Button>
-                  <p className="text-center text-[0.65rem] leading-relaxed text-muted-foreground sm:text-left">
-                    Focused remedial drill on your lowest score
-                  </p>
+                    <Button
+                      disabled={
+                        loadingAction !== null ||
+                        reviewMissionId !== null ||
+                        !weakestTarget
+                      }
+                      onClick={() =>
+                        void requestGrokMission("personalized_scenario")
+                      }
+                      className="btn-gold h-12 w-full rounded-xl text-sm font-semibold shadow-[0_4px_24px_rgba(201,162,39,0.2)]"
+                    >
+                      {loadingAction === "personalized_scenario" ? (
+                        <Loader2 className="size-4 shrink-0 animate-spin" />
+                      ) : (
+                        <Sparkles className="size-4 shrink-0" />
+                      )}
+                      {loadingAction === "personalized_scenario"
+                        ? "Targeting…"
+                        : "Weak Area Drill"}
+                    </Button>
+                    <p className="text-center text-[0.65rem] leading-relaxed text-muted-foreground sm:text-left">
+                      Focused remedial drill on your lowest score
+                    </p>
+                  </div>
                 </div>
-              </div>
+              </FeatureHint>
 
               {completedCount > 0 && (
                 <div className="mt-4 flex items-center justify-center gap-2 rounded-lg border border-gold/15 bg-gold/5 px-4 py-2.5 text-xs text-muted-foreground sm:justify-start">

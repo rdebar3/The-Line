@@ -29,6 +29,7 @@ import {
   readLocalFirstLoginTutorialComplete,
   writeLocalFirstLoginTutorialComplete,
 } from "@/lib/first-login-tutorial";
+import { readWelcomeOnboardingComplete } from "@/lib/onboarding-experience";
 import { CHARACTER_NAME } from "@/lib/guardian";
 import { FREE_GROK_DAILY_LIMIT } from "@/lib/grok-teaser";
 import { FREE_DAILY_SCENARIO_GENERATION_LIMIT } from "@/lib/scenario-difficulty";
@@ -191,6 +192,12 @@ export function FirstLoginTutorial() {
     lastCheckedUserIdRef.current = userId;
 
     async function evaluate() {
+      if (readWelcomeOnboardingComplete()) {
+        writeLocalFirstLoginTutorialComplete(userId!);
+        setOpen(false);
+        return;
+      }
+
       if (readLocalFirstLoginTutorialComplete(userId!)) {
         setOpen(false);
         return;
