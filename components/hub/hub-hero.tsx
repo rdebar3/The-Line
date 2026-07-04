@@ -2,30 +2,19 @@
 
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
-import { ArrowRight, BookOpen, Shield } from "lucide-react";
-import { motion } from "motion/react";
 
 import { GuardianCharacter } from "@/components/guardian/guardian-character";
 import { PremiumAccessBanner } from "@/components/monetization/premium-access-banner";
-import { Button } from "@/components/ui/button";
 import { useInAppBrowser } from "@/hooks/use-in-app-browser";
-import { useProgression } from "@/hooks/use-progression";
 import { useSubscription } from "@/hooks/use-subscription";
 import { CHARACTER_NAME } from "@/lib/guardian";
 import { FREE_DAILY_SCENARIO_GENERATION_LIMIT } from "@/lib/scenario-difficulty";
-import { getTrainingCtaLabel } from "@/lib/premium-status";
 
 export function HubHero() {
   const { isSignedIn, isLoaded } = useAuth();
   const { isPremium } = useSubscription();
-  const { dailyMission } = useProgression();
   const { isTikTokBrowser } = useInAppBrowser();
   const showAuthCta = !isLoaded || !isSignedIn;
-  const trainingLabel = getTrainingCtaLabel({
-    isPremium,
-    dailyMission,
-    isGuest: showAuthCta,
-  });
 
   return (
     <header className="animate-fade-up text-center">
@@ -44,25 +33,6 @@ export function HubHero() {
       <p className="mx-auto mt-4 max-w-xl text-pretty text-lg font-semibold leading-snug tracking-wide text-foreground/95 sm:mt-5 sm:text-xl">
         When power pushes, the Constitution answers.
       </p>
-
-      {/* Primary path for new visitors — one obvious action above the fold */}
-      <div className="mx-auto mt-6 max-w-md sm:mt-7">
-        <motion.div
-          whileHover={{ scale: 1.02, y: -2 }}
-          whileTap={{ scale: 0.98 }}
-          transition={{ type: "spring", stiffness: 400, damping: 24 }}
-        >
-          <Button
-            nativeButton={false}
-            render={<Link href="/rights-under-pressure" />}
-            className="btn-cta premium-button h-14 w-full gap-2.5 rounded-2xl border border-gold/40 bg-gradient-to-r from-crimson via-crimson-dark to-gold-dark px-6 text-base font-bold tracking-wide text-white shadow-[0_8px_40px_rgba(185,28,28,0.45),0_0_24px_rgba(201,162,39,0.2)] hover:from-crimson-hover hover:via-crimson hover:to-gold sm:h-[3.75rem] sm:text-lg"
-          >
-            <Shield className="size-5 shrink-0" />
-            {trainingLabel}
-            <ArrowRight className="size-5 shrink-0" />
-          </Button>
-        </motion.div>
-      </div>
 
       {isSignedIn && isPremium && (
         <div className="mx-auto mt-5 max-w-md sm:mt-6">
@@ -101,7 +71,7 @@ export function HubHero() {
         </p>
       )}
 
-      <div className="relative mx-auto mt-6 max-w-md sm:mt-8 lg:mt-10">
+      <div className="relative mx-auto mt-5 max-w-sm sm:mt-6 lg:mt-8">
         <div
           aria-hidden
           className="pointer-events-none absolute left-1/2 top-1/2 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(201,162,39,0.14)_0%,transparent_68%)] sm:h-64 sm:w-64"
@@ -113,35 +83,12 @@ export function HubHero() {
         <div className="relative flex justify-center px-4 py-2 sm:px-6">
           <GuardianCharacter
             mood="neutral"
-            size="hero"
+            size="lg"
             priority
             floating
             showLabel
           />
         </div>
-      </div>
-
-      {/* Secondary actions — visible but not competing with the primary CTA */}
-      <div className="mx-auto mt-5 flex max-w-sm flex-wrap items-center justify-center gap-2 sm:mt-6 sm:max-w-md sm:gap-2.5">
-        <Button
-          nativeButton={false}
-          render={<Link href="#documents" />}
-          variant="outline"
-          size="sm"
-          className="h-9 rounded-lg border-navy-border/80 bg-navy/30 px-3.5 text-xs font-medium text-muted-foreground hover:border-gold/30 hover:bg-navy-elevated/60 hover:text-foreground sm:text-sm"
-        >
-          <BookOpen className="size-3.5 shrink-0" />
-          Founding Documents
-        </Button>
-        <Button
-          nativeButton={false}
-          render={<Link href="#progression" />}
-          variant="outline"
-          size="sm"
-          className="h-9 rounded-lg border-navy-border/80 bg-navy/30 px-3.5 text-xs font-medium text-muted-foreground hover:border-gold/30 hover:bg-navy-elevated/60 hover:text-foreground sm:text-sm"
-        >
-          Track Progress
-        </Button>
       </div>
 
       {showAuthCta && (
