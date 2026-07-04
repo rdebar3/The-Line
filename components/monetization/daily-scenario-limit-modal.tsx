@@ -69,7 +69,7 @@ export function DailyScenarioLimitModal({
                 ) : (
                   <>
                     <Lock className="size-4" />
-                    Unlock Full Access — {PREMIUM_PRICE_LABEL}
+                    Unlock Full Access — {PREMIUM_PRICE_LABEL} one-time
                   </>
                 )}
               </Button>

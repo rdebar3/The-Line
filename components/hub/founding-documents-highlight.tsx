@@ -9,6 +9,7 @@ import { useSubscription } from "@/hooks/use-subscription";
 import {
   PREMIUM_PRICE_LABEL,
   UNLOCK_DOCUMENTS_TRAINING_CTA,
+  VALUE_PROPOSITION,
 } from "@/lib/subscription";
 
 const documents = [
@@ -98,12 +99,7 @@ export function FoundingDocumentsHighlight() {
                   <span className="text-gold">{PREMIUM_PRICE_LABEL}</span>
                 </p>
                 <p className="mt-3 rounded-xl border border-gold/20 bg-gold/[0.06] px-4 py-3 text-sm leading-relaxed text-muted-foreground">
-                  <span className="font-semibold text-foreground/90">
-                    People pay $15–$25 on TikTok
-                  </span>{" "}
-                  just for a printed pocket Constitution. You get all three
-                  founding documents — interactive, with training tools — for a
-                  single one-time unlock.
+                  {VALUE_PROPOSITION}
                 </p>
               </div>
             )}

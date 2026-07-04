@@ -34,8 +34,8 @@ export function PremiumCta() {
         </div>
         <p className="mt-4 flex max-w-md items-center justify-center gap-2 px-2 text-center text-xs text-muted-foreground sm:text-sm">
           <Sparkles className="size-3.5 shrink-0 text-gold" />
-          Premium active — {CHARACTER_NAME} training, all scenarios, and full
-          passage depth unlocked.
+          Premium active — {CHARACTER_NAME} training, all scenarios, Republic
+          Simulator, and full passage depth unlocked.
         </p>
       </section>
     );

@@ -223,7 +223,7 @@ export function TrainingBriefing({
             </p>
             {onUpgrade && (
               <Button onClick={onUpgrade} className="btn-gold mt-4">
-                Unlock Full Experience
+                Unlock Full Access
               </Button>
             )}
           </div>

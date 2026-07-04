@@ -38,8 +38,8 @@ export function PremiumAccessBanner({
       </p>
       {!compact && (
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Premium unlocked — {CHARACTER_NAME} training, unlimited scenarios, and
-          the full Arsenal are yours.
+          Premium unlocked — {CHARACTER_NAME} training, unlimited scenarios,
+          Republic Simulator, and the full Arsenal are yours.
         </p>
       )}
     </div>

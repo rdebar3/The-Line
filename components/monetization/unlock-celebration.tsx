@@ -50,11 +50,11 @@ export function UnlockCelebration() {
           </div>
           <div className="min-w-0 flex-1">
             <p className="font-heading text-sm font-semibold text-gold">
-              Full Experience Unlocked
+              Full Access Unlocked
             </p>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-              {CHARACTER_NAME} training, all scenarios, the Arsenal, and
-              unlimited passages are now yours. Hold the line.
+              {CHARACTER_NAME} training, all scenarios, the Republic Simulator,
+              the Arsenal, and unlimited passages are now yours. Hold the line.
             </p>
           </div>
           <Button

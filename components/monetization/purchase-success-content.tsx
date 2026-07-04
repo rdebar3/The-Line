@@ -78,11 +78,11 @@ export function PurchaseSuccessContent() {
             <GuardianCharacter mood="neutral" size="lg" floating showLabel />
             <CheckCircle2 className="mt-6 size-12 text-gold" />
             <h1 className="mt-4 font-heading text-2xl font-bold tracking-wide text-foreground">
-              Full Experience Unlocked
+              Full Access Unlocked
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              Payment confirmed. All scenarios, unlimited counsel, the Arsenal,
-              and full passage depth are now yours.
+              Payment confirmed. All scenarios, Republic Simulator, unlimited
+              counsel, the Arsenal, and full passage depth are now yours.
             </p>
             <Button
               nativeButton={false}

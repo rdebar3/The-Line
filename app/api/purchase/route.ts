@@ -60,9 +60,9 @@ export async function POST(request: Request) {
             currency: "usd",
             unit_amount: Math.round(PREMIUM_PRICE * 100),
             product_data: {
-              name: "The Line — Full Experience",
+              name: "The Line — Full Access",
               description:
-                "One-time unlock: all scenarios, unlimited Grok counsel, Arsenal, and full passage depth.",
+                "One-time unlock: all scenarios, Republic Simulator, unlimited Grok counsel, Arsenal, and full passage depth.",
             },
           },
           quantity: 1,

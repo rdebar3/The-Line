@@ -200,8 +200,8 @@ export function FreeVsPremium({
       >
         <span className="font-semibold text-gold">Free preview</span>
         {" · "}
-        Unlock for unlimited {CHARACTER_NAME} counsel, all scenarios, and full
-        depth — {PREMIUM_PRICE_LABEL} one-time.
+        Unlock for unlimited {CHARACTER_NAME} counsel, all scenarios, Republic
+        Simulator, and full depth — {PREMIUM_PRICE_LABEL} one-time.
       </div>
     );
   }

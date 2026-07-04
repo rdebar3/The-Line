@@ -18,6 +18,7 @@ import {
   PREMIUM_FEATURES,
   PREMIUM_PRICE_LABEL,
   UNLOCK_CTA_LABEL,
+  VALUE_PROPOSITION,
 } from "@/lib/subscription";
 
 type UnlockFullExperienceModalProps = {
@@ -53,12 +54,12 @@ export function UnlockFullExperienceModal({
             <DialogHeader className="items-center text-center">
               <GuardianCharacter mood="neutral" size="sm" floating showLabel />
               <DialogTitle className="font-heading text-2xl font-bold tracking-wide text-foreground">
-                Unlock Full Experience
+                Unlock Full Access
               </DialogTitle>
               <DialogDescription className="max-w-sm text-base leading-relaxed text-muted-foreground">
                 One-time purchase. Full access to {CHARACTER_NAME} training, all
-                scenarios, the Constitutional Arsenal, and unlimited passage
-                depth.
+                scenarios, the Republic Simulator, the Constitutional Arsenal,
+                and unlimited passage depth.
               </DialogDescription>
             </DialogHeader>
 
@@ -71,6 +72,9 @@ export function UnlockFullExperienceModal({
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
                 No subscription. Tied to your account forever.
+              </p>
+              <p className="mt-3 rounded-lg border border-gold/20 bg-gold/[0.06] px-3 py-2.5 text-left text-xs leading-relaxed text-muted-foreground">
+                {VALUE_PROPOSITION}
               </p>
             </div>
 

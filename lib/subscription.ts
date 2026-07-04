@@ -3,10 +3,13 @@ import { FREE_GROK_DAILY_LIMIT } from "@/lib/grok-teaser";
 import { FREE_DAILY_SCENARIO_GENERATION_LIMIT } from "@/lib/scenario-difficulty";
 import { buildUserStorageKey } from "@/lib/user-scope";
 
-export const PREMIUM_PRICE = 7.99;
-export const PREMIUM_PRICE_LABEL = "$7.99";
+export const PREMIUM_PRICE = 4.99;
+export const PREMIUM_PRICE_LABEL = "$4.99";
+export const PREMIUM_PRICE_ONE_TIME_LABEL = "one-time $4.99";
+export const VALUE_PROPOSITION =
+  "While others pay $15–$25 for a printed pocket Constitution, you get the full interactive documents + training + Grok counsel for one-time $4.99";
 export const UNLOCK_CTA_LABEL = `Unlock for ${PREMIUM_PRICE_LABEL}`;
-export const UNLOCK_FULL_LABEL = `Unlock Full Experience — ${PREMIUM_PRICE_LABEL}`;
+export const UNLOCK_FULL_LABEL = `Unlock Full Access — ${PREMIUM_PRICE_LABEL} one-time`;
 export const UNLOCK_DOCUMENTS_TRAINING_CTA = `Unlock All Documents + Full Training – Only ${PREMIUM_PRICE_LABEL}`;
 
 export const STORAGE_KEY = "theline_premium";
@@ -22,6 +25,7 @@ export type PremiumFeature =
 /** Daily free-tier cap for fresh Grok scenarios */
 export const FREE_SCENARIO_LIMIT = FREE_DAILY_SCENARIO_GENERATION_LIMIT;
 export const FREE_PASSAGE_LIMIT = 3;
+export const FREE_REPUBLIC_SIMULATOR_LIMIT = 1;
 
 export const TIER_COMPARISON = [
   {
@@ -48,6 +52,11 @@ export const TIER_COMPARISON = [
     label: "Constitutional Arsenal",
     free: "Locked",
     full: "Full defense scripts & tools",
+  },
+  {
+    label: "Republic Simulator",
+    free: `${FREE_REPUBLIC_SIMULATOR_LIMIT} demo scenario`,
+    full: "Full simulator access",
   },
 ] as const;
 
@@ -124,6 +133,11 @@ export const FREE_VS_PREMIUM_ROWS = [
     free: "Locked",
     full: "Full defense scripts & tools",
   },
+  {
+    label: "Republic Simulator",
+    free: `${FREE_REPUBLIC_SIMULATOR_LIMIT} demo scenario`,
+    full: "Full simulator access",
+  },
 ] as const;
 
 export const PREMIUM_FEATURES = [
@@ -151,5 +165,10 @@ export const PREMIUM_FEATURES = [
     title: "Unlimited Passage Depth",
     description:
       "Every explanation, historical context, and modern relevance across all founding documents.",
+  },
+  {
+    title: "Republic Simulator",
+    description:
+      "Run full republican-government scenarios — free tier includes 1 demo scenario to try it out.",
   },
 ] as const;
