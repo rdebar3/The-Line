@@ -15,7 +15,7 @@ export function HeroEffects({ isMobile }: { isMobile: boolean }) {
         intensity={isMobile ? 0.35 : 0.55}
         mipmapBlur
       />
-      <Vignette eskil offset={0.08} darkness={isMobile ? 0.6 : 0.75} />
+      <Vignette eskil offset={0.12} darkness={isMobile ? 0.45 : 0.55} />
     </EffectComposer>
   );
 }

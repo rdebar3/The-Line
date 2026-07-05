@@ -759,18 +759,26 @@
   }
 
   .hub-hero-3d-overlay {
-    @apply pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-4 sm:px-8;
+    @apply pointer-events-none absolute inset-0 z-10 flex items-end justify-end px-4 pb-8 sm:items-center sm:px-8 sm:pb-0;
     background: linear-gradient(
       to right,
-      rgba(6, 10, 20, 0.72) 0%,
-      rgba(6, 10, 20, 0.25) 42%,
-      rgba(6, 10, 20, 0.55) 100%
+      transparent 0%,
+      transparent 52%,
+      rgba(6, 10, 20, 0.25) 65%,
+      rgba(6, 10, 20, 0.85) 100%
     );
   }
 
   @media (min-width: 1024px) {
     .hub-hero-3d-overlay {
-      @apply justify-end pr-12;
+      @apply items-center justify-end pr-10;
+      background: linear-gradient(
+        to right,
+        transparent 0%,
+        transparent 55%,
+        rgba(6, 10, 20, 0.3) 68%,
+        rgba(6, 10, 20, 0.92) 100%
+      );
     }
   }
 

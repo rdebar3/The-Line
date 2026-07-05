@@ -4,80 +4,93 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
-function ChamberFloor() {
+function ChamberWalls({ monumentX }: { monumentX: number }) {
+  const wallMat = (
+    <meshStandardMaterial
+      color="#0a0f1c"
+      metalness={0.5}
+      roughness={0.7}
+      emissive="#1a2438"
+      emissiveIntensity={0.12}
+      side={THREE.DoubleSide}
+    />
+  );
+
   return (
     <>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.8, 0]} receiveShadow>
-        <circleGeometry args={[14, 64]} />
-        <meshStandardMaterial
-          color="#080c16"
-          metalness={0.6}
-          roughness={0.55}
-          emissive="#0a0f1c"
-          emissiveIntensity={0.2}
-        />
+      <mesh position={[monumentX - 5, 1.5, -2.5]} rotation={[0, 0.4, 0]}>
+        <planeGeometry args={[9, 6]} />
+        {wallMat}
       </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.79, 0]}>
-        <ringGeometry args={[2.2, 5.5, 64]} />
-        <meshStandardMaterial
-          color="#121a2e"
-          emissive="#1e2a45"
-          emissiveIntensity={0.08}
-          metalness={0.5}
-          roughness={0.6}
-          transparent
-          opacity={0.7}
-        />
+      <mesh position={[monumentX + 7, 1.5, -2]} rotation={[0, -0.35, 0]}>
+        <planeGeometry args={[10, 6]} />
+        {wallMat}
+      </mesh>
+      <mesh position={[monumentX + 1, 3.5, -5.5]} rotation={[0.12, 0, 0]}>
+        <planeGeometry args={[18, 4]} />
+        {wallMat}
       </mesh>
     </>
   );
 }
 
-function AmbientGrid() {
-  const ref = useRef<THREE.Mesh>(null);
-
-  useFrame((state) => {
-    if (!ref.current) return;
-    const mat = ref.current.material as THREE.MeshBasicMaterial;
-    mat.opacity = 0.08 + Math.sin(state.clock.elapsedTime * 0.5) * 0.02;
-  });
-
+function ChamberFloor({ monumentX }: { monumentX: number }) {
   return (
-    <mesh
-      ref={ref}
-      rotation={[-Math.PI / 2, 0, 0]}
-      position={[0, -1.78, 0]}
-    >
-      <planeGeometry args={[30, 30, 1, 1]} />
-      <meshBasicMaterial
-        color="#c9a227"
-        wireframe
-        transparent
-        opacity={0.08}
-      />
-    </mesh>
+    <group position={[monumentX + 0.5, -0.55, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <circleGeometry args={[12, 64]} />
+        <meshStandardMaterial
+          color="#080c16"
+          metalness={0.65}
+          roughness={0.5}
+          emissive="#0f1525"
+          emissiveIntensity={0.25}
+        />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
+        <ringGeometry args={[1.8, 4.5, 64]} />
+        <meshStandardMaterial
+          color="#1a2438"
+          emissive="#c9a227"
+          emissiveIntensity={0.12}
+          metalness={0.7}
+          roughness={0.45}
+        />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+        <ringGeometry args={[4.8, 5.2, 64]} />
+        <meshStandardMaterial
+          color="#c9a227"
+          emissive="#c9a227"
+          emissiveIntensity={0.08}
+          metalness={0.8}
+          roughness={0.4}
+          transparent
+          opacity={0.45}
+        />
+      </mesh>
+    </group>
   );
 }
 
-function DistantPillars() {
+function ForegroundPillars({ monumentX }: { monumentX: number }) {
   const positions: [number, number, number][] = [
-    [-5, 0, -4],
-    [5, 0, -4],
-    [-4, 0.3, 3],
-    [4, 0.3, 3],
+    [monumentX - 4.2, 0.2, 2],
+    [monumentX + 1.8, 0.2, 2.2],
+    [monumentX - 0.8, 0.2, 2.8],
   ];
 
   return (
     <>
       {positions.map((pos, i) => (
         <mesh key={i} position={pos}>
-          <boxGeometry args={[0.1, 3.2, 0.1]} />
+          <boxGeometry args={[0.14, 2.6, 0.14]} />
           <meshStandardMaterial
-            color="#1a2438"
+            color="#121a2e"
             emissive="#c9a227"
-            emissiveIntensity={0.08}
-            metalness={0.7}
-            roughness={0.45}
+            emissiveIntensity={0.22}
+            metalness={0.75}
+            roughness={0.35}
           />
         </mesh>
       ))}
@@ -85,15 +98,15 @@ function DistantPillars() {
   );
 }
 
-function ParticleField() {
+function ParticleField({ monumentX }: { monumentX: number }) {
   const ref = useRef<THREE.Points>(null);
   const geometry = useRef(() => {
-    const count = 120;
+    const count = 100;
     const positions = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 18;
-      positions[i * 3 + 1] = Math.random() * 6;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 12;
+      positions[i * 3] = monumentX + (Math.random() - 0.5) * 14;
+      positions[i * 3 + 1] = Math.random() * 5 + 0.5;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 10;
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
@@ -102,16 +115,16 @@ function ParticleField() {
 
   useFrame((state) => {
     if (!ref.current) return;
-    ref.current.rotation.y = state.clock.elapsedTime * 0.015;
+    ref.current.rotation.y = state.clock.elapsedTime * 0.012;
   });
 
   return (
     <points ref={ref} geometry={geometry}>
       <pointsMaterial
-        size={0.03}
+        size={0.035}
         color="#c9a227"
         transparent
-        opacity={0.35}
+        opacity={0.4}
         depthWrite={false}
         blending={THREE.AdditiveBlending}
         sizeAttenuation
@@ -120,13 +133,19 @@ function ParticleField() {
   );
 }
 
-export function ChamberEnvironment({ showParticles }: { showParticles: boolean }) {
+export function ChamberEnvironment({
+  showParticles,
+  monumentX = 0,
+}: {
+  showParticles: boolean;
+  monumentX?: number;
+}) {
   return (
     <>
-      <ChamberFloor />
-      <AmbientGrid />
-      <DistantPillars />
-      {showParticles && <ParticleField />}
+      <ChamberWalls monumentX={monumentX} />
+      <ChamberFloor monumentX={monumentX} />
+      <ForegroundPillars monumentX={monumentX} />
+      {showParticles && <ParticleField monumentX={monumentX} />}
     </>
   );
 }
