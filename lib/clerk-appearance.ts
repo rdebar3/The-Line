@@ -17,9 +17,12 @@ const clerkAppearanceBase = {
 };
 
 const hiddenSocialElements = {
-  socialButtons: "hidden",
-  socialButtonsBlockButton: "hidden",
-  dividerRow: "hidden",
+  socialButtons: "hidden !important",
+  socialButtonsBlockButton: "hidden !important",
+  socialButtonsIconButton: "hidden !important",
+  socialButtonsProviderIcon: "hidden !important",
+  dividerRow: "hidden !important",
+  dividerText: "hidden !important",
 } as const;
 
 export const clerkAppearance = clerkAppearanceBase;

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useAuth, SignInButton } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs";
 import { useCallback, useMemo, useState } from "react";
 import {
   ArrowRight,
@@ -280,9 +280,12 @@ export function RepublicSimulatorExperience() {
           Republic Simulator uses Grok counsel grounded in Founding-era sources.
           Sign in to play your free demo scenario.
         </p>
-        <SignInButton mode="redirect">
-          <Button className="btn-gold btn-cta mt-6 w-full">Sign In</Button>
-        </SignInButton>
+        <Link
+          href="/sign-in?redirect_url=/republic-simulator"
+          className="btn-gold btn-cta mt-6 inline-flex h-11 w-full items-center justify-center rounded-lg text-sm font-semibold"
+        >
+          Sign In
+        </Link>
       </div>
     );
   }
