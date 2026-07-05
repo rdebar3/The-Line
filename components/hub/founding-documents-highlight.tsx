@@ -64,7 +64,7 @@ export function FoundingDocumentsHighlight() {
       aria-labelledby="founding-documents-heading"
       className="scroll-mt-24"
     >
-      <div className="relative overflow-hidden rounded-3xl border border-gold/30 bg-gradient-to-b from-gold/[0.08] via-navy-elevated/80 to-navy/90 shadow-[0_0_60px_rgba(201,162,39,0.12),0_20px_80px_rgba(10,15,28,0.5)]">
+      <div className="command-glass relative overflow-hidden rounded-3xl shadow-[0_0_60px_rgba(201,162,39,0.12),0_20px_80px_rgba(10,15,28,0.5)]">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-gold/80 to-transparent"

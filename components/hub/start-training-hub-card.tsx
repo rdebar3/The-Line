@@ -27,8 +27,7 @@ export function StartTrainingHubCard() {
       <Link
         href="/rights-under-pressure"
         className={cn(
-          "group flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-navy-border/60",
-          "bg-navy-elevated/45 px-5 py-4 transition-all hover:border-gold/30 hover:bg-navy-elevated/65 sm:px-6 sm:py-5"
+          "holo-panel group relative flex flex-wrap items-center justify-between gap-4 px-5 py-4 sm:px-6 sm:py-5"
         )}
       >
         <div className="flex flex-wrap items-center gap-3 text-sm">

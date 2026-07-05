@@ -16,11 +16,11 @@ export function CertificationsHubCard() {
   const totalCount = 4;
 
   return (
-    <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
-      <Link
-        href="/certifications"
-        className="group flex h-full flex-col rounded-2xl border border-gold/25 bg-gradient-to-br from-gold/[0.08] via-navy-elevated/50 to-navy/60 p-5 transition-shadow hover:shadow-[0_8px_40px_rgba(201,162,39,0.15)] sm:p-6"
-      >
+    <motion.div
+      whileHover={{ y: -4 }}
+      transition={{ type: "spring", stiffness: 320, damping: 22 }}
+    >
+      <Link href="/certifications" className="hub-tactical-card group">
         <div className="flex items-start justify-between gap-3">
           <span className="flex size-11 items-center justify-center rounded-xl border border-gold/35 bg-gold/15">
             <Award className="size-5 text-gold" />

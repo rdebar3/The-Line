@@ -27,8 +27,8 @@ function NavLink({
       className={cn(
         "rounded-lg px-3 py-2 text-xs font-semibold tracking-wide transition-colors sm:text-sm",
         active
-          ? "bg-gold/15 text-gold"
-          : "text-muted-foreground hover:bg-navy-elevated/80 hover:text-foreground",
+          ? "border border-gold/25 bg-gold/12 text-gold shadow-[0_0_16px_rgba(201,162,39,0.12)]"
+          : "text-muted-foreground hover:border hover:border-gold/15 hover:bg-navy-elevated/80 hover:text-foreground",
         className
       )}
       aria-current={active ? "page" : undefined}

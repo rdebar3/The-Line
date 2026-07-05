@@ -20,18 +20,22 @@ export function AuthHeader() {
   const showSignIn = isLoaded && !isSignedIn;
 
   return (
-    <header className="sticky top-[var(--tiktok-banner-offset,0px)] z-50 border-b border-gold/10 bg-navy/90 backdrop-blur-md">
+    <header className="command-header-bar">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent"
+      />
       <div className="relative mx-auto flex h-14 w-full min-w-0 max-w-6xl items-center justify-between gap-2 px-3 sm:h-[3.75rem] sm:gap-4 sm:px-6">
         <Link
           href="/"
           className="group flex min-w-0 shrink-0 items-center gap-2.5 transition-opacity hover:opacity-90"
         >
-          <span
-            aria-hidden
-            className="size-1.5 shrink-0 rounded-full bg-gold shadow-[0_0_8px_rgba(201,162,39,0.6)]"
-          />
+          <span aria-hidden className="command-status-dot" />
           <span className="font-heading text-xs font-bold tracking-[0.22em] text-gold uppercase sm:tracking-[0.28em]">
             The Line
+          </span>
+          <span className="hidden font-mono text-[0.6rem] font-medium tracking-widest text-muted-foreground/80 sm:inline">
+            CMD
           </span>
         </Link>
 

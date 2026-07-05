@@ -182,6 +182,73 @@
   }
 }
 
+@keyframes data-drift {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.65;
+  }
+  100% {
+    transform: translateY(-120vh) translateX(12px);
+    opacity: 0.2;
+  }
+}
+
+@keyframes scan-sweep {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.35;
+  }
+  92% {
+    opacity: 0.35;
+  }
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+@keyframes circuit-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.75;
+  }
+}
+
+@keyframes holo-shift {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes ray-drift {
+  0% {
+    transform: rotate(0deg) scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.65;
+  }
+  100% {
+    transform: rotate(6deg) scale(1.05);
+    opacity: 0.4;
+  }
+}
+
 @layer utilities {
   .animate-guardian-float {
     animation: guardian-float 5s ease-in-out infinite;
@@ -219,11 +286,257 @@
     animation: score-pulse 0.6s ease-out;
   }
 
+  .command-circuit-grid {
+    @apply pointer-events-none absolute inset-0;
+    background-image:
+      linear-gradient(rgba(201, 162, 39, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201, 162, 39, 0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse at 50% 30%, black 0%, transparent 72%);
+    animation: circuit-pulse 8s ease-in-out infinite;
+  }
+
+  .command-data-streams {
+    @apply pointer-events-none absolute inset-0 overflow-hidden opacity-60;
+    background: repeating-linear-gradient(
+      105deg,
+      transparent,
+      transparent 80px,
+      rgba(201, 162, 39, 0.03) 80px,
+      rgba(201, 162, 39, 0.03) 81px,
+      transparent 81px,
+      transparent 160px,
+      rgba(185, 28, 28, 0.025) 160px,
+      rgba(185, 28, 28, 0.025) 161px
+    );
+  }
+
+  .command-holo-flag {
+    @apply pointer-events-none absolute inset-0;
+    background:
+      radial-gradient(ellipse at 18% 22%, rgba(185, 28, 28, 0.12) 0%, transparent 42%),
+      radial-gradient(ellipse at 82% 28%, rgba(59, 89, 152, 0.1) 0%, transparent 40%),
+      radial-gradient(ellipse at 50% 78%, rgba(201, 162, 39, 0.08) 0%, transparent 48%);
+    animation: holo-shift 14s ease-in-out infinite;
+  }
+
+  .command-holo-flag--subtle {
+    opacity: 0.55;
+  }
+
+  .command-light-rays {
+    @apply pointer-events-none absolute inset-0;
+    background: conic-gradient(
+      from 210deg at 50% -10%,
+      transparent 0deg,
+      rgba(201, 162, 39, 0.06) 18deg,
+      transparent 36deg,
+      rgba(185, 28, 28, 0.04) 54deg,
+      transparent 72deg
+    );
+    animation: ray-drift 20s ease-in-out infinite;
+  }
+
+  .command-scan-line {
+    @apply pointer-events-none absolute inset-x-0 top-0 h-px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(201, 162, 39, 0.5) 50%,
+      transparent
+    );
+    box-shadow: 0 0 24px rgba(201, 162, 39, 0.25);
+    animation: scan-sweep 12s linear infinite;
+  }
+
+  .command-particles {
+    @apply pointer-events-none absolute inset-0 overflow-hidden;
+  }
+
+  .command-particles::before,
+  .command-particles::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle, rgba(201, 162, 39, 0.55) 1px, transparent 1px),
+      radial-gradient(circle, rgba(185, 28, 28, 0.35) 1px, transparent 1px);
+    background-size: 120px 120px, 180px 180px;
+    background-position: 0 0, 60px 40px;
+    opacity: 0.25;
+    animation: data-drift 28s linear infinite;
+  }
+
+  .command-particles::after {
+    animation-duration: 36s;
+    animation-direction: reverse;
+    opacity: 0.15;
+  }
+
+  .command-glass {
+    @apply relative overflow-hidden border border-gold/20 bg-navy-elevated/45 backdrop-blur-xl;
+    box-shadow:
+      inset 0 1px 0 rgba(201, 162, 39, 0.12),
+      0 8px 32px rgba(10, 15, 28, 0.55),
+      0 0 0 1px rgba(30, 42, 69, 0.6);
+  }
+
+  .command-glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(201, 162, 39, 0.08) 0%,
+      transparent 38%,
+      transparent 62%,
+      rgba(185, 28, 28, 0.05) 100%
+    );
+    pointer-events: none;
+  }
+
+  .holo-panel {
+    @apply relative overflow-hidden rounded-2xl border border-gold/20 bg-navy-elevated/45 backdrop-blur-xl transition-all duration-300;
+    box-shadow:
+      inset 0 1px 0 rgba(201, 162, 39, 0.12),
+      0 8px 32px rgba(10, 15, 28, 0.55),
+      0 0 0 1px rgba(30, 42, 69, 0.6);
+  }
+
+  .holo-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(201, 162, 39, 0.08) 0%,
+      transparent 38%,
+      transparent 62%,
+      rgba(185, 28, 28, 0.05) 100%
+    );
+    pointer-events: none;
+  }
+
+  .holo-panel:hover {
+    @apply -translate-y-1 border-gold/35;
+    box-shadow:
+      inset 0 1px 0 rgba(201, 162, 39, 0.2),
+      0 16px 48px rgba(10, 15, 28, 0.6),
+      0 0 32px rgba(201, 162, 39, 0.12);
+  }
+
+  .hub-tactical-card {
+    @apply relative flex h-full flex-col overflow-hidden rounded-2xl border border-gold/20 bg-navy-elevated/45 p-5 backdrop-blur-xl transition-all duration-300 sm:p-6;
+    box-shadow:
+      inset 0 1px 0 rgba(201, 162, 39, 0.12),
+      0 8px 32px rgba(10, 15, 28, 0.55),
+      0 0 0 1px rgba(30, 42, 69, 0.6);
+  }
+
+  .hub-tactical-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(201, 162, 39, 0.08) 0%,
+      transparent 38%,
+      transparent 62%,
+      rgba(185, 28, 28, 0.05) 100%
+    );
+    pointer-events: none;
+  }
+
+  .hub-tactical-card:hover {
+    @apply -translate-y-1 border-gold/35;
+    box-shadow:
+      inset 0 1px 0 rgba(201, 162, 39, 0.2),
+      0 16px 48px rgba(10, 15, 28, 0.6),
+      0 0 32px rgba(201, 162, 39, 0.12);
+  }
+
+  .command-focus-ring {
+    @apply relative;
+  }
+
+  .command-focus-ring::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      rgba(201, 162, 39, 0.35),
+      transparent 40%,
+      transparent 60%,
+      rgba(185, 28, 28, 0.25)
+    );
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    padding: 1px;
+    pointer-events: none;
+    opacity: 0.65;
+  }
+
+  .command-dashboard {
+    @apply relative;
+  }
+
+  .command-focus-zone {
+    @apply relative mx-auto max-w-4xl;
+  }
+
+  .command-panel-zone {
+    @apply relative;
+  }
+
+  .command-module-header {
+    @apply relative border-b border-gold/15 pb-4 sm:pb-5;
+  }
+
+  .command-module-header::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 4rem;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(201, 162, 39, 0.9), transparent);
+  }
+
   .premium-card {
-    @apply relative overflow-hidden border border-navy-border/80 bg-navy-elevated/70 backdrop-blur-sm transition-all duration-300;
+    @apply relative overflow-hidden rounded-2xl border border-navy-border/70 bg-navy-elevated/55 backdrop-blur-xl transition-all duration-300;
+    box-shadow:
+      inset 0 1px 0 rgba(201, 162, 39, 0.12),
+      0 8px 32px rgba(10, 15, 28, 0.55),
+      0 0 0 1px rgba(30, 42, 69, 0.6);
   }
 
   .premium-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(201, 162, 39, 0.08) 0%,
+      transparent 38%,
+      transparent 62%,
+      rgba(185, 28, 28, 0.05) 100%
+    );
+    pointer-events: none;
+  }
+
+  .premium-card:hover {
+    @apply -translate-y-0.5 border-gold/30;
+    box-shadow:
+      inset 0 1px 0 rgba(201, 162, 39, 0.18),
+      0 12px 40px rgba(10, 15, 28, 0.6),
+      0 0 24px rgba(201, 162, 39, 0.1);
+  }
+
+  .premium-card::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -239,7 +552,7 @@
     pointer-events: none;
   }
 
-  .premium-card:hover::before {
+  .premium-card:hover::after {
     opacity: 1;
   }
 
@@ -278,6 +591,7 @@
 
   .section-eyebrow {
     @apply font-heading text-xs font-semibold tracking-[0.2em] text-gold uppercase sm:text-sm sm:tracking-[0.3em];
+    text-shadow: 0 0 20px rgba(201, 162, 39, 0.25);
   }
 
   .hub-section {
@@ -297,7 +611,11 @@
   }
 
   .hub-card-shell {
-    @apply relative overflow-hidden rounded-2xl border border-gold/20 bg-navy-elevated/60 shadow-[0_0_40px_rgba(201,162,39,0.05)];
+    @apply relative overflow-hidden rounded-2xl border border-gold/20 bg-navy-elevated/45 backdrop-blur-xl shadow-[0_0_40px_rgba(201,162,39,0.08)];
+    box-shadow:
+      inset 0 1px 0 rgba(201, 162, 39, 0.12),
+      0 8px 32px rgba(10, 15, 28, 0.55),
+      0 0 40px rgba(201, 162, 39, 0.08);
   }
 
   .hub-card-accent {
@@ -324,8 +642,22 @@
 
   .hero-title-glow {
     text-shadow:
-      0 0 40px rgba(201, 162, 39, 0.18),
+      0 0 48px rgba(201, 162, 39, 0.28),
+      0 0 80px rgba(185, 28, 28, 0.12),
       0 2px 24px rgba(10, 15, 28, 0.8);
+  }
+
+  .command-header-bar {
+    @apply sticky top-[var(--tiktok-banner-offset,0px)] z-50 border-b border-gold/15 bg-navy/75 backdrop-blur-xl;
+    box-shadow:
+      0 4px 24px rgba(10, 15, 28, 0.5),
+      inset 0 -1px 0 rgba(201, 162, 39, 0.08);
+  }
+
+  .command-status-dot {
+    @apply size-1.5 shrink-0 rounded-full bg-gold;
+    box-shadow: 0 0 10px rgba(201, 162, 39, 0.75);
+    animation: glow-pulse 3s ease-in-out infinite;
   }
 
   .path-card {
@@ -356,15 +688,28 @@
     background:
       radial-gradient(
         ellipse at center,
-        rgba(10, 15, 28, 0.35) 0%,
-        rgba(10, 15, 28, 0.72) 100%
+        rgba(10, 15, 28, 0.42) 0%,
+        rgba(10, 15, 28, 0.78) 100%
       ),
       linear-gradient(
         to bottom,
-        rgba(10, 15, 28, 0.55) 0%,
-        rgba(10, 15, 28, 0.45) 40%,
-        rgba(10, 15, 28, 0.65) 100%
+        rgba(10, 15, 28, 0.62) 0%,
+        rgba(10, 15, 28, 0.5) 40%,
+        rgba(10, 15, 28, 0.72) 100%
       );
+  }
+
+  @media (max-width: 768px) {
+    .command-particles,
+    .command-scan-line,
+    .command-data-streams {
+      display: none;
+    }
+
+    .command-circuit-grid {
+      background-size: 64px 64px;
+      opacity: 0.5;
+    }
   }
 }
 
@@ -398,16 +743,26 @@
   .animate-fade-up-delay-3,
   .animate-fade-up-delay-4,
   .animate-fade-out,
-  .score-pulse {
+  .score-pulse,
+  .command-circuit-grid,
+  .command-holo-flag,
+  .command-light-rays,
+  .command-scan-line,
+  .command-particles,
+  .command-particles::before,
+  .command-particles::after,
+  .command-status-dot {
     animation: none;
     opacity: 1;
     transform: none;
   }
 
   .premium-button::after,
-  .premium-card::before {
+  .premium-card::after,
+  .holo-panel:hover {
     transition: none;
     animation: none;
+    transform: none;
   }
 
   .progress-bar-gold {

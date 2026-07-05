@@ -20,13 +20,13 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        "flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between",
+        "command-module-header flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between",
         className
       )}
     >
       <div className="min-w-0">
         <p className="section-eyebrow">{eyebrow}</p>
-        <h1 className="mt-2 font-heading text-3xl font-bold tracking-wide text-foreground sm:text-4xl">
+        <h1 className="hero-title-glow mt-2 font-heading text-3xl font-black tracking-wide text-foreground sm:text-4xl">
           {title}
         </h1>
         {description && (

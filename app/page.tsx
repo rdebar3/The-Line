@@ -7,16 +7,18 @@ import { PageBackground } from "@/components/rights/page-background";
 export default function Home() {
   return (
     <PageBackground>
-      <div className="page-shell max-w-5xl pb-2">
-        <HubHero />
+      <div className="command-dashboard page-shell max-w-6xl pb-2">
+        <section className="command-focus-zone animate-fade-up">
+          <HubHero />
+        </section>
 
-        <div className="mt-8 animate-fade-up-delay-1 sm:mt-10">
+        <section className="command-panel-zone mt-8 animate-fade-up-delay-1 sm:mt-10">
           <FoundingDocumentsHighlight />
-        </div>
+        </section>
 
-        <div className="hub-section-tight animate-fade-up-delay-2">
+        <section className="command-tactical-grid hub-section-tight animate-fade-up-delay-2">
           <HubJourney />
-        </div>
+        </section>
 
         <SiteFooter variant="hub" />
       </div>

@@ -12,18 +12,21 @@ export function HubJourney() {
 
   return (
     <section aria-label="Hub navigation" className="flex flex-col gap-6 sm:gap-8">
-      <header className="text-center">
-        <p className="section-eyebrow">Defender Toolkit</p>
-        <p className="mx-auto mt-2 max-w-md text-pretty text-sm text-muted-foreground">
-          Train, save, certify, and rank up — every feature builds your Defender
+      <header className="command-module-header text-center">
+        <p className="section-eyebrow">Tactical Systems</p>
+        <p className="hub-section-subtitle">
+          Train, save, certify, and rank up — every module feeds your Defender
           Score.
         </p>
       </header>
 
       <StartTrainingHubCard />
 
-      <nav aria-label="Hub features">
-        <ol className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">
+      <nav aria-label="Hub features" className="relative">
+        <p className="mb-3 px-0.5 font-mono text-[0.6rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase sm:mb-4 sm:text-xs">
+          Feature Modules
+        </p>
+        <ol className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
           <li className="min-w-0">
             <MyLinesHubCard />
           </li>
@@ -36,9 +39,19 @@ export function HubJourney() {
         </ol>
       </nav>
 
-      <RepublicSimulatorHubCard />
+      <div className="relative">
+        <p className="mb-3 px-0.5 font-mono text-[0.6rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase sm:mb-4 sm:text-xs">
+          Advanced Simulation
+        </p>
+        <RepublicSimulatorHubCard />
+      </div>
 
-      <LeaderboardPanel configured={leaderboardConfigured} />
+      <div className="relative">
+        <p className="mb-3 px-0.5 font-mono text-[0.6rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase sm:mb-4 sm:text-xs">
+          Defender Rankings
+        </p>
+        <LeaderboardPanel configured={leaderboardConfigured} />
+      </div>
     </section>
   );
 }

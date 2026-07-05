@@ -34,10 +34,13 @@ export function RepublicSimulatorHubCard() {
   const showLocked = !isLoading && !hasAccess;
 
   return (
-    <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+    <motion.div
+      whileHover={{ y: -4 }}
+      transition={{ type: "spring", stiffness: 320, damping: 22 }}
+    >
       <Link
         href="/republic-simulator"
-        className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-constitution-blue/30 bg-gradient-to-br from-constitution-blue/[0.12] via-navy-elevated/55 to-crimson/[0.06] p-5 shadow-[0_8px_40px_rgba(59,89,152,0.12)] transition-shadow hover:shadow-[0_12px_48px_rgba(59,89,152,0.2)] sm:p-6"
+        className="hub-tactical-card group relative overflow-hidden border-constitution-blue/30 shadow-[0_8px_40px_rgba(59,89,152,0.12)] hover:shadow-[0_12px_48px_rgba(59,89,152,0.2)]"
       >
         <div
           aria-hidden
