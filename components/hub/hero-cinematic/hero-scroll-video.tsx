@@ -10,6 +10,8 @@ import {
 } from "@/lib/hero-scroll-frames";
 import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion";
 
+const PANEL_REVEAL_START = 0.9;
+
 type HeroScrollVideoProps = {
   children: ReactNode;
 };
@@ -129,9 +131,10 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
 
       if (!frameA?.complete || !frameA.naturalWidth) return;
 
-      context.fillStyle = "#04060c";
+      context.fillStyle = "#0a1018";
       context.fillRect(0, 0, width, height);
 
+      context.filter = "brightness(1.65) contrast(1.1) saturate(1.15)";
       context.globalAlpha = 1;
       drawContain(context, frameA, width, height);
 
@@ -140,6 +143,7 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
         drawContain(context, frameB, width, height);
       }
 
+      context.filter = "none";
       context.globalAlpha = 1;
       paintedProgressRef.current = nextProgress;
     };
@@ -175,19 +179,35 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
     };
   }, [ready, reducedMotion]);
 
+  const panelReveal = reducedMotion
+    ? 1
+    : Math.min(1, Math.max(0, (progress - PANEL_REVEAL_START) / (1 - PANEL_REVEAL_START)));
+
   return (
     <section
       ref={sectionRef}
       className={reducedMotion ? "hub-hero-scrub hub-hero-scrub--static" : "hub-hero-scrub"}
       aria-label="Hero"
     >
-      <div className="hub-hero-scrub-sticky">
+      <div
+        className="hub-hero-scrub-sticky"
+        style={{ "--hero-progress": progress } as React.CSSProperties}
+      >
         <canvas ref={canvasRef} className="hub-hero-scrub-canvas" aria-hidden />
 
         <div className="hub-hero-scrub-overlay" aria-hidden />
         <div className="hub-hero-scrub-vignette" aria-hidden />
 
-        <div className="hub-hero-scrub-layout">{children}</div>
+        <div
+          className="hub-hero-scrub-layout"
+          style={{
+            opacity: panelReveal,
+            transform: `translateY(${(1 - panelReveal) * 28}px)`,
+            pointerEvents: panelReveal > 0.35 ? "auto" : "none",
+          }}
+        >
+          <div className="hub-hero-scrub-panel-wrap">{children}</div>
+        </div>
 
         <div
           className="hub-hero-scrub-progress"
@@ -195,7 +215,7 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
           style={{ transform: `scaleX(${ready ? progress : 0})` }}
         />
 
-        {progress < 0.98 && !reducedMotion && (
+        {progress < PANEL_REVEAL_START && !reducedMotion && (
           <div className="hub-hero-scrub-hint" aria-hidden>
             <ChevronDown className="size-4 animate-bounce" />
             <span>Scroll to explore</span>

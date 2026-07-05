@@ -832,31 +832,47 @@
 
   .hub-hero-scrub-canvas {
     @apply pointer-events-none absolute inset-0 block h-full w-full;
+    filter: brightness(1.12) contrast(1.04);
   }
 
   .hub-hero-scrub-overlay {
-    @apply pointer-events-none absolute inset-0;
+    @apply pointer-events-none absolute inset-0 transition-opacity duration-300;
+    opacity: calc(0.02 + var(--hero-progress, 0) * 0.16);
     background: radial-gradient(
       ellipse at center,
-      rgba(4, 6, 12, 0.08) 0%,
-      rgba(4, 6, 12, 0.28) 100%
+      rgba(4, 6, 12, 0.04) 0%,
+      rgba(4, 6, 12, 0.22) 100%
     );
   }
 
   .hub-hero-scrub-vignette {
-    @apply pointer-events-none absolute inset-0;
+    @apply pointer-events-none absolute inset-0 transition-opacity duration-300;
+    opacity: calc(0.04 + var(--hero-progress, 0) * 0.38);
     background:
       radial-gradient(
         ellipse at center,
-        transparent 42%,
-        rgba(4, 6, 12, 0.35) 78%,
-        rgba(2, 3, 8, 0.75) 100%
+        transparent 48%,
+        rgba(4, 6, 12, 0.28) 82%,
+        rgba(2, 3, 8, 0.55) 100%
       ),
-      linear-gradient(to bottom, transparent 76%, rgba(4, 6, 12, 0.82) 100%);
+      linear-gradient(to bottom, transparent 80%, rgba(4, 6, 12, 0.65) 100%);
   }
 
   .hub-hero-scrub-layout {
-    @apply relative z-10 mx-auto flex h-full w-full max-w-[90rem] items-end justify-center px-4 pb-8 sm:px-8 sm:pb-10 lg:px-12 lg:pb-12;
+    @apply relative z-10 mx-auto flex h-full w-full max-w-[90rem] items-end justify-center px-4 pb-8 transition-[opacity,transform] duration-500 ease-out sm:px-8 sm:pb-10 lg:px-12 lg:pb-12;
+    will-change: opacity, transform;
+  }
+
+  .hub-hero-scrub-panel-wrap {
+    @apply w-full max-w-xl;
+  }
+
+  .hub-hero-scrub-panel-wrap .hub-hero-v3-panel {
+    @apply border-white/20 bg-white/[0.08] backdrop-blur-xl;
+    box-shadow:
+      0 0 32px rgba(201, 162, 39, 0.06),
+      0 12px 40px rgba(0, 0, 0, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.16);
   }
 
   .hub-hero-scrub-progress {
