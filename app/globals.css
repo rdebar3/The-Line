@@ -1127,11 +1127,11 @@
   }
 
   .hub-hero-v3-title {
-    @apply relative z-[1] mt-4 leading-none sm:mt-5;
+    @apply relative z-[1] mt-4 text-center leading-none sm:mt-5;
   }
 
   .hub-hero-v3-title-pre {
-    @apply block font-heading text-sm font-bold tracking-[0.55em] text-gold uppercase sm:text-base;
+    @apply block pr-[0.55em] font-heading text-sm font-bold tracking-[0.55em] text-gold uppercase sm:text-base;
     text-shadow: 0 0 24px rgba(201, 162, 39, 0.5);
   }
 
