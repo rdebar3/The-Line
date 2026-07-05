@@ -7,11 +7,9 @@ import { PageBackground } from "@/components/rights/page-background";
 export default function Home() {
   return (
     <PageBackground>
-      <div className="command-dashboard page-shell max-w-6xl pb-2">
-        <section className="command-focus-zone animate-fade-up">
-          <HubHero />
-        </section>
+      <HubHero />
 
+      <div className="command-dashboard page-shell max-w-6xl pb-2">
         <section className="command-panel-zone mt-8 animate-fade-up-delay-1 sm:mt-10">
           <FoundingDocumentsHighlight />
         </section>

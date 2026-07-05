@@ -11,7 +11,10 @@ import {
   type ReactNode,
 } from "react";
 
-import { awardScribeOfLibertyIfEligible } from "@/lib/progression";
+import {
+  awardScribeOfLibertyIfEligible,
+  recordHubActivity,
+} from "@/lib/progression";
 import { readProgressionState, writeProgressionState } from "@/lib/progression-store";
 import { isCloudSaveConfigured } from "@/lib/progression-cloud";
 import {
@@ -47,10 +50,13 @@ async function syncCloud(lines: SavedLine[]) {
   });
 }
 
-function maybeAwardScribe(count: number) {
-  const state = readProgressionState();
+function applySaveProgression(count: number, isNewSave: boolean) {
+  let state = readProgressionState();
+  if (isNewSave) {
+    state = recordHubActivity(state);
+  }
   const { state: next, awarded } = awardScribeOfLibertyIfEligible(state, count);
-  if (!awarded) return;
+  if (!isNewSave && !awarded) return;
   writeProgressionState(next);
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent("theline:progression-local-updated"));
@@ -77,7 +83,7 @@ export function SavedLinesProvider({ children }: { children: ReactNode }) {
         await syncCloud(next);
       }
       if (checkMilestone) {
-        maybeAwardScribe(next.length);
+        applySaveProgression(next.length, true);
       }
     },
     [isSignedIn, userId]

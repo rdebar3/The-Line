@@ -136,12 +136,30 @@ export function buildProgressionUserPrompt(
   return lines.join("\n\n");
 }
 
+const MIN_DRILL_ANSWERS = 2;
+
 export function getWeakestDrillTarget(
   state: ProgressionState
 ): WeakestDrillTarget | null {
-  const weakAreas = getWeakAreas(state.weakAreas);
-  if (weakAreas.length > 0) {
-    const weakest = weakAreas[0]!;
+  const report = getIntelligenceReport(state);
+  const qualifiedTopics = report.weakAreas.filter(
+    (area) => area.total >= MIN_DRILL_ANSWERS
+  );
+
+  if (qualifiedTopics.length > 0) {
+    const weakest = qualifiedTopics[0]!;
+    return {
+      focusArea: weakest.label,
+      displayLabel: weakest.label,
+      accuracy: weakest.accuracy,
+    };
+  }
+
+  const amendmentAreas = getWeakAreas(state.weakAreas).filter(
+    (area) => area.total >= MIN_DRILL_ANSWERS
+  );
+  if (amendmentAreas.length > 0) {
+    const weakest = amendmentAreas[0]!;
     return {
       focusArea: weakest.amendment,
       displayLabel: weakest.amendment,
@@ -149,13 +167,22 @@ export function getWeakestDrillTarget(
     };
   }
 
-  const report = getIntelligenceReport(state);
   if (report.weakAreas.length > 0) {
     const weakest = report.weakAreas[0]!;
     return {
       focusArea: weakest.label,
       displayLabel: weakest.label,
       accuracy: weakest.accuracy,
+    };
+  }
+
+  const fallbackAreas = getWeakAreas(state.weakAreas);
+  if (fallbackAreas.length > 0) {
+    const weakest = fallbackAreas[0]!;
+    return {
+      focusArea: weakest.amendment,
+      displayLabel: weakest.amendment,
+      accuracy: Math.round(weakest.accuracy * 100),
     };
   }
 

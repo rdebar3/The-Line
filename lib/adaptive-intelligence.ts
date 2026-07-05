@@ -201,14 +201,16 @@ export function getMajorTopicById(topicId: string): MajorTopic | undefined {
   return MAJOR_TOPICS.find((topic) => topic.id === topicId);
 }
 
-/** Build topic performance from stored stats + legacy weakAreas amendment keys */
+/** Build topic performance — topicPerformance is authoritative; weakAreas is legacy fallback */
 export function buildTopicPerformance(
   state: ProgressionState
 ): Record<string, TopicPerformanceStats> {
-  const merged: Record<string, TopicPerformanceStats> = {
-    ...(state.topicPerformance ?? {}),
-  };
+  const stored = state.topicPerformance ?? {};
+  if (Object.keys(stored).length > 0) {
+    return { ...stored };
+  }
 
+  const merged: Record<string, TopicPerformanceStats> = {};
   for (const [amendment, stats] of Object.entries(state.weakAreas)) {
     const topicId = resolveMajorTopicId(amendment);
     if (!topicId) continue;
