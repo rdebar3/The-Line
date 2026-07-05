@@ -7,10 +7,6 @@ export type SocialOAuthStrategy = typeof GOOGLE_OAUTH_STRATEGY;
 export const SIGN_IN_SSO_CALLBACK = "/sign-in/sso-callback";
 export const SIGN_UP_SSO_CALLBACK = "/sign-up/sso-callback";
 
-/** Clerk production OAuth callback endpoint. */
-export const CLERK_OAUTH_CALLBACK_URL =
-  "https://clerk.the-line-eight.vercel.app/v1/oauth_callback";
-
 export function getPostAuthRedirectUrl(
   searchParams?: URLSearchParams | null
 ): string {

@@ -6,11 +6,6 @@ import { useSignIn, useSignUp } from "@clerk/nextjs/legacy";
 import { isClerkAPIResponseError } from "@clerk/nextjs/errors";
 
 import {
-  getOAuthDebugSnapshot,
-  logOAuthDebug,
-  logOAuthError,
-} from "@/lib/clerk-oauth-debug";
-import {
   getAbsoluteAppUrl,
   getPostAuthRedirectUrl,
   getSsoCallbackPath,
@@ -25,24 +20,27 @@ type UseSocialOAuthRedirectOptions = {
   fallbackErrorMessage: string;
 };
 
-function getClerkErrorDetails(err: unknown): {
-  message: string;
-  codes: string[];
-} {
+function getUserFriendlyOAuthError(
+  err: unknown,
+  fallbackErrorMessage: string
+): string {
+  if (err instanceof Error && err.message.includes("still loading")) {
+    return err.message;
+  }
+
   if (isClerkAPIResponseError(err)) {
-    const codes = err.errors.map((e) => e.code ?? "unknown");
-    const first = err.errors[0];
-    return {
-      message: first?.longMessage ?? first?.message ?? "Unknown Clerk error",
-      codes,
-    };
+    const code = err.errors[0]?.code;
+
+    if (code === "oauth_access_denied" || code === "external_account_not_found") {
+      return "Google sign-in was cancelled or could not be completed. Please try again.";
+    }
+
+    if (code === "rate_limit_exceeded") {
+      return "Too many attempts. Please wait a moment and try again.";
+    }
   }
 
-  if (err instanceof Error) {
-    return { message: err.message, codes: [] };
-  }
-
-  return { message: "Unknown error", codes: [] };
+  return fallbackErrorMessage;
 }
 
 function toRedirectHref(value: unknown): string | null {
@@ -84,29 +82,11 @@ export function useSocialOAuthRedirect({
     const redirectPath = getPostAuthRedirectUrl(searchParams);
     const redirectUrlComplete = getAbsoluteAppUrl(redirectPath, origin);
     const redirectUrl = getAbsoluteAppUrl(getSsoCallbackPath(mode), origin);
-    const debug = getOAuthDebugSnapshot(origin);
 
-    logOAuthDebug("oauth_start", {
-      force: true,
-      strategy,
-      mode,
-      redirectUrl,
-      redirectUrlComplete,
-      clerkCallbackUrl: debug.clerkCallbackUrl,
-      publishableKeyMode: debug.publishableKeyMode,
-    });
-
-    const assignExternalRedirect = (rawUrl: unknown, source: string) => {
+    const assignExternalRedirect = (rawUrl: unknown) => {
       const href = toRedirectHref(rawUrl);
       if (!href) return false;
 
-      logOAuthDebug("oauth_external_redirect", {
-        force: true,
-        strategy,
-        mode,
-        source,
-        redirectUrl: href,
-      });
       window.location.assign(href);
       return true;
     };
@@ -121,8 +101,7 @@ export function useSocialOAuthRedirect({
         });
 
         return assignExternalRedirect(
-          signIn.firstFactorVerification?.externalVerificationRedirectURL,
-          "signIn.prepareFirstFactor"
+          signIn.firstFactorVerification?.externalVerificationRedirectURL
         );
       }
 
@@ -139,8 +118,7 @@ export function useSocialOAuthRedirect({
         });
 
         return assignExternalRedirect(
-          signUp.verifications?.externalAccount?.externalVerificationRedirectURL,
-          "signUp.prepareVerification"
+          signUp.verifications?.externalAccount?.externalVerificationRedirectURL
         );
       }
 
@@ -149,13 +127,6 @@ export function useSocialOAuthRedirect({
 
     const tryAuthenticateWithRedirect = async (): Promise<void> => {
       if (mode === "sign-in" && signIn) {
-        logOAuthDebug("oauth_authenticate_with_redirect", {
-          force: true,
-          strategy,
-          mode: "sign-in",
-          redirectUrl,
-          redirectUrlComplete,
-        });
         await signIn.authenticateWithRedirect({
           strategy,
           redirectUrl,
@@ -165,13 +136,6 @@ export function useSocialOAuthRedirect({
       }
 
       if (mode === "sign-up" && signUp) {
-        logOAuthDebug("oauth_authenticate_with_redirect", {
-          force: true,
-          strategy,
-          mode: "sign-up",
-          redirectUrl,
-          redirectUrlComplete,
-        });
         await signUp.authenticateWithRedirect({
           strategy,
           redirectUrl,
@@ -187,13 +151,8 @@ export function useSocialOAuthRedirect({
       try {
         const prepared = await tryPrepareFlow();
         if (prepared) return;
-      } catch (prepareErr) {
-        logOAuthError("oauth_prepare_fallback", prepareErr, {
-          strategy,
-          mode,
-          redirectUrl,
-          redirectUrlComplete,
-        });
+      } catch {
+        // Fall through to authenticateWithRedirect.
       }
 
       await tryAuthenticateWithRedirect();
@@ -204,26 +163,13 @@ export function useSocialOAuthRedirect({
       ) {
         const sessionId = clerk.client?.lastActiveSessionId;
         if (sessionId) {
-          logOAuthDebug("oauth_session_exists", { force: true, sessionId });
           await clerk.setActive({ session: sessionId });
           window.location.assign(redirectUrlComplete);
           return;
         }
       }
 
-      const { message, codes } = getClerkErrorDetails(err);
-      logOAuthError("oauth_failed", err, {
-        strategy,
-        mode,
-        redirectUrl,
-        redirectUrlComplete,
-        clerkCallbackUrl: debug.clerkCallbackUrl,
-        errorCodes: codes,
-      });
-
-      const detail =
-        codes.length > 0 ? `${message} (${codes.join(", ")})` : message;
-      setError(detail || fallbackErrorMessage);
+      setError(getUserFriendlyOAuthError(err, fallbackErrorMessage));
       setLoading(false);
     }
   }, [
