@@ -4,13 +4,14 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 
 import {
+  getHeroPanelReveal,
   getHeroScrollFrameBlend,
   getHeroScrollFrameSrc,
+  getHeroVideoProgress,
+  HERO_PANEL_REVEAL_START,
   HERO_SCROLL_FRAME_COUNT,
 } from "@/lib/hero-scroll-frames";
 import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion";
-
-const PANEL_REVEAL_START = 0.9;
 
 type HeroScrollVideoProps = {
   children: ReactNode;
@@ -60,11 +61,11 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const framesRef = useRef<HTMLImageElement[]>([]);
-  const progressRef = useRef(0);
-  const paintedProgressRef = useRef(-1);
+  const displayProgressRef = useRef(0);
   const reducedMotion = usePrefersReducedMotion();
   const [ready, setReady] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [rawProgress, setRawProgress] = useState(0);
+  const [videoProgress, setVideoProgress] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -73,7 +74,7 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
 
     const onImageReady = () => {
       loaded += 1;
-      if (!cancelled && loaded >= Math.min(24, HERO_SCROLL_FRAME_COUNT)) {
+      if (!cancelled && loaded >= Math.min(48, HERO_SCROLL_FRAME_COUNT)) {
         setReady(true);
       }
     };
@@ -102,6 +103,9 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
     const context = canvas.getContext("2d");
     if (!context) return;
 
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+
     let frame = 0;
 
     const resizeCanvas = () => {
@@ -117,17 +121,15 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
-      paintedProgressRef.current = -1;
+      displayProgressRef.current = -1;
     };
 
     const paintProgress = (nextProgress: number) => {
-      if (Math.abs(nextProgress - paintedProgressRef.current) < 0.0005) return;
-
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
       const { index, blend } = getHeroScrollFrameBlend(nextProgress);
       const frameA = framesRef.current[index];
-      const frameB = framesRef.current[Math.min(index + 1, HERO_SCROLL_FRAME_COUNT - 1)];
+      const frameB = framesRef.current[index + 1];
 
       if (!frameA?.complete || !frameA.naturalWidth) return;
 
@@ -135,17 +137,18 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
       context.fillRect(0, 0, width, height);
 
       context.filter = "brightness(1.65) contrast(1.1) saturate(1.15)";
-      context.globalAlpha = 1;
+
+      context.globalAlpha = 1 - blend;
       drawContain(context, frameA, width, height);
 
-      if (blend > 0 && frameB?.complete && frameB.naturalWidth) {
+      if (frameB?.complete && frameB.naturalWidth) {
         context.globalAlpha = blend;
         drawContain(context, frameB, width, height);
       }
 
       context.filter = "none";
       context.globalAlpha = 1;
-      paintedProgressRef.current = nextProgress;
+      displayProgressRef.current = nextProgress;
     };
 
     const syncScroll = () => {
@@ -153,13 +156,19 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
       if (scrollable <= 0) return;
 
       const rect = section.getBoundingClientRect();
-      const nextProgress = Math.min(1, Math.max(0, -rect.top / scrollable));
-      progressRef.current = nextProgress;
-      setProgress(nextProgress);
+      const nextRaw = Math.min(1, Math.max(0, -rect.top / scrollable));
+      const targetVideo = getHeroVideoProgress(nextRaw);
+
+      setRawProgress(nextRaw);
+      setVideoProgress(targetVideo);
 
       if (!ready) return;
 
-      paintProgress(nextProgress);
+      const current = displayProgressRef.current < 0 ? targetVideo : displayProgressRef.current;
+      const smoothed =
+        current + (targetVideo - current) * (reducedMotion ? 1 : 0.2);
+
+      paintProgress(smoothed);
     };
 
     const loop = () => {
@@ -179,9 +188,7 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
     };
   }, [ready, reducedMotion]);
 
-  const panelReveal = reducedMotion
-    ? 1
-    : Math.min(1, Math.max(0, (progress - PANEL_REVEAL_START) / (1 - PANEL_REVEAL_START)));
+  const panelReveal = reducedMotion ? 1 : getHeroPanelReveal(videoProgress);
 
   return (
     <section
@@ -191,7 +198,7 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
     >
       <div
         className="hub-hero-scrub-sticky"
-        style={{ "--hero-progress": progress } as React.CSSProperties}
+        style={{ "--hero-progress": videoProgress } as React.CSSProperties}
       >
         <canvas ref={canvasRef} className="hub-hero-scrub-canvas" aria-hidden />
 
@@ -212,10 +219,10 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
         <div
           className="hub-hero-scrub-progress"
           aria-hidden
-          style={{ transform: `scaleX(${ready ? progress : 0})` }}
+          style={{ transform: `scaleX(${ready ? rawProgress : 0})` }}
         />
 
-        {progress < PANEL_REVEAL_START && !reducedMotion && (
+        {videoProgress < HERO_PANEL_REVEAL_START && !reducedMotion && (
           <div className="hub-hero-scrub-hint" aria-hidden>
             <ChevronDown className="size-4 animate-bounce" />
             <span>Scroll to explore</span>

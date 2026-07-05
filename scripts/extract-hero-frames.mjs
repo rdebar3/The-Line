@@ -11,7 +11,7 @@ const input = path.join(root, "public/hero/hero-chamber-scroll.mp4");
 const outputDir = path.join(root, "public/hero/frames");
 const manifestPath = path.join(root, "public/hero/frames/manifest.json");
 
-const FPS = 24;
+const FPS = 30;
 
 mkdirSync(outputDir, { recursive: true });
 

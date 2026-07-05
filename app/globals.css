@@ -821,7 +821,7 @@
   /* ── Hub Hero scroll-scrub (video-driven) ── */
   .hub-hero-scrub {
     @apply relative w-full bg-[#04060c];
-    height: 400vh;
+    height: 500vh;
   }
 
   .hub-hero-scrub-sticky {
@@ -859,7 +859,7 @@
   }
 
   .hub-hero-scrub-layout {
-    @apply relative z-10 mx-auto flex h-full w-full max-w-[90rem] items-end justify-center px-4 pb-8 transition-[opacity,transform] duration-500 ease-out sm:px-8 sm:pb-10 lg:px-12 lg:pb-12;
+    @apply relative z-10 mx-auto flex h-full w-full max-w-[90rem] items-end justify-center px-4 pb-8 transition-[opacity,transform] duration-700 ease-out sm:px-8 sm:pb-10 lg:px-12 lg:pb-12;
     will-change: opacity, transform;
   }
 
