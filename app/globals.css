@@ -714,91 +714,67 @@
       0 2px 24px rgba(10, 15, 28, 0.8);
   }
 
-  /* ── Hub Hero: cinematic explosion (hero section only) ── */
+  /* ── Hub Hero: advanced cinematic (hero section only) ── */
   .hub-hero-cinematic {
-    @apply relative isolate overflow-hidden rounded-3xl border border-gold/20;
-    min-height: min(92vh, 52rem);
+    @apply relative isolate overflow-hidden rounded-3xl border border-white/10;
+    min-height: min(92vh, 54rem);
+    background-color: #0a0f1c;
     box-shadow:
       0 24px 80px rgba(6, 10, 20, 0.75),
-      0 0 0 1px rgba(201, 162, 39, 0.08),
-      inset 0 1px 0 rgba(201, 162, 39, 0.15);
+      0 0 0 1px rgba(255, 255, 255, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
   .hub-hero-bg {
-    @apply pointer-events-none absolute inset-0 overflow-hidden;
+    @apply pointer-events-none absolute inset-0 z-0 overflow-hidden;
   }
 
   .hub-hero-bg-void {
     @apply absolute inset-0;
     background:
-      radial-gradient(ellipse at 30% 20%, rgba(59, 89, 152, 0.14) 0%, transparent 50%),
-      radial-gradient(ellipse at 75% 35%, rgba(185, 28, 28, 0.1) 0%, transparent 45%),
-      linear-gradient(165deg, #04060c 0%, #060a14 38%, #0a0f1c 100%);
+      radial-gradient(ellipse at 28% 18%, rgba(59, 89, 152, 0.12) 0%, transparent 48%),
+      radial-gradient(ellipse at 72% 32%, rgba(185, 28, 28, 0.08) 0%, transparent 44%),
+      #0a0f1c;
   }
 
   .hub-hero-bg-flag {
-    @apply absolute inset-0 opacity-25;
+    @apply absolute inset-0;
     background-image: url("/flag-background.png");
     background-size: cover;
-    background-position: center 35%;
-    filter: saturate(0.7) contrast(1.1) brightness(0.55);
-    animation: hero-flag-breathe 16s ease-in-out infinite;
+    background-position: center 38%;
+    filter: saturate(0.65) contrast(1.05) brightness(0.5);
   }
 
   .hub-hero-bg-holo {
     @apply absolute inset-0;
     background:
-      radial-gradient(ellipse at 20% 30%, rgba(185, 28, 28, 0.14) 0%, transparent 42%),
-      radial-gradient(ellipse at 80% 25%, rgba(59, 89, 152, 0.12) 0%, transparent 40%),
-      radial-gradient(ellipse at 50% 85%, rgba(201, 162, 39, 0.1) 0%, transparent 48%);
-    animation: holo-shift 14s ease-in-out infinite;
+      radial-gradient(ellipse at 18% 28%, rgba(185, 28, 28, 0.1) 0%, transparent 40%),
+      radial-gradient(ellipse at 82% 22%, rgba(59, 89, 152, 0.08) 0%, transparent 38%),
+      radial-gradient(ellipse at 50% 88%, rgba(201, 162, 39, 0.07) 0%, transparent 46%);
   }
 
   .hub-hero-bg-grid {
     @apply absolute inset-0;
     background-image:
-      linear-gradient(rgba(201, 162, 39, 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(201, 162, 39, 0.05) 1px, transparent 1px);
-    background-size: 40px 40px;
-    mask-image: radial-gradient(ellipse at 55% 40%, black 0%, transparent 78%);
-    animation: circuit-pulse 8s ease-in-out infinite;
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse at 50% 42%, black 0%, transparent 80%);
   }
 
-  .hub-hero-bg-embers {
-    @apply absolute inset-0 overflow-hidden;
-  }
-
-  .hub-hero-bg-embers::before,
-  .hub-hero-bg-embers::after {
-    content: "";
-    position: absolute;
-    inset: -10% 0 0;
-    background-image:
-      radial-gradient(circle, rgba(201, 162, 39, 0.7) 1px, transparent 1px),
-      radial-gradient(circle, rgba(185, 28, 28, 0.45) 1px, transparent 1px);
-    background-size: 100px 100px, 160px 160px;
-    background-position: 0 0, 50px 30px;
-    opacity: 0.28;
-    animation: hero-ember-float 32s linear infinite;
-  }
-
-  .hub-hero-bg-embers::after {
-    animation-duration: 42s;
-    animation-direction: reverse;
-    opacity: 0.18;
-  }
-
-  .hub-hero-bg-rays {
+  .hub-hero-bg-particles {
     @apply absolute inset-0;
-    background: conic-gradient(
-      from 200deg at 42% -5%,
-      transparent 0deg,
-      rgba(201, 162, 39, 0.08) 16deg,
-      transparent 34deg,
-      rgba(185, 28, 28, 0.05) 52deg,
-      transparent 70deg
+  }
+
+  .hub-hero-bg-particle {
+    @apply absolute rounded-full;
+    background: radial-gradient(
+      circle,
+      rgba(201, 162, 39, 0.9) 0%,
+      rgba(201, 162, 39, 0.2) 60%,
+      transparent 100%
     );
-    animation: ray-drift 20s ease-in-out infinite;
+    box-shadow: 0 0 8px rgba(201, 162, 39, 0.45);
   }
 
   .hub-hero-bg-scan {
@@ -806,98 +782,111 @@
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(201, 162, 39, 0.55) 50%,
+      rgba(255, 255, 255, 0.12) 50%,
       transparent
     );
-    box-shadow: 0 0 28px rgba(201, 162, 39, 0.3);
-    animation: scan-sweep 10s linear infinite;
+    box-shadow: 0 0 20px rgba(201, 162, 39, 0.15);
+    animation: scan-sweep 14s linear infinite;
   }
 
   .hub-hero-bg-vignette {
     @apply absolute inset-0;
     background:
-      radial-gradient(ellipse at center, transparent 35%, rgba(4, 6, 12, 0.72) 100%),
-      linear-gradient(to bottom, rgba(6, 10, 20, 0.35) 0%, transparent 30%, rgba(6, 10, 20, 0.55) 100%);
+      radial-gradient(ellipse at center, transparent 32%, rgba(10, 15, 28, 0.78) 100%),
+      linear-gradient(to bottom, rgba(10, 15, 28, 0.4) 0%, transparent 28%, rgba(10, 15, 28, 0.5) 100%);
   }
 
-  .hub-hero-layout {
-    @apply relative z-10 grid min-h-[inherit] items-center gap-6 px-4 py-10 sm:px-8 sm:py-14 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-10 lg:px-10 lg:py-16;
+  .hub-hero-stage {
+    @apply relative z-10 grid min-h-[inherit] items-center gap-6 px-4 py-10 sm:px-8 sm:py-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-8 lg:px-10 lg:py-16;
   }
 
   .hub-hero-patriot-slot {
-    @apply relative flex items-end justify-center lg:justify-end;
-    min-height: 16rem;
+    @apply relative z-10 flex items-end justify-center lg:justify-end;
+    min-height: 18rem;
   }
 
   .hub-hero-patriot {
     @apply relative flex flex-col items-center;
-    width: min(100%, 22rem);
-    height: min(72vw, 26rem);
+    width: min(100%, 24rem);
+    height: min(78vw, 28rem);
   }
 
   @media (min-width: 640px) {
     .hub-hero-patriot {
-      width: min(100%, 26rem);
-      height: min(58vw, 30rem);
+      width: min(100%, 28rem);
+      height: min(62vw, 34rem);
     }
   }
 
   @media (min-width: 1024px) {
     .hub-hero-patriot {
-      width: 28rem;
-      height: 34rem;
+      width: 32rem;
+      height: 38rem;
     }
   }
 
-  .hub-hero-patriot-aura {
-    @apply pointer-events-none absolute inset-0 scale-125 rounded-full blur-3xl;
+  .hub-hero-patriot-glow {
+    @apply pointer-events-none absolute rounded-full;
+  }
+
+  .hub-hero-patriot-glow--gold {
+    inset: 5%;
     background: radial-gradient(
       ellipse at center,
-      rgba(201, 162, 39, 0.35) 0%,
-      rgba(201, 162, 39, 0.08) 45%,
+      rgba(201, 162, 39, 0.4) 0%,
+      rgba(201, 162, 39, 0.1) 42%,
       transparent 72%
     );
-    animation: hero-aura-pulse 4.5s ease-in-out infinite;
+    filter: blur(28px);
+    box-shadow: 0 0 60px rgba(201, 162, 39, 0.35);
   }
 
-  .hub-hero-patriot-aura--crimson {
-    @apply scale-110 opacity-60;
+  .hub-hero-patriot-glow--crimson {
+    inset: 10%;
     background: radial-gradient(
       ellipse at center,
-      rgba(185, 28, 28, 0.22) 0%,
-      transparent 68%
+      rgba(185, 28, 28, 0.28) 0%,
+      transparent 65%
     );
-    animation-duration: 6s;
-    animation-delay: -1.5s;
+    filter: blur(36px);
+    box-shadow: 0 0 48px rgba(185, 28, 28, 0.2);
   }
 
-  .hub-hero-patriot-edge-glow {
-    @apply pointer-events-none absolute inset-[8%] rounded-[40%];
+  .hub-hero-patriot-glow--edge {
+    inset: 6%;
     box-shadow:
-      inset 0 0 40px rgba(201, 162, 39, 0.15),
-      0 0 48px rgba(201, 162, 39, 0.2),
-      0 0 24px rgba(185, 28, 28, 0.12);
-    animation: hero-edge-flicker 5s ease-in-out infinite;
+      inset 0 0 48px rgba(201, 162, 39, 0.12),
+      0 0 56px rgba(201, 162, 39, 0.22),
+      0 0 28px rgba(185, 28, 28, 0.14);
   }
 
-  .hub-hero-patriot-cloak {
+  .hub-hero-patriot-figure {
     @apply relative h-full w-full;
     transform-origin: center bottom;
   }
 
+  .hub-hero-patriot-cloak {
+    @apply relative h-full w-full;
+    transform-origin: center 72%;
+  }
+
   .hub-hero-patriot-image {
     @apply object-contain object-bottom;
-    filter: drop-shadow(0 0 32px rgba(201, 162, 39, 0.25))
-      drop-shadow(0 12px 40px rgba(6, 10, 20, 0.8));
+    filter: drop-shadow(0 0 40px rgba(201, 162, 39, 0.3))
+      drop-shadow(0 16px 48px rgba(6, 10, 20, 0.85));
   }
 
   .hub-hero-patriot-label {
-    @apply mt-3 font-heading text-[0.65rem] font-bold tracking-[0.35em] text-gold uppercase sm:text-xs;
+    @apply relative z-10 mt-3 font-heading text-[0.65rem] font-bold tracking-[0.35em] text-gold uppercase sm:text-xs;
     text-shadow: 0 0 20px rgba(201, 162, 39, 0.45);
   }
 
-  .hub-hero-content {
-    @apply relative z-10 text-center lg:text-left;
+  .hub-hero-glass-panel {
+    @apply relative z-20 rounded-2xl border border-white/10 bg-white/5 p-6 text-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)] backdrop-blur-xl sm:p-8 lg:text-left;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 20px 60px rgba(6, 10, 20, 0.55),
+      0 0 40px rgba(201, 162, 39, 0.06);
   }
 
   .hub-hero-eyebrow {
@@ -927,70 +916,45 @@
     @apply mx-auto mt-3 max-w-lg text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base lg:mx-0;
   }
 
-  .hub-hero-cta-shell {
-    @apply relative mx-auto mt-8 max-w-xl sm:mt-10 lg:mx-0;
-  }
-
-  .hub-hero-cta-shell::before {
-    content: "";
-    position: absolute;
-    inset: -2px;
-    border-radius: 1.75rem;
-    background: linear-gradient(
-      135deg,
-      rgba(201, 162, 39, 0.5),
-      transparent 40%,
-      transparent 60%,
-      rgba(185, 28, 28, 0.4)
-    );
-    mask:
-      linear-gradient(#fff 0 0) content-box,
-      linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    padding: 2px;
-    pointer-events: none;
-    opacity: 0.75;
-  }
-
-  .hub-hero-cta-glass {
-    @apply relative overflow-hidden rounded-[1.65rem] border border-gold/25 bg-navy-elevated/50 px-5 py-6 backdrop-blur-xl sm:px-8 sm:py-7;
-    box-shadow:
-      inset 0 1px 0 rgba(201, 162, 39, 0.18),
-      0 16px 48px rgba(6, 10, 20, 0.65),
-      0 0 40px rgba(201, 162, 39, 0.08);
+  .hub-hero-cta-block {
+    @apply relative mt-8 sm:mt-10;
   }
 
   .hub-hero-cta-label {
-    @apply flex items-center justify-center gap-2 font-mono text-[0.6rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase sm:justify-start sm:text-xs;
+    @apply flex items-center justify-center gap-2 font-mono text-[0.6rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase lg:justify-start sm:text-xs;
+  }
+
+  .hub-hero-cta-glow-ring {
+    @apply pointer-events-none absolute inset-0 rounded-2xl;
   }
 
   .hub-hero-cta-button {
-    @apply relative mt-4 flex h-[4.25rem] w-full items-center justify-center gap-3 overflow-hidden rounded-2xl border border-gold/50 px-8 text-lg font-black tracking-wide text-white sm:h-[4.75rem] sm:text-xl;
+    @apply relative flex h-[4.25rem] w-full items-center justify-center gap-3 overflow-hidden rounded-2xl border border-gold/45 px-8 text-lg font-black tracking-wide text-white sm:h-[4.75rem] sm:text-xl;
     background: linear-gradient(
       105deg,
-      #b91c1c 0%,
-      #991b1b 35%,
-      #7f1d1d 55%,
-      #a16207 100%
+      #c9a227 0%,
+      #b45309 28%,
+      #b91c1c 58%,
+      #991b1b 100%
     );
-    animation: hero-cta-pulse 3s ease-in-out infinite;
-    transition: filter 0.3s ease, transform 0.3s ease;
+    transition: filter 0.3s ease, box-shadow 0.3s ease;
   }
 
   .hub-hero-cta-button:hover {
-    filter: brightness(1.08) saturate(1.1);
+    filter: brightness(1.1) saturate(1.12);
+    box-shadow:
+      0 0 48px rgba(201, 162, 39, 0.45),
+      0 0 64px rgba(185, 28, 28, 0.35);
   }
 
-  .hub-hero-cta-button-glow {
-    @apply pointer-events-none absolute inset-0;
+  .hub-hero-cta-button-shine {
+    @apply pointer-events-none absolute inset-y-0 left-0 w-1/3 skew-x-[-18deg];
     background: linear-gradient(
-      110deg,
-      transparent 25%,
-      rgba(255, 255, 255, 0.14) 50%,
-      transparent 75%
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.22),
+      transparent
     );
-    background-size: 200% 100%;
-    animation: shimmer 2.5s ease-in-out infinite;
   }
 
   .hub-hero-secondary-link {
@@ -1003,28 +967,27 @@
 
   @media (max-width: 1023px) {
     .hub-hero-patriot-slot {
-      @apply absolute inset-x-0 bottom-0 z-0 opacity-35;
+      @apply absolute inset-x-0 bottom-0 z-[5] opacity-30;
       min-height: auto;
-      height: 55%;
+      height: 58%;
     }
 
     .hub-hero-patriot {
       height: 100%;
-      width: min(100%, 20rem);
+      width: min(100%, 22rem);
     }
 
     .hub-hero-patriot-label {
       @apply hidden;
     }
 
-    .hub-hero-content {
-      @apply relative z-10;
+    .hub-hero-glass-panel {
+      @apply relative z-20;
     }
   }
 
   @media (max-width: 768px) {
-    .hub-hero-bg-embers::before,
-    .hub-hero-bg-embers::after,
+    .hub-hero-bg-particles,
     .hub-hero-bg-scan {
       display: none;
     }
@@ -1142,14 +1105,11 @@
   .hub-hero-bg-flag,
   .hub-hero-bg-holo,
   .hub-hero-bg-grid,
-  .hub-hero-bg-embers::before,
-  .hub-hero-bg-embers::after,
-  .hub-hero-bg-rays,
+  .hub-hero-bg-particle,
   .hub-hero-bg-scan,
-  .hub-hero-patriot-aura,
-  .hub-hero-patriot-edge-glow,
-  .hub-hero-cta-button,
-  .hub-hero-cta-button-glow {
+  .hub-hero-patriot-glow,
+  .hub-hero-cta-glow-ring,
+  .hub-hero-cta-button-shine {
     animation: none;
     opacity: 1;
     transform: none;

@@ -17,11 +17,11 @@ import { FREE_DAILY_SCENARIO_GENERATION_LIMIT } from "@/lib/scenario-difficulty"
 const heroEase = [0.22, 1, 0.36, 1] as const;
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 28 },
+  hidden: { opacity: 0, y: 24 },
   visible: (delay: number) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.65, delay, ease: heroEase },
+    transition: { duration: 0.7, delay, ease: heroEase },
   }),
 };
 
@@ -44,12 +44,17 @@ export function HubHero() {
     <header className="hub-hero-cinematic">
       <HubHeroBackground />
 
-      <div className="hub-hero-layout">
+      <div className="hub-hero-stage">
         <div className="hub-hero-patriot-slot">
           <HubHeroPatriot />
         </div>
 
-        <div className="hub-hero-content">
+        <motion.div
+          className="hub-hero-glass-panel"
+          initial={{ opacity: 0, y: 32 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.15, ease: heroEase }}
+        >
           <motion.div
             custom={0}
             variants={fadeUp}
@@ -64,7 +69,7 @@ export function HubHero() {
           </motion.div>
 
           <motion.h1
-            custom={0.08}
+            custom={0.1}
             variants={fadeUp}
             initial="hidden"
             animate="visible"
@@ -74,7 +79,7 @@ export function HubHero() {
           </motion.h1>
 
           <motion.p
-            custom={0.16}
+            custom={0.18}
             variants={fadeUp}
             initial="hidden"
             animate="visible"
@@ -85,7 +90,7 @@ export function HubHero() {
           </motion.p>
 
           <motion.p
-            custom={0.22}
+            custom={0.24}
             variants={fadeUp}
             initial="hidden"
             animate="visible"
@@ -97,61 +102,78 @@ export function HubHero() {
           </motion.p>
 
           <motion.div
-            custom={0.3}
+            custom={0.32}
             variants={fadeUp}
             initial="hidden"
             animate="visible"
-            className="hub-hero-cta-shell"
+            className="hub-hero-cta-block"
           >
-            <div className="hub-hero-cta-glass">
-              <p className="hub-hero-cta-label">
-                <Sparkles className="size-3.5 text-gold" />
-                Primary Directive
-              </p>
+            <p className="hub-hero-cta-label">
+              <Sparkles className="size-3.5 text-gold" />
+              Primary Directive
+            </p>
 
+            <motion.div
+              className="relative mt-4"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: "spring", stiffness: 400, damping: 24 }}
+            >
               <motion.div
-                whileHover={{ scale: 1.03, y: -3 }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ type: "spring", stiffness: 380, damping: 22 }}
+                className="hub-hero-cta-glow-ring"
+                animate={{
+                  boxShadow: [
+                    "0 0 24px rgba(201,162,39,0.35), 0 0 48px rgba(185,28,28,0.25)",
+                    "0 0 40px rgba(201,162,39,0.55), 0 0 72px rgba(185,28,28,0.4)",
+                    "0 0 24px rgba(201,162,39,0.35), 0 0 48px rgba(185,28,28,0.25)",
+                  ],
+                }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <Button
+                nativeButton={false}
+                render={<Link href="/rights-under-pressure" />}
+                className="hub-hero-cta-button"
               >
-                <Button
-                  nativeButton={false}
-                  render={<Link href="/rights-under-pressure" />}
-                  className="hub-hero-cta-button"
-                >
-                  <span className="hub-hero-cta-button-glow" aria-hidden />
-                  <Shield
-                    className="relative z-10 size-7 shrink-0 sm:size-8"
-                    strokeWidth={2.25}
-                  />
-                  <span className="relative z-10">{buttonLabel}</span>
-                  <ArrowRight
-                    className="relative z-10 size-7 shrink-0 sm:size-8"
-                    strokeWidth={2.25}
-                  />
-                </Button>
-              </motion.div>
+                <motion.span
+                  className="hub-hero-cta-button-shine"
+                  aria-hidden
+                  animate={{ x: ["-120%", "220%"] }}
+                  transition={{
+                    duration: 3.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    repeatDelay: 1.5,
+                  }}
+                />
+                <Shield
+                  className="relative z-10 size-7 shrink-0 sm:size-8"
+                  strokeWidth={2.25}
+                />
+                <span className="relative z-10">{buttonLabel}</span>
+                <ArrowRight
+                  className="relative z-10 size-7 shrink-0 sm:size-8"
+                  strokeWidth={2.25}
+                />
+              </Button>
+            </motion.div>
 
-              <Link
-                href="/quick-drills"
-                className="hub-hero-secondary-link"
-              >
-                <Zap className="size-3.5" />
-                Or start with Quick Drills
-              </Link>
+            <Link href="/quick-drills" className="hub-hero-secondary-link">
+              <Zap className="size-3.5" />
+              Or start with Quick Drills
+            </Link>
 
-              {showFreeLabel && (
-                <p className="hub-hero-free-note">
-                  {FREE_DAILY_SCENARIO_GENERATION_LIMIT} free scenarios daily —
-                  no sign-up required
-                </p>
-              )}
-            </div>
+            {showFreeLabel && (
+              <p className="hub-hero-free-note">
+                {FREE_DAILY_SCENARIO_GENERATION_LIMIT} free scenarios daily —
+                no sign-up required
+              </p>
+            )}
           </motion.div>
 
           {isSignedIn && isPremium && (
             <motion.div
-              custom={0.38}
+              custom={0.4}
               variants={fadeUp}
               initial="hidden"
               animate="visible"
@@ -160,7 +182,7 @@ export function HubHero() {
               <PremiumAccessBanner compact />
             </motion.div>
           )}
-        </div>
+        </motion.div>
       </div>
     </header>
   );
