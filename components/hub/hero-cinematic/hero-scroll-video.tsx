@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 
 import {
-  getHeroScrollFrameIndex,
+  getHeroScrollFrameBlend,
   getHeroScrollFrameSrc,
   HERO_SCROLL_FRAME_COUNT,
 } from "@/lib/hero-scroll-frames";
@@ -14,25 +14,25 @@ type HeroScrollVideoProps = {
   children: ReactNode;
 };
 
-function drawCover(
+function getImageSize(image: CanvasImageSource) {
+  if ("naturalWidth" in image && image.naturalWidth) {
+    return { width: image.naturalWidth, height: image.naturalHeight };
+  }
+
+  if ("videoWidth" in image && image.videoWidth) {
+    return { width: image.videoWidth, height: image.videoHeight };
+  }
+
+  return { width: 0, height: 0 };
+}
+
+function drawContain(
   ctx: CanvasRenderingContext2D,
   image: CanvasImageSource,
   width: number,
   height: number
 ) {
-  const sourceWidth =
-    "videoWidth" in image
-      ? image.videoWidth
-      : "naturalWidth" in image
-        ? image.naturalWidth
-        : width;
-  const sourceHeight =
-    "videoHeight" in image
-      ? image.videoHeight
-      : "naturalHeight" in image
-        ? image.naturalHeight
-        : height;
-
+  const { width: sourceWidth, height: sourceHeight } = getImageSize(image);
   if (!sourceWidth || !sourceHeight) return;
 
   const sourceRatio = sourceWidth / sourceHeight;
@@ -44,11 +44,11 @@ function drawCover(
   let offsetY = 0;
 
   if (sourceRatio > canvasRatio) {
-    drawWidth = height * sourceRatio;
-    offsetX = (width - drawWidth) / 2;
-  } else {
     drawHeight = width / sourceRatio;
     offsetY = (height - drawHeight) / 2;
+  } else {
+    drawWidth = height * sourceRatio;
+    offsetX = (width - drawWidth) / 2;
   }
 
   ctx.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
@@ -58,7 +58,8 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const framesRef = useRef<HTMLImageElement[]>([]);
-  const paintedFrameRef = useRef(-1);
+  const progressRef = useRef(0);
+  const paintedProgressRef = useRef(-1);
   const reducedMotion = usePrefersReducedMotion();
   const [ready, setReady] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -70,7 +71,7 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
 
     const onImageReady = () => {
       loaded += 1;
-      if (!cancelled && loaded >= 1) {
+      if (!cancelled && loaded >= Math.min(24, HERO_SCROLL_FRAME_COUNT)) {
         setReady(true);
       }
     };
@@ -114,22 +115,33 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
-      paintedFrameRef.current = -1;
+      paintedProgressRef.current = -1;
     };
 
-    const paintFrame = (frameIndex: number) => {
-      if (frameIndex === paintedFrameRef.current) return;
-
-      const image = framesRef.current[frameIndex];
-      if (!image?.complete || !image.naturalWidth) return;
+    const paintProgress = (nextProgress: number) => {
+      if (Math.abs(nextProgress - paintedProgressRef.current) < 0.0005) return;
 
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
+      const { index, blend } = getHeroScrollFrameBlend(nextProgress);
+      const frameA = framesRef.current[index];
+      const frameB = framesRef.current[Math.min(index + 1, HERO_SCROLL_FRAME_COUNT - 1)];
+
+      if (!frameA?.complete || !frameA.naturalWidth) return;
 
       context.fillStyle = "#04060c";
       context.fillRect(0, 0, width, height);
-      drawCover(context, image, width, height);
-      paintedFrameRef.current = frameIndex;
+
+      context.globalAlpha = 1;
+      drawContain(context, frameA, width, height);
+
+      if (blend > 0 && frameB?.complete && frameB.naturalWidth) {
+        context.globalAlpha = blend;
+        drawContain(context, frameB, width, height);
+      }
+
+      context.globalAlpha = 1;
+      paintedProgressRef.current = nextProgress;
     };
 
     const syncScroll = () => {
@@ -138,34 +150,28 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
 
       const rect = section.getBoundingClientRect();
       const nextProgress = Math.min(1, Math.max(0, -rect.top / scrollable));
+      progressRef.current = nextProgress;
       setProgress(nextProgress);
 
       if (!ready) return;
 
-      paintFrame(getHeroScrollFrameIndex(nextProgress));
+      paintProgress(nextProgress);
     };
 
-    const onScroll = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(syncScroll);
+    const loop = () => {
+      syncScroll();
+      frame = window.requestAnimationFrame(loop);
     };
 
     resizeCanvas();
     syncScroll();
+    frame = window.requestAnimationFrame(loop);
 
-    if (ready) {
-      paintFrame(
-        reducedMotion ? 0 : getHeroScrollFrameIndex(progress)
-      );
-    }
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
+    window.addEventListener("resize", resizeCanvas, { passive: true });
 
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", resizeCanvas);
+      window.cancelAnimationFrame(frame);
     };
   }, [ready, reducedMotion]);
 
@@ -181,10 +187,7 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
         <div className="hub-hero-scrub-overlay" aria-hidden />
         <div className="hub-hero-scrub-vignette" aria-hidden />
 
-        <div className="hub-hero-scrub-layout">
-          <div className="hub-hero-scrub-spacer" aria-hidden />
-          {children}
-        </div>
+        <div className="hub-hero-scrub-layout">{children}</div>
 
         <div
           className="hub-hero-scrub-progress"
