@@ -29,15 +29,14 @@ function getImageSize(image: CanvasImageSource) {
   return { width: 0, height: 0 };
 }
 
-/** Fill the viewport width; crop top/bottom on portrait frames. */
-const FRAME_FOCAL_Y = 0.4;
+/** Mobile: full-width cover crop — unchanged from approved mobile look. */
+const MOBILE_FOCAL_Y = 0.4;
 
-function drawCover(
+function drawMobileCover(
   ctx: CanvasRenderingContext2D,
   image: CanvasImageSource,
   width: number,
-  height: number,
-  focalY = FRAME_FOCAL_Y
+  height: number
 ) {
   const { width: sourceWidth, height: sourceHeight } = getImageSize(image);
   if (!sourceWidth || !sourceHeight) return;
@@ -57,10 +56,63 @@ function drawCover(
   } else {
     drawWidth = width;
     drawHeight = width / sourceRatio;
-    offsetY = (height - drawHeight) * focalY;
+    offsetY = (height - drawHeight) * MOBILE_FOCAL_Y;
   }
 
   ctx.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
+}
+
+/** Laptop/desktop: zoomed-out contain so the full flag drop stays centered and visible. */
+function drawDesktopFrame(
+  ctx: CanvasRenderingContext2D,
+  image: CanvasImageSource,
+  width: number,
+  height: number
+) {
+  const { width: sourceWidth, height: sourceHeight } = getImageSize(image);
+  if (!sourceWidth || !sourceHeight) return;
+
+  const sourceRatio = sourceWidth / sourceHeight;
+  const canvasRatio = width / height;
+
+  let drawWidth = width;
+  let drawHeight = height;
+
+  if (sourceRatio > canvasRatio) {
+    drawWidth = width;
+    drawHeight = width / sourceRatio;
+  } else {
+    drawHeight = height;
+    drawWidth = height * sourceRatio;
+  }
+
+  const zoom = 0.93;
+  drawWidth *= zoom;
+  drawHeight *= zoom;
+
+  const offsetX = (width - drawWidth) / 2;
+  const offsetY = Math.max(0, (height - drawHeight) * 0.04);
+
+  ctx.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
+}
+
+function drawHeroFrame(
+  ctx: CanvasRenderingContext2D,
+  image: CanvasImageSource,
+  width: number,
+  height: number,
+  isDesktop: boolean
+) {
+  if (isDesktop) {
+    drawDesktopFrame(ctx, image, width, height);
+    return;
+  }
+
+  drawMobileCover(ctx, image, width, height);
+}
+
+function isDesktopViewport() {
+  return window.matchMedia("(min-width: 1024px)").matches;
 }
 
 export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
@@ -144,12 +196,14 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
 
       context.filter = "brightness(1.65) contrast(1.1) saturate(1.15)";
 
+      const desktop = isDesktopViewport();
+
       context.globalAlpha = 1 - blend;
-      drawCover(context, frameA, width, height);
+      drawHeroFrame(context, frameA, width, height, desktop);
 
       if (frameB?.complete && frameB.naturalWidth) {
         context.globalAlpha = blend;
-        drawCover(context, frameB, width, height);
+        drawHeroFrame(context, frameB, width, height, desktop);
       }
 
       context.filter = "none";
