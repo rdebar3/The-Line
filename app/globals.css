@@ -821,7 +821,7 @@
   /* ── Hub Hero scroll-scrub (video-driven) ── */
   .hub-hero-scrub {
     @apply relative w-full bg-[#04060c];
-    height: 200vh;
+    height: 300vh;
   }
 
   .hub-hero-scrub-sticky {
@@ -830,9 +830,8 @@
     min-height: 36rem;
   }
 
-  .hub-hero-scrub-video {
-    @apply pointer-events-none absolute inset-0 h-full w-full object-cover object-center;
-    transform: scale(1.02);
+  .hub-hero-scrub-canvas {
+    @apply pointer-events-none absolute inset-0 block h-full w-full;
   }
 
   .hub-hero-scrub-overlay {
