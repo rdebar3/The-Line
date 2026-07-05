@@ -1,15 +1,12 @@
-import { HeroBackground } from "@/components/hub/hero-cinematic/hero-background";
+"use client";
+
 import { HeroPanel } from "@/components/hub/hero-cinematic/hero-panel";
-import { HeroPatriot } from "@/components/hub/hero-cinematic/hero-patriot";
+import { HeroScrollVideo } from "@/components/hub/hero-cinematic/hero-scroll-video";
 
 export function HubHeroCinematic() {
   return (
-    <header className="hub-hero-v3">
-      <HeroBackground />
-      <div className="hub-hero-v3-layout">
-        <HeroPatriot />
-        <HeroPanel />
-      </div>
-    </header>
+    <HeroScrollVideo>
+      <HeroPanel />
+    </HeroScrollVideo>
   );
 }

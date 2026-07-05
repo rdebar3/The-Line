@@ -818,6 +818,71 @@
       0 2px 24px rgba(10, 15, 28, 0.8);
   }
 
+  /* ── Hub Hero scroll-scrub (video-driven) ── */
+  .hub-hero-scrub {
+    @apply relative w-full bg-[#04060c];
+    height: 200vh;
+  }
+
+  .hub-hero-scrub-sticky {
+    @apply sticky top-[var(--site-header-height)] z-0 overflow-hidden bg-[#04060c];
+    height: calc(100dvh - var(--site-header-height) - var(--tiktok-banner-offset, 0px));
+    min-height: 36rem;
+  }
+
+  .hub-hero-scrub-video {
+    @apply pointer-events-none absolute inset-0 h-full w-full object-cover;
+  }
+
+  .hub-hero-scrub-overlay {
+    @apply pointer-events-none absolute inset-0;
+    background: linear-gradient(
+      to right,
+      rgba(4, 6, 12, 0.15) 0%,
+      rgba(4, 6, 12, 0.05) 42%,
+      rgba(4, 6, 12, 0.55) 100%
+    );
+  }
+
+  .hub-hero-scrub-vignette {
+    @apply pointer-events-none absolute inset-0;
+    background:
+      radial-gradient(
+        ellipse at center,
+        transparent 30%,
+        rgba(4, 6, 12, 0.45) 72%,
+        rgba(2, 3, 8, 0.85) 100%
+      ),
+      linear-gradient(to bottom, transparent 72%, rgba(4, 6, 12, 0.9) 100%);
+  }
+
+  .hub-hero-scrub-layout {
+    @apply relative z-10 mx-auto flex h-full w-full max-w-[90rem] items-end justify-end px-4 pb-8 sm:px-8 sm:pb-10 lg:items-center lg:px-12 lg:pb-0;
+  }
+
+  .hub-hero-scrub-spacer {
+    @apply hidden flex-1 lg:block;
+  }
+
+  .hub-hero-scrub-progress {
+    @apply pointer-events-none absolute inset-x-0 bottom-0 z-20 h-0.5 origin-left bg-gold/80;
+  }
+
+  .hub-hero-scrub-hint {
+    @apply pointer-events-none absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-1 font-mono text-[0.62rem] font-semibold tracking-[0.28em] text-gold/70 uppercase;
+  }
+
+  .hub-hero-scrub--static {
+    height: calc(100dvh - var(--site-header-height) - var(--tiktok-banner-offset, 0px));
+    min-height: 36rem;
+  }
+
+  .hub-hero-scrub--static .hub-hero-scrub-sticky {
+    @apply relative;
+    height: 100%;
+    min-height: inherit;
+  }
+
   /* ── Hub Hero v3: explosive cinematic 2D (hero only) ── */
   .hub-hero-v3 {
     @apply relative isolate w-full overflow-hidden bg-[#04060c];
