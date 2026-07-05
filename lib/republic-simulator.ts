@@ -93,33 +93,33 @@ export const NATIONAL_BANK_DEBATE: RepublicSimulatorScenario = {
       choices: [
         {
           id: "oppose-unenumerated",
-          label: "Oppose — no enumerated power to charter corporations",
+          label: "Oppose — no power to charter banks",
           summary:
-            "Congress may borrow and coin money, but creating a bank exceeds the powers delegated in Article I.",
+            "Congress may borrow and coin money, but creating a bank exceeds Article I's delegated powers.",
           fidelityScore: 95,
           madisonAlignment: "strong",
         },
         {
           id: "delay-state-input",
-          label: "Delay the vote — seek counsel from state legislatures",
+          label: "Delay — consult the states first",
           summary:
-            "The Constitution's silence should caution Congress until the states weigh in on this novel power.",
+            "Constitutional silence should caution Congress until state legislatures weigh in.",
           fidelityScore: 78,
           madisonAlignment: "moderate",
         },
         {
           id: "support-strict-charter",
-          label: "Support only with a narrow, time-limited charter",
+          label: "Support only a narrow charter",
           summary:
-            "A tightly cabined bank might be tolerated if Congress refuses open-ended corporate authority.",
+            "A tightly limited bank might pass if Congress rejects open-ended corporate authority.",
           fidelityScore: 52,
           madisonAlignment: "weak",
         },
         {
           id: "support-hamilton",
-          label: "Support Hamilton — national credit requires bold instruments",
+          label: "Support Hamilton's national bank",
           summary:
-            "A vigorous federal government needs flexible tools to secure the Union's finances.",
+            "National credit requires bold federal instruments to secure the Union's finances.",
           fidelityScore: 18,
           madisonAlignment: "opposed",
         },
@@ -135,31 +135,31 @@ export const NATIONAL_BANK_DEBATE: RepublicSimulatorScenario = {
       choices: [
         {
           id: "reject-broad-construction",
-          label: "Reject broad construction — \"necessary\" means indispensable, not convenient",
+          label: "Reject broad construction",
           summary:
-            "If every convenient means is \"necessary,\" the enumeration of powers becomes a dead letter.",
+            "\"Necessary\" means indispensable — if convenience suffices, enumerated powers are dead letters.",
           fidelityScore: 92,
           madisonAlignment: "strong",
         },
         {
           id: "demand-amendment",
-          label: "Propose a constitutional amendment authorizing a bank",
+          label: "Propose a constitutional amendment",
           summary:
-            "If the people want a bank, let them amend the Constitution rather than infer new powers.",
+            "If the people want a bank, amend the Constitution rather than infer new powers.",
           fidelityScore: 85,
           madisonAlignment: "strong",
         },
         {
           id: "accept-incidental",
-          label: "Accept incidental powers only for executing listed functions",
+          label: "Accept only incidental powers",
           summary:
-            "A bank might pass only if each linked power can be named without inventing new ones.",
+            "A bank passes only if each linked power is named without inventing new ones.",
           fidelityScore: 68,
           madisonAlignment: "moderate",
         },
         {
           id: "accept-hamilton-reading",
-          label: "Accept Hamilton's reading — means and ends together",
+          label: "Accept Hamilton's reading",
           summary:
             "National survival requires interpreting powers with the energy the age demands.",
           fidelityScore: 22,
@@ -177,31 +177,31 @@ export const NATIONAL_BANK_DEBATE: RepublicSimulatorScenario = {
       choices: [
         {
           id: "warn-aristocracy",
-          label: "Warn that the bank breeds a monied aristocracy hostile to republican equality",
+          label: "Warn of a monied aristocracy",
           summary:
-            "Public credit must not become private profit for the few who captured federal favor.",
+            "Public credit must not become private profit for speculators who captured federal favor.",
           fidelityScore: 90,
           madisonAlignment: "strong",
         },
         {
           id: "demand-geographic-balance",
-          label: "Insist on branches and terms that protect agrarian states",
+          label: "Demand branches for agrarian states",
           summary:
-            "If a bank is inevitable, its charter must not concentrate power solely in northern cities.",
+            "If a bank is inevitable, its charter must not concentrate power in northern cities.",
           fidelityScore: 72,
           madisonAlignment: "moderate",
         },
         {
           id: "accept-tradeoffs",
-          label: "Accept commercial growth as the price of a stable Union",
+          label: "Accept commerce for Union stability",
           summary:
-            "A republic still needs credit markets if it is to survive among European powers.",
+            "A republic still needs credit markets to survive among European powers.",
           fidelityScore: 38,
           madisonAlignment: "weak",
         },
         {
           id: "embrace-finance",
-          label: "Embrace finance as the engine of national greatness",
+          label: "Embrace finance for national greatness",
           summary:
             "Hamilton's system will transform America into a commercial empire.",
           fidelityScore: 12,
@@ -219,31 +219,31 @@ export const NATIONAL_BANK_DEBATE: RepublicSimulatorScenario = {
       choices: [
         {
           id: "urge-veto",
-          label: "Urge a veto — the bill exceeds congressional authority",
+          label: "Urge Washington to veto",
           summary:
-            "A presidential veto would defend the Constitution's limits against legislative overreach.",
+            "The bill exceeds congressional authority — a veto defends the Constitution's limits.",
           fidelityScore: 94,
           madisonAlignment: "strong",
         },
         {
           id: "sign-with-reservations",
-          label: "Advise signing with a written reservation on implied powers",
+          label: "Sign with reservations on implied powers",
           summary:
-            "If he signs, Washington should warn that this precedent must not expand federal authority further.",
+            "If he signs, Washington must warn this precedent cannot expand federal authority.",
           fidelityScore: 70,
           madisonAlignment: "moderate",
         },
         {
           id: "defer-to-congress",
-          label: "Defer to Congress — the legislature judged the matter",
+          label: "Defer to Congress's judgment",
           summary:
-            "The first Congress sat near the Convention; its judgment deserves presidential respect.",
+            "The first Congress sat near the Convention; its judgment deserves respect.",
           fidelityScore: 45,
           madisonAlignment: "weak",
         },
         {
           id: "support-signature",
-          label: "Support signature — unity requires backing Hamilton's system",
+          label: "Support signature for unity",
           summary:
             "A veto would shatter the administration and invite financial chaos.",
           fidelityScore: 15,
@@ -261,15 +261,15 @@ export const NATIONAL_BANK_DEBATE: RepublicSimulatorScenario = {
       choices: [
         {
           id: "floor-opposition",
-          label: "Lead floor opposition — publish the strict-construction case",
+          label: "Lead floor opposition",
           summary:
-            "Future congresses will cite this day; the record must show that limits were defended.",
+            "Publish the strict-construction case — future congresses will cite this day's record.",
           fidelityScore: 96,
           madisonAlignment: "strong",
         },
         {
           id: "oppose-then-document",
-          label: "Vote no, then publish essays for the public record",
+          label: "Vote no and publish essays",
           summary:
             "Congress may prevail, but the people must understand the constitutional danger.",
           fidelityScore: 88,
@@ -277,17 +277,17 @@ export const NATIONAL_BANK_DEBATE: RepublicSimulatorScenario = {
         },
         {
           id: "abstain-protest",
-          label: "Abstain in protest — the process was rushed",
+          label: "Abstain — process was rushed",
           summary:
-            "Refuse to legitimize a vote taken without adequate constitutional deliberation.",
+            "Refuse to legitimize a vote without adequate constitutional deliberation.",
           fidelityScore: 55,
           madisonAlignment: "weak",
         },
         {
           id: "vote-yes",
-          label: "Vote yes — national stability outweighs abstract fears",
+          label: "Vote yes for stability",
           summary:
-            "The republic cannot afford another financial collapse over parchment disputes.",
+            "The republic cannot afford financial collapse over parchment disputes.",
           fidelityScore: 10,
           madisonAlignment: "opposed",
         },

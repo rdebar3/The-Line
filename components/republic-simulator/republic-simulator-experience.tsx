@@ -310,11 +310,12 @@ export function RepublicSimulatorExperience() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <PageHeader
         eyebrow="Republic Simulator"
         title={scenario.title}
         description={scenario.subtitle}
+        className="animate-fade-up border-b border-gold/15 pb-5 sm:pb-6"
       />
 
       {phase === "intro" && (
@@ -337,6 +338,7 @@ export function RepublicSimulatorExperience() {
 
       {phase === "decision" && currentDecision && selectedRole && (
         <DecisionPanel
+          key={currentDecision.id}
           role={selectedRole}
           decision={currentDecision}
           decisionIndex={decisionIndex}
@@ -348,6 +350,7 @@ export function RepublicSimulatorExperience() {
 
       {phase === "outcome" && (
         <OutcomePanel
+          key={`outcome-${decisionIndex}`}
           outcome={outcome}
           loading={loadingOutcome}
           error={error}
@@ -375,6 +378,27 @@ export function RepublicSimulatorExperience() {
   );
 }
 
+const CHOICE_LETTERS = ["A", "B", "C", "D"] as const;
+
+function FadeInSection({
+  children,
+  className,
+  delay = 0,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+}) {
+  return (
+    <div
+      className={cn("animate-in fade-in slide-in-from-bottom-2 duration-500", className)}
+      style={{ animationDelay: `${delay}ms`, animationFillMode: "both" }}
+    >
+      {children}
+    </div>
+  );
+}
+
 function ParchmentCard({
   children,
   className,
@@ -385,23 +409,38 @@ function ParchmentCard({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-2xl border border-gold/25 bg-gradient-to-b from-[#2a2318]/80 via-navy-elevated/90 to-navy/95 shadow-[0_12px_48px_rgba(10,15,28,0.45)]",
+        "relative overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-b from-[#2f281c]/90 via-[#1e2438]/95 to-navy/98 shadow-[0_12px_48px_rgba(10,15,28,0.5),inset_0_1px_0_rgba(201,162,39,0.12)]",
         className
       )}
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.07]"
+        className="pointer-events-none absolute inset-0 opacity-[0.14]"
         style={{
-          backgroundImage:
-            "repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(201,162,39,0.4) 29px)",
+          backgroundImage: `
+            radial-gradient(ellipse at 20% 0%, rgba(201,162,39,0.18) 0%, transparent 55%),
+            radial-gradient(ellipse at 80% 100%, rgba(139,38,53,0.08) 0%, transparent 50%),
+            repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(201,162,39,0.22) 32px)
+          `,
         }}
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-gold/70 to-transparent"
+        className="pointer-events-none absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+        }}
       />
-      <div className="relative p-6 sm:p-8">{children}</div>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/80 to-transparent"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-crimson/30 to-transparent"
+      />
+      <div className="relative p-5 sm:p-8">{children}</div>
     </div>
   );
 }
@@ -418,6 +457,7 @@ function IntroPanel({
   demoAvailable: boolean;
 }) {
   return (
+    <FadeInSection>
     <ParchmentCard>
       <div className="flex items-start gap-4">
         <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl border border-constitution-blue/35 bg-constitution-blue/15">
@@ -460,6 +500,7 @@ function IntroPanel({
         <ArrowRight className="size-4" />
       </Button>
     </ParchmentCard>
+    </FadeInSection>
   );
 }
 
@@ -469,10 +510,10 @@ function RoleSelectionPanel({
   onSelect: (roleId: string) => void;
 }) {
   return (
-    <div className="space-y-4">
+    <FadeInSection className="space-y-4 sm:space-y-5">
       <header className="text-center">
         <p className="section-eyebrow">Step 1</p>
-        <h2 className="mt-2 font-heading text-2xl font-bold text-foreground">
+        <h2 className="mt-2 font-heading text-xl font-bold text-foreground sm:text-2xl">
           Choose Your Role
         </h2>
         <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
@@ -480,13 +521,14 @@ function RoleSelectionPanel({
         </p>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {REPUBLIC_SIMULATOR_ROLES.map((role) => (
+      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+        {REPUBLIC_SIMULATOR_ROLES.map((role, index) => (
           <button
             key={role.id}
             type="button"
             onClick={() => onSelect(role.id)}
-            className="group rounded-2xl border border-gold/20 bg-navy-elevated/60 p-6 text-left transition-all hover:-translate-y-1 hover:border-gold/40 hover:shadow-[0_8px_40px_rgba(201,162,39,0.12)]"
+            className="group rounded-2xl border border-gold/25 bg-navy-elevated/60 p-5 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/50 hover:shadow-[0_8px_40px_rgba(201,162,39,0.18)] sm:p-6"
+            style={{ animationDelay: `${index * 80}ms` }}
           >
             <p className="font-heading text-xs font-semibold tracking-[0.22em] text-gold uppercase">
               {role.perspective}
@@ -507,7 +549,58 @@ function RoleSelectionPanel({
           </button>
         ))}
       </div>
-    </div>
+    </FadeInSection>
+  );
+}
+
+function ChoiceOptionButton({
+  letter,
+  label,
+  summary,
+  index,
+  disabled,
+  onClick,
+}: {
+  letter: string;
+  label: string;
+  summary: string;
+  index: number;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  const accentRing =
+    index % 2 === 0
+      ? "hover:shadow-[0_0_28px_rgba(201,162,39,0.2)] hover:border-gold/65"
+      : "hover:shadow-[0_0_28px_rgba(139,38,53,0.15)] hover:border-crimson/40";
+
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        "group relative w-full rounded-xl border-2 border-gold/25 bg-navy-elevated/75 p-4 text-left transition-all duration-300 sm:p-5",
+        "hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/50",
+        accentRing,
+        disabled && "pointer-events-none opacity-55"
+      )}
+      style={{ animationDelay: `${index * 60}ms` }}
+    >
+      <span className="flex items-start gap-3 sm:gap-4">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-gold/40 bg-gradient-to-b from-gold/20 to-gold/5 font-heading text-sm font-bold text-gold shadow-[0_0_12px_rgba(201,162,39,0.15)] transition-all group-hover:border-gold/60 group-hover:shadow-[0_0_16px_rgba(201,162,39,0.25)] sm:size-10 sm:text-base">
+          {letter}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-bold leading-snug text-foreground sm:text-base">
+            {label}
+          </span>
+          <span className="mt-1.5 block text-xs leading-relaxed text-muted-foreground sm:text-sm">
+            {summary}
+          </span>
+        </span>
+        <ChevronRight className="mt-1 size-4 shrink-0 text-gold/50 transition-all group-hover:translate-x-0.5 group-hover:text-gold" />
+      </span>
+    </button>
   );
 }
 
@@ -527,17 +620,17 @@ function DecisionPanel({
   disabled: boolean;
 }) {
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between gap-3 text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+    <FadeInSection className="space-y-4 sm:space-y-5">
+      <div className="flex items-center justify-between gap-3 text-[0.65rem] font-semibold tracking-[0.18em] text-muted-foreground uppercase sm:text-xs">
         <span>
           Decision {decisionIndex + 1} of {totalDecisions}
         </span>
         <span className="text-gold">{role.name}</span>
       </div>
 
-      <div className="h-1 overflow-hidden rounded-full bg-navy-border/40">
+      <div className="h-1.5 overflow-hidden rounded-full bg-navy-border/40">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-crimson via-gold to-constitution-blue transition-all duration-500"
+          className="h-full rounded-full bg-gradient-to-r from-crimson via-gold to-constitution-blue transition-all duration-500 shadow-[0_0_8px_rgba(201,162,39,0.35)]"
           style={{
             width: `${((decisionIndex + 1) / totalDecisions) * 100}%`,
           }}
@@ -548,29 +641,29 @@ function DecisionPanel({
         <p className="font-heading text-xs font-semibold tracking-[0.28em] text-gold uppercase">
           {decision.title}
         </p>
-        <p className="mt-4 font-serif text-base leading-[1.85] text-foreground/90 sm:text-lg">
+        <p className="mt-3 font-serif text-[0.95rem] leading-[1.8] text-foreground/92 sm:mt-4 sm:text-lg sm:leading-[1.85]">
           {decision.situation}
         </p>
       </ParchmentCard>
 
-      <div className="grid gap-3">
-        {decision.choices.map((choice) => (
-          <Button
-            key={choice.id}
-            type="button"
-            disabled={disabled}
-            onClick={() => onChoose(choice.id, choice.label)}
-            className="h-auto min-h-[3.5rem] w-full justify-start rounded-xl border border-navy-border/70 bg-navy-elevated/70 px-5 py-4 text-left text-sm font-medium leading-snug text-foreground hover:border-gold/35 hover:bg-gold/[0.06] disabled:opacity-60"
-            variant="outline"
-          >
-            <span className="block">{choice.label}</span>
-            <span className="mt-1 block text-xs font-normal text-muted-foreground">
-              {choice.summary}
-            </span>
-          </Button>
+      <div className="space-y-2.5 sm:space-y-3">
+        <p className="px-0.5 text-center text-[0.65rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase sm:text-xs">
+          Your Decision
+        </p>
+        {decision.choices.map((choice, index) => (
+          <FadeInSection key={choice.id} delay={index * 60} className="animate-in fade-in slide-in-from-bottom-1 duration-300">
+            <ChoiceOptionButton
+              letter={CHOICE_LETTERS[index] ?? String(index + 1)}
+              label={choice.label}
+              summary={choice.summary}
+              index={index}
+              disabled={disabled}
+              onClick={() => onChoose(choice.id, choice.label)}
+            />
+          </FadeInSection>
         ))}
       </div>
-    </div>
+    </FadeInSection>
   );
 }
 
@@ -592,10 +685,10 @@ function OutcomePanel({
   onContinue: () => void;
 }) {
   return (
-    <div className="space-y-5">
+    <FadeInSection className="space-y-4 sm:space-y-5">
       <header className="text-center">
         <p className="section-eyebrow">Grok Counsel</p>
-        <h2 className="mt-2 font-heading text-2xl font-bold text-foreground">
+        <h2 className="mt-2 font-heading text-xl font-bold text-foreground sm:text-2xl">
           Immediate Outcome
         </h2>
       </header>
@@ -611,99 +704,105 @@ function OutcomePanel({
 
       {error && !loading && (
         <ParchmentCard>
-          <p className="text-sm text-crimson">{error}</p>
+          <p className="text-sm text-crimson-light">{error}</p>
         </ParchmentCard>
       )}
 
       {outcome && !loading && (
         <>
-          <ParchmentCard>
-            <p className="font-heading text-xs font-semibold tracking-[0.22em] text-crimson-light uppercase">
-              What Happens Next
-            </p>
-            <p className="mt-3 text-sm leading-relaxed text-foreground/90 sm:text-base">
-              {outcome.immediateResult}
-            </p>
+          <FadeInSection delay={0}>
+            <ParchmentCard>
+              <p className="font-heading text-xs font-semibold tracking-[0.22em] text-crimson-light uppercase">
+                What Happens Next
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-foreground/92 sm:text-base sm:leading-relaxed">
+                {outcome.immediateResult}
+              </p>
 
-            <div className="mt-6 border-t border-gold/15 pt-6">
-              <p className="font-heading text-xs font-semibold tracking-[0.22em] text-constitution-blue-light uppercase">
-                Constitutional Analysis
-              </p>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-                {outcome.constitutionalAnalysis}
-              </p>
+              <div className="mt-5 border-t border-gold/20 pt-5 sm:mt-6 sm:pt-6">
+                <p className="font-heading text-xs font-semibold tracking-[0.22em] text-constitution-blue-light uppercase">
+                  Constitutional Analysis
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                  {outcome.constitutionalAnalysis}
+                </p>
+              </div>
+
+              <div className="mt-5 rounded-xl border border-gold/25 bg-gradient-to-br from-gold/[0.08] to-transparent px-4 py-4 sm:mt-6 sm:px-5 sm:py-5">
+                <p className="font-heading text-xs font-semibold tracking-[0.22em] text-gold uppercase">
+                  Founder&apos;s Voice
+                </p>
+                <p className="mt-3 font-serif text-sm italic leading-relaxed text-foreground/88 sm:text-base">
+                  &ldquo;{outcome.founderVoice}&rdquo;
+                </p>
+              </div>
+            </ParchmentCard>
+          </FadeInSection>
+
+          <FadeInSection delay={120}>
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:gap-3">
+              <Button
+                type="button"
+                onClick={onToggleHistorical}
+                disabled={outcome.loadingHistorical}
+                className="btn-gold btn-cta h-11 flex-1 shadow-[0_0_20px_rgba(201,162,39,0.15)]"
+              >
+                {outcome.loadingHistorical ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <BookOpen className="size-4" />
+                )}
+                {outcome.showHistorical
+                  ? "Hide Historical Reality"
+                  : "What Actually Happened"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onContinue}
+                className="h-11 flex-1 border-gold/30 bg-navy-elevated/50 font-semibold text-foreground hover:border-gold/45 hover:bg-gold/[0.06]"
+              >
+                {decisionIndex >= totalDecisions - 1
+                  ? "View Final Results"
+                  : "Next Decision"}
+                <ChevronRight className="size-4 text-gold" />
+              </Button>
             </div>
-
-            <div className="mt-6 rounded-xl border border-gold/20 bg-gold/[0.05] px-5 py-5">
-              <p className="font-heading text-xs font-semibold tracking-[0.22em] text-gold uppercase">
-                Founder&apos;s Voice
-              </p>
-              <p className="mt-3 font-serif text-base italic leading-relaxed text-foreground/85">
-                &ldquo;{outcome.founderVoice}&rdquo;
-              </p>
-            </div>
-          </ParchmentCard>
-
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onToggleHistorical}
-              disabled={outcome.loadingHistorical}
-              className="h-11 flex-1 border-gold/30 text-gold hover:bg-gold/10"
-            >
-              {outcome.loadingHistorical ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <BookOpen className="size-4" />
-              )}
-              {outcome.showHistorical
-                ? "Hide Historical Reality"
-                : "What Actually Happened"}
-            </Button>
-            <Button
-              type="button"
-              onClick={onContinue}
-              className="btn-gold btn-cta h-11 flex-1"
-            >
-              {decisionIndex >= totalDecisions - 1
-                ? "View Final Results"
-                : "Next Decision"}
-              <ChevronRight className="size-4" />
-            </Button>
-          </div>
+          </FadeInSection>
 
           {outcome.showHistorical && outcome.historical && (
-            <ParchmentCard>
-              <p className="font-heading text-xs font-semibold tracking-[0.22em] text-gold uppercase">
-                Historical Reality
-              </p>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-                {outcome.historical.whatActuallyHappened}
-              </p>
-              <ul className="mt-5 space-y-4">
-                {outcome.historical.quotes.map((quote) => (
-                  <li
-                    key={`${quote.speaker}-${quote.source}`}
-                    className="rounded-xl border border-navy-border/50 bg-navy/40 px-4 py-4"
-                  >
-                    <p className="font-serif text-base italic leading-relaxed text-foreground/90">
-                      &ldquo;{quote.text}&rdquo;
-                    </p>
-                    <p className="mt-2 text-xs font-semibold text-gold">
-                      — {quote.speaker}
-                    </p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {quote.source}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            </ParchmentCard>
+            <FadeInSection delay={0}>
+              <ParchmentCard>
+                <p className="font-heading text-xs font-semibold tracking-[0.22em] text-gold uppercase">
+                  Historical Reality
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                  {outcome.historical.whatActuallyHappened}
+                </p>
+                <ul className="mt-4 space-y-3 sm:mt-5 sm:space-y-4">
+                  {outcome.historical.quotes.map((quote) => (
+                    <li
+                      key={`${quote.speaker}-${quote.source}`}
+                      className="rounded-xl border border-gold/15 bg-navy/40 px-4 py-3 sm:py-4"
+                    >
+                      <p className="font-serif text-sm italic leading-relaxed text-foreground/90 sm:text-base">
+                        &ldquo;{quote.text}&rdquo;
+                      </p>
+                      <p className="mt-2 text-xs font-semibold text-gold">
+                        — {quote.speaker}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {quote.source}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </ParchmentCard>
+            </FadeInSection>
           )}
         </>
       )}
-    </div>
+    </FadeInSection>
   );
 }
 
@@ -729,7 +828,7 @@ function FinalResultsPanel({
   onHub: () => void;
 }) {
   return (
-    <div className="space-y-6">
+    <FadeInSection className="space-y-5 sm:space-y-6">
       <ParchmentCard className="text-center">
         <Sparkles className="mx-auto size-8 text-gold" />
         <h2 className="mt-4 font-heading text-2xl font-bold text-foreground sm:text-3xl">
@@ -846,6 +945,6 @@ function FinalResultsPanel({
           Return to Hub
         </Button>
       </div>
-    </div>
+    </FadeInSection>
   );
 }
