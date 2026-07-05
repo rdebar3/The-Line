@@ -322,6 +322,16 @@
   }
 }
 
+@keyframes hero-cinematic-grid-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.65;
+  }
+}
+
 @keyframes hero-live-blink {
   0%,
   100% {
@@ -743,7 +753,192 @@
       0 2px 24px rgba(10, 15, 28, 0.8);
   }
 
-  /* ── Hub Hero: fullscreen 3D command chamber (hero only) ── */
+  /* ── Hub Hero: cinematic 2D command chamber (hero only) ── */
+  .hub-hero-cinematic {
+    @apply relative isolate w-full overflow-hidden bg-[#0a0f1c];
+    height: calc(100dvh - var(--site-header-height) - var(--tiktok-banner-offset, 0px));
+    min-height: 32rem;
+  }
+
+  .hub-hero-cinematic-bg {
+    @apply pointer-events-auto absolute inset-0;
+  }
+
+  .hub-hero-cinematic-flag-drift {
+    @apply absolute inset-0;
+  }
+
+  .hub-hero-cinematic-flag {
+    @apply absolute inset-0 h-full w-full;
+    background-image: url("/flag-background.png");
+    background-size: cover;
+    background-position: center 35%;
+    background-repeat: no-repeat;
+    opacity: 0.24;
+    filter: saturate(0.75) contrast(1.05) brightness(0.55);
+    will-change: transform;
+  }
+
+  .hub-hero-cinematic-grid {
+    @apply pointer-events-none absolute inset-0;
+    background-image:
+      linear-gradient(rgba(201, 162, 39, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201, 162, 39, 0.05) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse at 42% 40%, black 0%, transparent 78%);
+    animation: hero-cinematic-grid-pulse 6s ease-in-out infinite;
+  }
+
+  .hub-hero-cinematic-light-pools {
+    @apply pointer-events-none absolute inset-0;
+    background:
+      radial-gradient(ellipse at 22% 48%, rgba(201, 162, 39, 0.22) 0%, transparent 46%),
+      radial-gradient(ellipse at 78% 38%, rgba(185, 28, 28, 0.16) 0%, transparent 42%),
+      radial-gradient(ellipse at 50% 88%, rgba(201, 162, 39, 0.1) 0%, transparent 50%);
+  }
+
+  .hub-hero-cinematic-ember {
+    @apply pointer-events-none absolute rounded-full;
+    background: radial-gradient(circle, #f5e6a8 0%, #c9a227 45%, transparent 72%);
+    box-shadow: 0 0 10px rgba(201, 162, 39, 0.65);
+  }
+
+  .hub-hero-cinematic-vignette {
+    @apply pointer-events-none absolute inset-0;
+    background:
+      radial-gradient(
+        ellipse at center,
+        transparent 32%,
+        rgba(10, 15, 28, 0.55) 72%,
+        rgba(6, 8, 14, 0.92) 100%
+      ),
+      linear-gradient(to right, rgba(10, 15, 28, 0.15) 0%, transparent 42%, rgba(10, 15, 28, 0.35) 100%);
+  }
+
+  .hub-hero-cinematic-layout {
+    @apply relative z-10 mx-auto flex h-full w-full max-w-7xl flex-col justify-end gap-6 px-4 pb-8 sm:px-8 sm:pb-10 lg:flex-row lg:items-center lg:justify-between lg:gap-10 lg:px-10 lg:pb-0;
+  }
+
+  .hub-hero-cinematic-patriot-wrap {
+    @apply relative flex shrink-0 items-end justify-center lg:w-[46%] lg:justify-start;
+    min-height: clamp(16rem, 42vh, 28rem);
+  }
+
+  @media (min-width: 1024px) {
+    .hub-hero-cinematic-patriot-wrap {
+      min-height: auto;
+    }
+  }
+
+  .hub-hero-cinematic-patriot-aura {
+    @apply pointer-events-none absolute bottom-[8%] left-1/2 -translate-x-1/2 lg:left-[38%] lg:translate-x-0;
+    width: clamp(14rem, 52vw, 26rem);
+    height: clamp(14rem, 52vw, 26rem);
+    border-radius: 50%;
+    background: transparent;
+    box-shadow:
+      0 0 48px 12px rgba(201, 162, 39, 0.35),
+      0 0 96px 28px rgba(201, 162, 39, 0.18),
+      0 0 140px 48px rgba(185, 28, 28, 0.12),
+      inset 0 0 60px rgba(201, 162, 39, 0.08);
+  }
+
+  .hub-hero-cinematic-patriot-breathe {
+    @apply relative z-[1];
+  }
+
+  .hub-hero-cinematic-patriot-cloak {
+    @apply origin-bottom;
+  }
+
+  .hub-hero-cinematic-patriot-img {
+    @apply mx-auto h-auto w-auto max-h-[min(58vh,34rem)] max-w-[min(72vw,28rem)] object-contain object-bottom drop-shadow-[0_24px_48px_rgba(0,0,0,0.55)] lg:max-h-[min(72vh,36rem)] lg:max-w-none;
+    filter: drop-shadow(0 0 32px rgba(201, 162, 39, 0.25));
+  }
+
+  .hub-hero-cinematic-panel {
+    @apply w-full max-w-xl rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-2xl sm:p-8 lg:max-w-lg lg:shrink-0;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+
+  .hub-hero-cinematic-eyebrow {
+    @apply inline-flex flex-wrap items-center gap-2 font-mono text-[0.58rem] font-semibold tracking-[0.24em] text-gold uppercase sm:text-xs;
+  }
+
+  .hub-hero-cinematic-live {
+    @apply size-1.5 rounded-full;
+    background-color: #dc2626;
+    box-shadow: 0 0 8px rgba(220, 38, 38, 0.85);
+    animation: hero-live-blink 2s ease-in-out infinite;
+  }
+
+  .hub-hero-cinematic-sep {
+    @apply hidden h-3 w-px bg-white/15 sm:block;
+  }
+
+  .hub-hero-cinematic-title {
+    @apply mt-4 leading-none sm:mt-5;
+  }
+
+  .hub-hero-cinematic-title-pre {
+    @apply block font-heading text-xs font-bold tracking-[0.5em] text-gold/80 uppercase sm:text-sm;
+  }
+
+  .hub-hero-cinematic-title-main {
+    @apply mt-1 block font-heading font-black tracking-[0.04em];
+    font-size: clamp(3.5rem, 10vw, 6.5rem);
+    line-height: 0.9;
+    background: linear-gradient(
+      120deg,
+      #f5e6a8 0%,
+      #c9a227 28%,
+      #ffffff 50%,
+      #c9a227 72%,
+      #b91c1c 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: hero-gradient-shift 8s linear infinite;
+    filter: drop-shadow(0 0 32px rgba(201, 162, 39, 0.35));
+  }
+
+  .hub-hero-cinematic-tagline {
+    @apply mt-4 text-lg font-bold leading-snug text-foreground sm:text-2xl;
+  }
+
+  .hub-hero-cinematic-copy {
+    @apply mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground sm:text-base;
+  }
+
+  .hub-hero-cinematic-button {
+    @apply mt-6 flex h-14 w-full items-center justify-center gap-3 rounded-2xl border border-gold/45 text-base font-black tracking-wide text-white sm:h-16 sm:text-lg;
+    background: linear-gradient(135deg, #c9a227 0%, #b45309 28%, #b91c1c 65%, #7f1d1d 100%);
+    box-shadow: 0 0 36px rgba(201, 162, 39, 0.35), 0 12px 40px rgba(185, 28, 28, 0.35);
+    animation: hero-cta-pulse 3.5s ease-in-out infinite;
+    transition: filter 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .hub-hero-cinematic-button:hover {
+    filter: brightness(1.1) saturate(1.1);
+    box-shadow: 0 0 48px rgba(201, 162, 39, 0.5), 0 0 64px rgba(185, 28, 28, 0.4);
+  }
+
+  .hub-hero-cinematic-meta {
+    @apply mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm;
+  }
+
+  .hub-hero-cinematic-alt {
+    @apply inline-flex items-center gap-1.5 font-semibold text-muted-foreground transition-colors hover:text-gold;
+  }
+
+  .hub-hero-cinematic-free {
+    @apply text-gold/90;
+  }
+
   .hub-hero-fullscreen {
     @apply relative isolate w-full overflow-hidden bg-[#060a14];
     height: calc(100dvh - var(--site-header-height) - var(--tiktok-banner-offset, 0px));
@@ -981,7 +1176,11 @@
   .command-particles::after,
   .command-status-dot,
   .hub-hero-3d-title-main,
-  .hub-hero-3d-live {
+  .hub-hero-3d-live,
+  .hub-hero-cinematic-grid,
+  .hub-hero-cinematic-title-main,
+  .hub-hero-cinematic-live,
+  .hub-hero-cinematic-button {
     animation: none;
     opacity: 1;
     transform: none;
