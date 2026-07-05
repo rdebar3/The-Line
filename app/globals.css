@@ -831,7 +831,8 @@
   }
 
   .hub-hero-scrub-video {
-    @apply pointer-events-none absolute inset-0 h-full w-full object-cover;
+    @apply pointer-events-none absolute inset-0 h-full w-full object-cover object-center;
+    transform: scale(1.02);
   }
 
   .hub-hero-scrub-overlay {

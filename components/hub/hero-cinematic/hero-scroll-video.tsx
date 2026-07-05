@@ -6,11 +6,23 @@ import { ChevronDown } from "lucide-react";
 import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion";
 
 const HERO_VIDEO_SRC = "/hero/hero-chamber-scroll.mp4";
-const HERO_POSTER_SRC = "/hero/chamber-bg.jpg";
 
 type HeroScrollVideoProps = {
   children: ReactNode;
 };
+
+function seekVideo(video: HTMLVideoElement, time: number) {
+  if ("fastSeek" in video && typeof video.fastSeek === "function") {
+    try {
+      video.fastSeek(time);
+      return;
+    } catch {
+      // Fall through to currentTime assignment.
+    }
+  }
+
+  video.currentTime = time;
+}
 
 export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -25,6 +37,14 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
     if (!section || !video) return;
 
     let frame = 0;
+    let primed = false;
+
+    const primeFirstFrame = () => {
+      if (primed || reducedMotion) return;
+      primed = true;
+      video.pause();
+      seekVideo(video, 0.001);
+    };
 
     const syncVideo = () => {
       const scrollable = section.offsetHeight - window.innerHeight;
@@ -39,10 +59,7 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
       const duration = video.duration;
       if (!duration || Number.isNaN(duration)) return;
 
-      const targetTime = nextProgress * duration;
-      if (Math.abs(video.currentTime - targetTime) > 0.04) {
-        video.currentTime = targetTime;
-      }
+      seekVideo(video, nextProgress * duration);
     };
 
     const onScroll = () => {
@@ -50,17 +67,22 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
       frame = requestAnimationFrame(syncVideo);
     };
 
-    const onMetadata = () => {
+    const onVideoReady = () => {
       setReady(true);
+      primeFirstFrame();
       syncVideo();
     };
 
+    video.pause();
+    video.load();
+
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll, { passive: true });
-    video.addEventListener("loadedmetadata", onMetadata);
+    video.addEventListener("loadeddata", onVideoReady);
+    video.addEventListener("loadedmetadata", onVideoReady);
 
-    if (video.readyState >= 1) {
-      onMetadata();
+    if (video.readyState >= 2) {
+      onVideoReady();
     } else {
       syncVideo();
     }
@@ -68,7 +90,8 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
-      video.removeEventListener("loadedmetadata", onMetadata);
+      video.removeEventListener("loadeddata", onVideoReady);
+      video.removeEventListener("loadedmetadata", onVideoReady);
       cancelAnimationFrame(frame);
     };
   }, [reducedMotion]);
@@ -84,10 +107,10 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
           ref={videoRef}
           className="hub-hero-scrub-video"
           src={HERO_VIDEO_SRC}
-          poster={HERO_POSTER_SRC}
           muted
           playsInline
           preload="auto"
+          disablePictureInPicture
           aria-hidden
         />
 

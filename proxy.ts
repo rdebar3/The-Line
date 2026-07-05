@@ -32,7 +32,7 @@ export const config = {
   matcher: [
     // Clerk production proxy serves JS bundles under /__clerk — must bypass the .js exclusion below.
     "/__clerk(.*)",
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest|mp4|webm|mov)).*)",
     "/(api|trpc)(.*)",
   ],
 };
