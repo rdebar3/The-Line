@@ -831,7 +831,7 @@
   }
 
   .hub-hero-scrub-canvas {
-    @apply pointer-events-none absolute inset-0 block h-full w-full;
+    @apply pointer-events-none absolute inset-0 left-0 right-0 mx-auto block h-full w-full;
     filter: brightness(1.12) contrast(1.04);
   }
 

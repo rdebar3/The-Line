@@ -29,11 +29,15 @@ function getImageSize(image: CanvasImageSource) {
   return { width: 0, height: 0 };
 }
 
-function drawContain(
+/** Fill the viewport width; crop top/bottom on portrait frames. */
+const FRAME_FOCAL_Y = 0.4;
+
+function drawCover(
   ctx: CanvasRenderingContext2D,
   image: CanvasImageSource,
   width: number,
-  height: number
+  height: number,
+  focalY = FRAME_FOCAL_Y
 ) {
   const { width: sourceWidth, height: sourceHeight } = getImageSize(image);
   if (!sourceWidth || !sourceHeight) return;
@@ -47,11 +51,13 @@ function drawContain(
   let offsetY = 0;
 
   if (sourceRatio > canvasRatio) {
-    drawHeight = width / sourceRatio;
-    offsetY = (height - drawHeight) / 2;
-  } else {
+    drawHeight = height;
     drawWidth = height * sourceRatio;
     offsetX = (width - drawWidth) / 2;
+  } else {
+    drawWidth = width;
+    drawHeight = width / sourceRatio;
+    offsetY = (height - drawHeight) * focalY;
   }
 
   ctx.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
@@ -139,11 +145,11 @@ export function HeroScrollVideo({ children }: HeroScrollVideoProps) {
       context.filter = "brightness(1.65) contrast(1.1) saturate(1.15)";
 
       context.globalAlpha = 1 - blend;
-      drawContain(context, frameA, width, height);
+      drawCover(context, frameA, width, height);
 
       if (frameB?.complete && frameB.naturalWidth) {
         context.globalAlpha = blend;
-        drawContain(context, frameB, width, height);
+        drawCover(context, frameB, width, height);
       }
 
       context.filter = "none";
