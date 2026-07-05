@@ -59,9 +59,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className="dark h-full antialiased"
+      className="dark min-h-full antialiased"
     >
-      <body className="relative flex min-h-full min-w-0 flex-col overflow-x-hidden bg-navy font-sans">
+      <body className="relative flex min-h-full min-w-0 flex-col overflow-x-clip bg-navy font-sans">
         <AppBackground />
         <ClerkProvider
           appearance={clerkAppearance}

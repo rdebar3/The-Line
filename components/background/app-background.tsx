@@ -6,7 +6,7 @@ import { CommandCenterLayers } from "@/components/background/command-center-laye
  */
 export function AppBackground() {
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 -z-[1]">
+    <div aria-hidden className="pointer-events-none fixed inset-0 -z-[1] overflow-hidden">
       <div className="absolute inset-0 bg-[#060a14]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(201,162,39,0.09)_0%,transparent_55%)]" />
       <CommandCenterLayers variant="global" />

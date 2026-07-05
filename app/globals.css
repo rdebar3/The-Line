@@ -623,7 +623,10 @@
   }
 
   .page-shell {
-    @apply relative mx-auto flex min-h-screen w-full min-w-0 max-w-full flex-col px-4 py-6 sm:px-6 sm:py-8 md:px-10 md:py-10;
+    @apply relative mx-auto flex w-full min-w-0 max-w-full flex-col px-4 py-6 sm:px-6 sm:py-8 md:px-10 md:py-10;
+    min-height: calc(
+      100dvh - var(--site-header-height) - var(--tiktok-banner-offset, 0px)
+    );
     padding-top: max(1.5rem, env(safe-area-inset-top));
     padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
   }
@@ -778,6 +781,10 @@
     @apply bg-background text-foreground;
   }
   html {
-    @apply font-sans scroll-smooth;
+    @apply font-sans scroll-smooth overflow-x-clip;
+  }
+
+  body {
+    overflow-x: clip;
   }
 }
