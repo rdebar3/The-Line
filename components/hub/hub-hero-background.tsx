@@ -1,83 +1,72 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "motion/react";
+import {
+  motion,
+  useScroll,
+  useSpring,
+  useTransform,
+  type MotionValue,
+} from "motion/react";
 import { useRef } from "react";
 
-const PARTICLES = [
-  { left: "12%", top: "18%", size: 3, delay: 0 },
-  { left: "78%", top: "24%", size: 2, delay: 1.2 },
-  { left: "45%", top: "12%", size: 2, delay: 0.6 },
-  { left: "88%", top: "62%", size: 3, delay: 2 },
-  { left: "22%", top: "72%", size: 2, delay: 1.8 },
-  { left: "62%", top: "80%", size: 2, delay: 0.9 },
-  { left: "8%", top: "48%", size: 2, delay: 2.4 },
-  { left: "52%", top: "38%", size: 3, delay: 1.5 },
+type HubHeroBackgroundProps = {
+  mouseX: MotionValue<number>;
+  mouseY: MotionValue<number>;
+};
+
+const AURORA = [
+  { className: "hub-hero-aurora hub-hero-aurora--gold", duration: 18, delay: 0 },
+  { className: "hub-hero-aurora hub-hero-aurora--crimson", duration: 22, delay: 2 },
+  { className: "hub-hero-aurora hub-hero-aurora--blue", duration: 26, delay: 4 },
 ] as const;
 
-export function HubHeroBackground() {
+export function HubHeroBackground({ mouseX, mouseY }: HubHeroBackgroundProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"],
   });
 
-  const parallaxY = useTransform(scrollYProgress, [0, 1], ["0%", "-6%"]);
-  const particleY = useTransform(scrollYProgress, [0, 1], ["0%", "-10%"]);
+  const scrollY = useTransform(scrollYProgress, [0, 1], ["0%", "-8%"]);
+  const springX = useSpring(mouseX, { stiffness: 60, damping: 20 });
+  const springY = useSpring(mouseY, { stiffness: 60, damping: 20 });
+  const parallaxX = useTransform(springX, [-0.5, 0.5], [-18, 18]);
+  const parallaxY = useTransform(springY, [-0.5, 0.5], [-12, 12]);
 
   return (
     <div ref={ref} className="hub-hero-bg" aria-hidden>
       <div className="hub-hero-bg-void" />
+      <div className="hub-hero-bg-watermark">WE THE PEOPLE</div>
+
+      <motion.div className="hub-hero-bg-flag" style={{ y: scrollY }} />
 
       <motion.div
-        className="hub-hero-bg-flag"
-        style={{ y: parallaxY }}
-        animate={{
-          x: [0, 14, 0],
-          scale: [1, 1.03, 1],
-          opacity: [0.18, 0.26, 0.18],
-        }}
-        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
-      />
-
-      <motion.div
-        className="hub-hero-bg-holo"
-        style={{ y: parallaxY }}
-        animate={{ opacity: [0.45, 0.7, 0.45] }}
-        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-      />
-
-      <motion.div
-        className="hub-hero-bg-grid"
-        animate={{ opacity: [0.35, 0.55, 0.35] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-      />
-
-      <motion.div className="hub-hero-bg-particles" style={{ y: particleY }}>
-        {PARTICLES.map((p, i) => (
-          <motion.span
-            key={i}
-            className="hub-hero-bg-particle"
-            style={{
-              left: p.left,
-              top: p.top,
-              width: p.size,
-              height: p.size,
-            }}
+        className="hub-hero-bg-aurora-field"
+        style={{ x: parallaxX, y: parallaxY }}
+      >
+        {AURORA.map((blob) => (
+          <motion.div
+            key={blob.className}
+            className={blob.className}
             animate={{
-              y: [0, -18, 0],
-              opacity: [0.25, 0.65, 0.25],
-              scale: [1, 1.4, 1],
+              x: [0, 30, -20, 0],
+              y: [0, -24, 16, 0],
+              scale: [1, 1.12, 0.95, 1],
+              opacity: [0.5, 0.85, 0.55, 0.5],
             }}
             transition={{
-              duration: 8 + p.delay,
+              duration: blob.duration,
               repeat: Infinity,
               ease: "easeInOut",
-              delay: p.delay,
+              delay: blob.delay,
             }}
           />
         ))}
       </motion.div>
 
+      <div className="hub-hero-bg-grid" />
+      <div className="hub-hero-bg-stars" />
+      <div className="hub-hero-bg-spotlight" />
       <div className="hub-hero-bg-scan" />
       <div className="hub-hero-bg-vignette" />
     </div>

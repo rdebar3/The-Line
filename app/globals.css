@@ -313,6 +313,35 @@
   }
 }
 
+@keyframes hero-gradient-shift {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes hero-live-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes hero-star-twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
 @layer utilities {
   .animate-guardian-float {
     animation: guardian-float 5s ease-in-out infinite;
@@ -714,15 +743,16 @@
       0 2px 24px rgba(10, 15, 28, 0.8);
   }
 
-  /* ── Hub Hero: advanced cinematic (hero section only) ── */
-  .hub-hero-cinematic {
+  /* ── Hub Hero: Living Oath Chamber (hero section only) ── */
+  .hub-hero-oath {
     @apply relative isolate overflow-hidden rounded-3xl border border-white/10;
-    min-height: min(92vh, 54rem);
-    background-color: #0a0f1c;
+    min-height: min(94vh, 56rem);
+    background-color: #060a14;
+    perspective: 1200px;
     box-shadow:
-      0 24px 80px rgba(6, 10, 20, 0.75),
-      0 0 0 1px rgba(255, 255, 255, 0.04),
-      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      0 28px 100px rgba(4, 6, 12, 0.85),
+      0 0 0 1px rgba(255, 255, 255, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 
   .hub-hero-bg {
@@ -732,97 +762,220 @@
   .hub-hero-bg-void {
     @apply absolute inset-0;
     background:
-      radial-gradient(ellipse at 28% 18%, rgba(59, 89, 152, 0.12) 0%, transparent 48%),
-      radial-gradient(ellipse at 72% 32%, rgba(185, 28, 28, 0.08) 0%, transparent 44%),
-      #0a0f1c;
+      radial-gradient(ellipse at 50% 0%, rgba(59, 89, 152, 0.18) 0%, transparent 55%),
+      radial-gradient(ellipse at 20% 80%, rgba(185, 28, 28, 0.1) 0%, transparent 45%),
+      #060a14;
+  }
+
+  .hub-hero-bg-watermark {
+    @apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-heading font-black tracking-[0.2em] text-white/3 uppercase whitespace-nowrap select-none;
+    font-size: clamp(4rem, 18vw, 11rem);
   }
 
   .hub-hero-bg-flag {
-    @apply absolute inset-0;
+    @apply absolute inset-0 opacity-15;
     background-image: url("/flag-background.png");
     background-size: cover;
-    background-position: center 38%;
-    filter: saturate(0.65) contrast(1.05) brightness(0.5);
+    background-position: center 40%;
+    filter: saturate(0.5) brightness(0.45);
   }
 
-  .hub-hero-bg-holo {
+  .hub-hero-bg-aurora-field {
     @apply absolute inset-0;
-    background:
-      radial-gradient(ellipse at 18% 28%, rgba(185, 28, 28, 0.1) 0%, transparent 40%),
-      radial-gradient(ellipse at 82% 22%, rgba(59, 89, 152, 0.08) 0%, transparent 38%),
-      radial-gradient(ellipse at 50% 88%, rgba(201, 162, 39, 0.07) 0%, transparent 46%);
+  }
+
+  .hub-hero-aurora {
+    @apply absolute rounded-full blur-3xl;
+    width: 55%;
+    height: 45%;
+  }
+
+  .hub-hero-aurora--gold {
+    left: 10%;
+    top: 15%;
+    background: radial-gradient(circle, rgba(201, 162, 39, 0.35) 0%, transparent 70%);
+  }
+
+  .hub-hero-aurora--crimson {
+    right: 5%;
+    top: 25%;
+    background: radial-gradient(circle, rgba(185, 28, 28, 0.28) 0%, transparent 70%);
+  }
+
+  .hub-hero-aurora--blue {
+    left: 30%;
+    bottom: 10%;
+    background: radial-gradient(circle, rgba(59, 89, 152, 0.25) 0%, transparent 70%);
   }
 
   .hub-hero-bg-grid {
     @apply absolute inset-0;
     background-image:
-      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-    background-size: 44px 44px;
-    mask-image: radial-gradient(ellipse at 50% 42%, black 0%, transparent 80%);
+      linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse at 50% 45%, black 0%, transparent 82%);
   }
 
-  .hub-hero-bg-particles {
-    @apply absolute inset-0;
+  .hub-hero-bg-stars {
+    @apply absolute inset-0 opacity-40;
+    background-image:
+      radial-gradient(circle, rgba(255, 255, 255, 0.8) 1px, transparent 1px),
+      radial-gradient(circle, rgba(201, 162, 39, 0.6) 1px, transparent 1px);
+    background-size: 140px 140px, 220px 220px;
+    background-position: 0 0, 70px 50px;
+    animation: hero-star-twinkle 6s ease-in-out infinite;
   }
 
-  .hub-hero-bg-particle {
-    @apply absolute rounded-full;
+  .hub-hero-bg-spotlight {
+    @apply absolute inset-x-0 top-0 h-[70%];
     background: radial-gradient(
-      circle,
-      rgba(201, 162, 39, 0.9) 0%,
-      rgba(201, 162, 39, 0.2) 60%,
-      transparent 100%
+      ellipse at 50% 0%,
+      rgba(201, 162, 39, 0.14) 0%,
+      rgba(201, 162, 39, 0.04) 35%,
+      transparent 70%
     );
-    box-shadow: 0 0 8px rgba(201, 162, 39, 0.45);
   }
 
   .hub-hero-bg-scan {
     @apply absolute inset-x-0 top-0 h-px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.12) 50%,
-      transparent
-    );
-    box-shadow: 0 0 20px rgba(201, 162, 39, 0.15);
-    animation: scan-sweep 14s linear infinite;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15) 50%, transparent);
+    animation: scan-sweep 16s linear infinite;
   }
 
   .hub-hero-bg-vignette {
     @apply absolute inset-0;
     background:
-      radial-gradient(ellipse at center, transparent 32%, rgba(10, 15, 28, 0.78) 100%),
-      linear-gradient(to bottom, rgba(10, 15, 28, 0.4) 0%, transparent 28%, rgba(10, 15, 28, 0.5) 100%);
+      radial-gradient(ellipse at center, transparent 28%, rgba(4, 6, 12, 0.82) 100%),
+      linear-gradient(to bottom, rgba(6, 10, 20, 0.5) 0%, transparent 35%, rgba(6, 10, 20, 0.65) 100%);
   }
 
-  .hub-hero-stage {
-    @apply relative z-10 grid min-h-[inherit] items-center gap-6 px-4 py-10 sm:px-8 sm:py-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-8 lg:px-10 lg:py-16;
+  .hub-hero-orbit {
+    @apply pointer-events-none absolute left-1/2 top-[42%] z-[6] hidden -translate-x-1/2 -translate-y-1/2 lg:block;
+    width: min(36rem, 80vw);
+    height: min(36rem, 80vw);
+  }
+
+  .hub-hero-orbit-ring {
+    @apply absolute inset-[12%] rounded-full border border-gold/15;
+    box-shadow: 0 0 40px rgba(201, 162, 39, 0.08);
+  }
+
+  .hub-hero-orbit-track {
+    @apply absolute inset-0;
+  }
+
+  .hub-hero-orbit-fragment {
+    @apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-mono text-[0.55rem] font-semibold tracking-[0.2em] text-gold/50 uppercase whitespace-nowrap;
+    transform: rotate(var(--orbit-angle)) translateY(calc(min(36rem, 80vw) * -0.38));
+    transform-origin: center center;
+  }
+
+  .hub-hero-monument {
+    @apply relative z-10 flex min-h-[inherit] flex-col items-center px-4 py-10 text-center sm:px-8 sm:py-12 lg:py-14;
+  }
+
+  .hub-hero-monument-copy {
+    @apply relative z-20 max-w-3xl;
+  }
+
+  .hub-hero-status {
+    @apply mx-auto inline-flex flex-wrap items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 font-mono text-[0.58rem] font-semibold tracking-[0.26em] text-gold uppercase backdrop-blur-xl sm:text-[0.62rem];
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .hub-hero-status-dot {
+    @apply size-1.5 rounded-full;
+    background-color: #dc2626;
+    box-shadow: 0 0 8px rgba(220, 38, 38, 0.8);
+    animation: hero-live-blink 2s ease-in-out infinite;
+  }
+
+  .hub-hero-status-sep {
+    @apply hidden h-3 w-px bg-white/15 sm:block;
+  }
+
+  .hub-hero-status-live {
+    @apply rounded bg-crimson/20 px-1.5 py-0.5 text-[0.5rem] tracking-[0.18em] text-crimson-hover;
+  }
+
+  .hub-hero-title-block {
+    @apply mt-6 sm:mt-8;
+  }
+
+  .hub-hero-title-the {
+    @apply block font-heading text-sm font-bold tracking-[0.55em] text-gold/80 uppercase sm:text-base;
+    text-shadow: 0 0 24px rgba(201, 162, 39, 0.35);
+  }
+
+  .hub-hero-title-line {
+    @apply mt-1 font-heading font-black leading-[0.82] tracking-[0.04em];
+    font-size: clamp(4.5rem, 16vw, 9rem);
+    background: linear-gradient(
+      120deg,
+      #f5e6a8 0%,
+      #c9a227 22%,
+      #ffffff 48%,
+      #c9a227 72%,
+      #b91c1c 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: hero-gradient-shift 7s linear infinite;
+    filter: drop-shadow(0 0 40px rgba(201, 162, 39, 0.35));
+  }
+
+  .hub-hero-tagline {
+    @apply mx-auto mt-4 max-w-lg text-pretty text-xl font-bold leading-snug text-foreground sm:mt-5 sm:text-2xl;
+    text-shadow: 0 2px 20px rgba(6, 10, 20, 0.7);
+  }
+
+  .hub-hero-deck {
+    @apply mx-auto mt-3 max-w-xl text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base;
   }
 
   .hub-hero-patriot-slot {
-    @apply relative z-10 flex items-end justify-center lg:justify-end;
-    min-height: 18rem;
+    @apply relative z-[8] -mt-4 flex w-full items-end justify-center sm:-mt-6;
+    min-height: min(52vw, 22rem);
   }
 
   .hub-hero-patriot {
     @apply relative flex flex-col items-center;
-    width: min(100%, 24rem);
-    height: min(78vw, 28rem);
+    width: min(100%, 26rem);
+    height: min(85vw, 32rem);
+    transform-style: preserve-3d;
   }
 
   @media (min-width: 640px) {
     .hub-hero-patriot {
-      width: min(100%, 28rem);
-      height: min(62vw, 34rem);
+      width: min(100%, 32rem);
+      height: min(68vw, 38rem);
     }
   }
 
   @media (min-width: 1024px) {
     .hub-hero-patriot {
-      width: 32rem;
-      height: 38rem;
+      width: 36rem;
+      height: 42rem;
     }
+
+    .hub-hero-patriot-slot {
+      min-height: 28rem;
+      margin-top: -3rem;
+    }
+  }
+
+  .hub-hero-patriot-spotlight {
+    @apply pointer-events-none absolute inset-x-[5%] -top-[10%] h-[75%] rounded-full;
+    background: radial-gradient(
+      ellipse at 50% 100%,
+      rgba(201, 162, 39, 0.35) 0%,
+      rgba(201, 162, 39, 0.08) 45%,
+      transparent 72%
+    );
+    filter: blur(8px);
   }
 
   .hub-hero-patriot-glow {
@@ -830,34 +983,23 @@
   }
 
   .hub-hero-patriot-glow--gold {
-    inset: 5%;
+    inset: 0;
     background: radial-gradient(
       ellipse at center,
-      rgba(201, 162, 39, 0.4) 0%,
-      rgba(201, 162, 39, 0.1) 42%,
-      transparent 72%
+      rgba(201, 162, 39, 0.45) 0%,
+      transparent 68%
     );
-    filter: blur(28px);
-    box-shadow: 0 0 60px rgba(201, 162, 39, 0.35);
+    filter: blur(32px);
   }
 
   .hub-hero-patriot-glow--crimson {
-    inset: 10%;
+    inset: 8%;
     background: radial-gradient(
       ellipse at center,
-      rgba(185, 28, 28, 0.28) 0%,
+      rgba(185, 28, 28, 0.3) 0%,
       transparent 65%
     );
-    filter: blur(36px);
-    box-shadow: 0 0 48px rgba(185, 28, 28, 0.2);
-  }
-
-  .hub-hero-patriot-glow--edge {
-    inset: 6%;
-    box-shadow:
-      inset 0 0 48px rgba(201, 162, 39, 0.12),
-      0 0 56px rgba(201, 162, 39, 0.22),
-      0 0 28px rgba(185, 28, 28, 0.14);
+    filter: blur(40px);
   }
 
   .hub-hero-patriot-figure {
@@ -867,132 +1009,119 @@
 
   .hub-hero-patriot-cloak {
     @apply relative h-full w-full;
-    transform-origin: center 72%;
+    transform-origin: center 70%;
   }
 
   .hub-hero-patriot-image {
     @apply object-contain object-bottom;
-    filter: drop-shadow(0 0 40px rgba(201, 162, 39, 0.3))
-      drop-shadow(0 16px 48px rgba(6, 10, 20, 0.85));
+    filter: drop-shadow(0 0 48px rgba(201, 162, 39, 0.35))
+      drop-shadow(0 20px 60px rgba(4, 6, 12, 0.9));
   }
 
   .hub-hero-patriot-label {
-    @apply relative z-10 mt-3 font-heading text-[0.65rem] font-bold tracking-[0.35em] text-gold uppercase sm:text-xs;
-    text-shadow: 0 0 20px rgba(201, 162, 39, 0.45);
+    @apply relative z-10 -mt-2 font-heading text-[0.65rem] font-bold tracking-[0.4em] text-gold uppercase sm:text-xs;
+    text-shadow: 0 0 24px rgba(201, 162, 39, 0.5);
   }
 
-  .hub-hero-glass-panel {
-    @apply relative z-20 rounded-2xl border border-white/10 bg-white/5 p-6 text-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)] backdrop-blur-xl sm:p-8 lg:text-left;
+  .hub-hero-command-deck {
+    @apply relative z-20 mt-2 w-full max-w-lg rounded-2xl border border-white/10 bg-white/5 p-6 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)] backdrop-blur-xl sm:p-7;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.1),
-      0 20px 60px rgba(6, 10, 20, 0.55),
-      0 0 40px rgba(201, 162, 39, 0.06);
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      0 24px 64px rgba(4, 6, 12, 0.65),
+      0 0 48px rgba(201, 162, 39, 0.06);
   }
 
-  .hub-hero-eyebrow {
-    @apply mx-auto inline-flex flex-wrap items-center justify-center gap-2 rounded-full border border-gold/30 bg-navy-elevated/55 px-4 py-2 font-mono text-[0.6rem] font-semibold tracking-[0.28em] text-gold uppercase backdrop-blur-md sm:text-[0.65rem] lg:mx-0;
-    box-shadow: 0 0 24px rgba(201, 162, 39, 0.12);
+  .hub-hero-command-deck-corner {
+    @apply pointer-events-none absolute size-4 border-gold/40;
   }
 
-  .hub-hero-eyebrow-divider {
-    @apply hidden h-3 w-px bg-gold/35 sm:block;
+  .hub-hero-command-deck-corner--tl {
+    @apply top-3 left-3 border-t border-l;
   }
 
-  .hub-hero-headline {
-    @apply mx-auto mt-5 max-w-4xl font-heading font-black leading-[0.88] tracking-[0.05em] text-foreground sm:mt-6 lg:mx-0;
-    font-size: clamp(3.25rem, 12vw, 6.5rem);
-    text-shadow:
-      0 0 60px rgba(201, 162, 39, 0.35),
-      0 0 100px rgba(185, 28, 28, 0.15),
-      0 4px 32px rgba(4, 6, 12, 0.9);
+  .hub-hero-command-deck-corner--br {
+    @apply right-3 bottom-3 border-r border-b;
   }
 
-  .hub-hero-subhead {
-    @apply mx-auto mt-4 max-w-xl text-pretty text-lg font-bold leading-snug tracking-wide text-foreground sm:mt-5 sm:text-2xl lg:mx-0;
-    text-shadow: 0 2px 16px rgba(6, 10, 20, 0.6);
+  .hub-hero-command-label {
+    @apply font-mono text-[0.6rem] font-semibold tracking-[0.24em] text-muted-foreground uppercase sm:text-xs;
   }
 
-  .hub-hero-body {
-    @apply mx-auto mt-3 max-w-lg text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base lg:mx-0;
+  .hub-hero-ignite-wrap {
+    @apply relative mt-4 block;
   }
 
-  .hub-hero-cta-block {
-    @apply relative mt-8 sm:mt-10;
+  .hub-hero-ignite-ring {
+    @apply pointer-events-none absolute inset-0 rounded-2xl border border-gold/35;
   }
 
-  .hub-hero-cta-label {
-    @apply flex items-center justify-center gap-2 font-mono text-[0.6rem] font-semibold tracking-[0.22em] text-muted-foreground uppercase lg:justify-start sm:text-xs;
+  .hub-hero-ignite-ring--outer {
+    @apply border-crimson/25;
   }
 
-  .hub-hero-cta-glow-ring {
-    @apply pointer-events-none absolute inset-0 rounded-2xl;
-  }
-
-  .hub-hero-cta-button {
-    @apply relative flex h-[4.25rem] w-full items-center justify-center gap-3 overflow-hidden rounded-2xl border border-gold/45 px-8 text-lg font-black tracking-wide text-white sm:h-[4.75rem] sm:text-xl;
+  .hub-hero-ignite-button {
+    @apply relative flex h-[4.5rem] w-full items-center justify-center gap-3 overflow-hidden rounded-2xl border border-gold/50 px-8 text-lg font-black tracking-wide text-white sm:h-[5rem] sm:text-xl;
     background: linear-gradient(
-      105deg,
+      135deg,
       #c9a227 0%,
-      #b45309 28%,
-      #b91c1c 58%,
-      #991b1b 100%
+      #d97706 25%,
+      #b91c1c 60%,
+      #7f1d1d 100%
     );
+    box-shadow:
+      0 0 32px rgba(201, 162, 39, 0.35),
+      0 12px 40px rgba(185, 28, 28, 0.35);
     transition: filter 0.3s ease, box-shadow 0.3s ease;
   }
 
-  .hub-hero-cta-button:hover {
-    filter: brightness(1.1) saturate(1.12);
+  .hub-hero-ignite-button:hover {
+    filter: brightness(1.12) saturate(1.15);
     box-shadow:
-      0 0 48px rgba(201, 162, 39, 0.45),
-      0 0 64px rgba(185, 28, 28, 0.35);
+      0 0 56px rgba(201, 162, 39, 0.55),
+      0 0 80px rgba(185, 28, 28, 0.45);
   }
 
-  .hub-hero-cta-button-shine {
-    @apply pointer-events-none absolute inset-y-0 left-0 w-1/3 skew-x-[-18deg];
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.22),
-      transparent
-    );
+  .hub-hero-ignite-shine {
+    @apply pointer-events-none absolute inset-y-0 left-0 w-2/5 skew-x-[-20deg];
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
   }
 
-  .hub-hero-secondary-link {
-    @apply mt-4 inline-flex w-full items-center justify-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-gold sm:justify-start;
+  .hub-hero-alt-link {
+    @apply mt-4 inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-gold;
   }
 
   .hub-hero-free-note {
-    @apply mt-4 text-center text-xs font-medium tracking-wide text-gold/90 sm:text-left sm:text-sm;
+    @apply mt-4 text-center text-xs font-medium tracking-wide text-gold/90 sm:text-sm;
   }
 
   @media (max-width: 1023px) {
     .hub-hero-patriot-slot {
-      @apply absolute inset-x-0 bottom-0 z-[5] opacity-30;
+      @apply absolute inset-x-0 bottom-[28%] z-[5] opacity-25;
       min-height: auto;
-      height: 58%;
+      height: 50%;
     }
 
     .hub-hero-patriot {
       height: 100%;
-      width: min(100%, 22rem);
+      width: min(100%, 24rem);
     }
 
     .hub-hero-patriot-label {
       @apply hidden;
     }
 
-    .hub-hero-glass-panel {
-      @apply relative z-20;
+    .hub-hero-command-deck {
+      @apply relative z-20 mt-auto;
     }
   }
 
   @media (max-width: 768px) {
-    .hub-hero-bg-particles,
-    .hub-hero-bg-scan {
+    .hub-hero-bg-scan,
+    .hub-hero-bg-stars {
       display: none;
     }
 
-    .hub-hero-cinematic {
+    .hub-hero-oath {
       min-height: auto;
     }
   }
@@ -1103,13 +1232,18 @@
   .command-particles::after,
   .command-status-dot,
   .hub-hero-bg-flag,
-  .hub-hero-bg-holo,
   .hub-hero-bg-grid,
-  .hub-hero-bg-particle,
+  .hub-hero-bg-stars,
   .hub-hero-bg-scan,
+  .hub-hero-aurora,
+  .hub-hero-orbit-ring,
+  .hub-hero-orbit-track,
+  .hub-hero-title-line,
+  .hub-hero-status-dot,
   .hub-hero-patriot-glow,
-  .hub-hero-cta-glow-ring,
-  .hub-hero-cta-button-shine {
+  .hub-hero-patriot-spotlight,
+  .hub-hero-ignite-ring,
+  .hub-hero-ignite-shine {
     animation: none;
     opacity: 1;
     transform: none;
