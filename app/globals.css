@@ -827,7 +827,7 @@
   }
 
   .hub-hero-v3-bg {
-    @apply pointer-events-auto absolute inset-0 z-0;
+    @apply pointer-events-none absolute inset-0 z-0;
   }
 
   .hub-hero-v3-void {
@@ -850,7 +850,7 @@
       rgba(201, 162, 39, 0.08) 72deg,
       transparent 88deg
     );
-    animation: ray-drift 18s ease-in-out infinite;
+    opacity: 0.5;
     mix-blend-mode: screen;
   }
 
@@ -867,7 +867,6 @@
     background-repeat: no-repeat;
     opacity: 0.32;
     filter: saturate(0.85) contrast(1.12) brightness(0.62);
-    will-change: transform;
   }
 
   .hub-hero-v3-grid {
@@ -877,7 +876,7 @@
       linear-gradient(90deg, rgba(201, 162, 39, 0.07) 1px, transparent 1px);
     background-size: 48px 48px;
     mask-image: radial-gradient(ellipse at 38% 42%, black 0%, transparent 82%);
-    animation: hero-v3-grid-pulse 5s ease-in-out infinite;
+    opacity: 0.65;
   }
 
   .hub-hero-v3-scan {
@@ -938,7 +937,6 @@
   .hub-hero-v3-patriot-wrap {
     @apply relative flex shrink-0 items-end justify-center lg:w-[52%] lg:justify-start;
     min-height: clamp(20rem, 52vh, 36rem);
-    transform-style: preserve-3d;
   }
 
   @media (min-width: 1024px) {
@@ -1036,7 +1034,6 @@
   .hub-hero-v3-panel-border {
     @apply pointer-events-none absolute inset-0 rounded-3xl;
     border: 1px solid rgba(201, 162, 39, 0.25);
-    animation: hero-v3-panel-border-pulse 4s ease-in-out infinite;
   }
 
   .hub-hero-v3-eyebrow {
@@ -1047,7 +1044,6 @@
     @apply size-1.5 rounded-full;
     background-color: #dc2626;
     box-shadow: 0 0 10px rgba(220, 38, 38, 0.95), 0 0 20px rgba(220, 38, 38, 0.45);
-    animation: hero-live-blink 1.6s ease-in-out infinite;
   }
 
   .hub-hero-v3-sep {
@@ -1077,13 +1073,10 @@
       #c9a227 78%,
       #b91c1c 100%
     );
-    background-size: 220% auto;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    animation:
-      hero-gradient-shift 6s linear infinite,
-      hero-v3-title-glow 4s ease-in-out infinite;
+    filter: drop-shadow(0 0 28px rgba(201, 162, 39, 0.35));
   }
 
   .hub-hero-v3-tagline {
@@ -1113,7 +1106,6 @@
       0 0 48px rgba(201, 162, 39, 0.55),
       0 0 80px rgba(185, 28, 28, 0.35),
       0 16px 48px rgba(0, 0, 0, 0.45);
-    animation: hero-cta-pulse 2.8s ease-in-out infinite;
     transition: filter 0.3s ease, box-shadow 0.3s ease;
   }
 
@@ -1141,7 +1133,6 @@
 
   .hub-hero-v3-button-wrap:hover .hub-hero-v3-button-shine {
     opacity: 1;
-    animation: hero-v3-button-shine 0.75s ease-out;
   }
 
   .hub-hero-v3-meta {
