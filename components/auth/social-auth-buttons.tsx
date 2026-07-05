@@ -1,7 +1,7 @@
 "use client";
 
 import { SignInWithGoogleButton } from "@/components/auth/sign-in-with-google-button";
-import { AuthEmailDivider } from "@/components/auth/sign-in-with-x-button";
+import { AuthEmailDivider } from "@/components/auth/auth-email-divider";
 import { useInAppBrowser } from "@/hooks/use-in-app-browser";
 
 type SocialAuthButtonsProps = {

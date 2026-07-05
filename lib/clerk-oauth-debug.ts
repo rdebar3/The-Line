@@ -1,9 +1,9 @@
 import {
-  CLERK_X_CALLBACK_URL,
+  CLERK_OAUTH_CALLBACK_URL,
   SIGN_IN_SSO_CALLBACK,
   SIGN_UP_SSO_CALLBACK,
   getAbsoluteAppUrl,
-} from "@/lib/clerk-x-oauth";
+} from "@/lib/clerk-oauth";
 import { getAppUrl } from "@/lib/app-url";
 
 export type OAuthDebugSnapshot = {
@@ -39,7 +39,7 @@ export function getOAuthDebugSnapshot(
           : "unknown",
     appUrl: getAppUrl(),
     origin: resolvedOrigin,
-    clerkCallbackUrl: CLERK_X_CALLBACK_URL,
+    clerkCallbackUrl: CLERK_OAUTH_CALLBACK_URL,
     signInSsoCallback: getAbsoluteAppUrl(SIGN_IN_SSO_CALLBACK, resolvedOrigin ?? undefined),
     signUpSsoCallback: getAbsoluteAppUrl(SIGN_UP_SSO_CALLBACK, resolvedOrigin ?? undefined),
     publishableKeyMode: keyMode,

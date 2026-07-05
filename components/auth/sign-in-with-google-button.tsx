@@ -2,7 +2,7 @@
 
 import { useInAppBrowser } from "@/hooks/use-in-app-browser";
 import { useSocialOAuthRedirect } from "@/hooks/use-social-oauth-redirect";
-import { GOOGLE_OAUTH_STRATEGY } from "@/lib/clerk-x-oauth";
+import { GOOGLE_OAUTH_STRATEGY } from "@/lib/clerk-oauth";
 import { cn } from "@/lib/utils";
 
 type SignInWithGoogleButtonProps = {

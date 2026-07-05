@@ -15,7 +15,7 @@ import {
   getPostAuthRedirectUrl,
   getSsoCallbackPath,
   type SocialOAuthStrategy,
-} from "@/lib/clerk-x-oauth";
+} from "@/lib/clerk-oauth";
 
 type OAuthMode = "sign-in" | "sign-up";
 
