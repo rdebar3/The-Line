@@ -15,7 +15,7 @@ export default function HeroCanvas() {
     <Canvas
       className="hub-hero-3d-canvas"
       dpr={isMobile ? [1, 1.25] : [1, 2]}
-      camera={{ position: [0, 1.2, 7], fov: 45, near: 0.1, far: 50 }}
+      camera={{ position: [0.4, 0.6, 6.8], fov: 42, near: 0.1, far: 50 }}
       gl={{
         antialias: !isMobile,
         toneMapping: THREE.ACESFilmicToneMapping,
