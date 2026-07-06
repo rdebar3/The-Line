@@ -236,6 +236,12 @@ export function TodayInHistoryCard() {
                 </div>
               )}
 
+              {!loading && entry && data?.message && (
+                <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
+                  {data.message}
+                </p>
+              )}
+
               {!loading && entry && (
                 <div className="mt-6 space-y-4">
                   <div className="rounded-2xl border border-gold/25 bg-navy/50 p-5 sm:p-6">

@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server";
 
-import {
-  getThisDay250Entry,
-  isThisDay250CacheConfigured,
-  saveThisDay250Entry,
-} from "@/lib/this-day-250-cache";
-import { generateThisDay250Entry } from "@/lib/this-day-250-grok";
 import { getTodayDateString } from "@/lib/this-day-250";
+import { isThisDay250CacheConfigured } from "@/lib/this-day-250-cache";
+import { ensureThisDay250Entry } from "@/lib/this-day-250-service";
+
+/** Grok web search can take 30–90s; cron must outlive the default serverless limit. */
+export const maxDuration = 120;
 
 function verifyCronAuth(request: Request): boolean {
+  // Vercel Cron sets this header on scheduled invocations (trusted on Vercel).
+  if (request.headers.get("x-vercel-cron") === "1") return true;
+
   const secret = process.env.CRON_SECRET;
   if (!secret) return false;
 
@@ -31,27 +33,22 @@ export async function GET(request: Request) {
   const calendarDate = getTodayDateString();
 
   try {
-    const existing = await getThisDay250Entry(calendarDate);
-    if (existing) {
-      return NextResponse.json({
-        ok: true,
-        cached: true,
-        calendarDate,
-        eventTitle: existing.eventTitle,
-        message: "Entry already exists for today.",
-      });
-    }
-
-    const entry = await generateThisDay250Entry({ calendarDate });
-    await saveThisDay250Entry(entry);
+    const { entry, cached, generated } = await ensureThisDay250Entry({
+      calendarDate,
+    });
 
     return NextResponse.json({
       ok: true,
-      cached: false,
       calendarDate,
+      cached,
+      generated,
       eventTitle: entry.eventTitle,
       citationUrl: entry.citationUrl,
       exactDateMatch: entry.exactDateMatch,
+      historicalDate: entry.historicalDate,
+      message: cached
+        ? "Entry already exists for today."
+        : "Generated and cached today's entry.",
     });
   } catch (error) {
     console.error("Cron this-day-250 error:", error);

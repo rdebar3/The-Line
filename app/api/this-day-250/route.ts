@@ -3,11 +3,11 @@ import { NextResponse } from "next/server";
 import { getAmerica250Highlight } from "@/lib/america250-events";
 import {
   getThisDay250EntriesByDates,
-  getThisDay250Entry,
   isThisDay250CacheConfigured,
   listThisDay250Archive,
 } from "@/lib/this-day-250-cache";
 import { getTodayDateString } from "@/lib/this-day-250";
+import { getThisDay250ForPublic } from "@/lib/this-day-250-service";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -42,23 +42,24 @@ export async function GET(request: Request) {
 
   const america250Highlight = getAmerica250Highlight(date);
 
-  if (!isThisDay250CacheConfigured()) {
+  try {
+    const { entry, cached, message } = await getThisDay250ForPublic({
+      calendarDate: date,
+    });
+
+    return NextResponse.json({
+      entry,
+      america250Highlight,
+      cached,
+      message,
+    });
+  } catch (error) {
+    console.error("This Day 250 API error:", error);
     return NextResponse.json({
       entry: null,
       america250Highlight,
       cached: false,
-      message: "Today's history entry is being prepared.",
+      message: "Unable to load today's historical briefing. Try again shortly.",
     });
   }
-
-  const entry = await getThisDay250Entry(date);
-
-  return NextResponse.json({
-    entry,
-    america250Highlight,
-    cached: Boolean(entry),
-    message: entry
-      ? undefined
-      : "Today's history entry is being prepared. Check back soon.",
-  });
 }
