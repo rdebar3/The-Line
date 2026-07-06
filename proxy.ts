@@ -13,6 +13,8 @@ const isPublicRoute = createRouteMatcher([
   "/arsenal(.*)",
   "/privacy(.*)",
   "/purchase/success(.*)",
+  "/history(.*)",
+  "/admin/this-day-250(.*)",
 ]);
 
 const isApiRoute = createRouteMatcher(["/api(.*)"]);

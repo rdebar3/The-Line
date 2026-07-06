@@ -1287,6 +1287,86 @@
     @apply text-gold/90;
   }
 
+  /* ── Hub Live Drill hero ── */
+  .hub-live-drill-hero {
+    @apply relative isolate min-h-0 bg-[#060a14];
+  }
+
+  .hub-live-drill-hero .hub-hero-v3-bg {
+    @apply absolute inset-0;
+  }
+
+  .live-drill-title-pre {
+    @apply mr-[0.35em] font-heading text-xs font-bold tracking-[0.45em] text-gold uppercase sm:text-sm;
+    text-shadow: 0 0 20px rgba(201, 162, 39, 0.45);
+  }
+
+  .live-drill-title-main {
+    @apply font-heading font-black tracking-[0.02em];
+    font-size: clamp(2.25rem, 8vw, 3.5rem);
+    line-height: 0.92;
+    background: linear-gradient(
+      125deg,
+      #fff8dc 0%,
+      #f5e6a8 18%,
+      #c9a227 42%,
+      #ffffff 55%,
+      #c9a227 78%,
+      #b91c1c 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 18px rgba(201, 162, 39, 0.3));
+  }
+
+  .live-drill-tagline {
+    text-shadow: 0 0 20px rgba(201, 162, 39, 0.12);
+  }
+
+  .live-drill-live {
+    @apply size-1.5 rounded-full;
+    background-color: #dc2626;
+    box-shadow: 0 0 10px rgba(220, 38, 38, 0.95), 0 0 20px rgba(220, 38, 38, 0.45);
+    animation: hero-live-blink 2s ease-in-out infinite;
+  }
+
+  .live-drill-panel {
+    box-shadow:
+      0 0 32px rgba(201, 162, 39, 0.06),
+      0 12px 40px rgba(0, 0, 0, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  }
+
+  .live-drill-explanation {
+    animation: live-drill-reveal 280ms ease-out both;
+  }
+
+  .live-drill-correct {
+    animation: live-drill-correct-pulse 280ms ease-out;
+  }
+
+  @keyframes live-drill-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes live-drill-correct-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.45);
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(52, 211, 153, 0);
+    }
+  }
+
   .hub-hero-fullscreen {
     @apply relative isolate w-full overflow-hidden bg-[#060a14];
     height: calc(100dvh - var(--site-header-height) - var(--tiktok-banner-offset, 0px));

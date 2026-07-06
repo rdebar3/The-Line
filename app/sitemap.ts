@@ -8,6 +8,7 @@ const routes = [
   "/constitution",
   "/bill-of-rights",
   "/rights-under-pressure",
+  "/history",
   "/my-lines",
   "/certifications",
   "/arsenal",

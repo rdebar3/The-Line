@@ -7,6 +7,7 @@ export type SiteNavItem = {
 
 export const PRIMARY_NAV: SiteNavItem[] = [
   { label: "Hub", href: "/", match: ["/"] },
+  { label: "History", href: "/history", match: ["/history"] },
   { label: "Documents", href: "/#documents", match: ["/declaration", "/constitution", "/bill-of-rights"] },
   {
     label: "Training",
