@@ -21,6 +21,7 @@ import {
   getRankProgress,
   mergeCloudProgressionState,
   recordHubActivity,
+  recordPassageView,
   recordRepublicSimulatorCompletion,
   recordScenarioAnswer,
   recordWeeklyChallengeSession,
@@ -39,6 +40,7 @@ import type {
   AdaptiveMissionSession,
 } from "@/lib/adaptive-intelligence";
 import type { ScenarioDifficulty } from "@/lib/scenario-difficulty";
+import type { DocumentSlug } from "@/lib/document-links";
 import type { OnboardingGoal } from "@/lib/onboarding-path";
 import { isCloudSaveConfigured } from "@/lib/progression-cloud";
 import {
@@ -87,6 +89,10 @@ type ProgressionContextValue = {
     correct: boolean;
   }) => ReturnType<typeof recordScenarioAnswer> | null;
   logHubActivity: () => void;
+  recordPassageView: (
+    documentSlug: DocumentSlug,
+    passageId: string
+  ) => ReturnType<typeof recordPassageView> | null;
   dismissPromotion: () => void;
   saveGrokMission: (
     mission: Omit<GrokMission, "id" | "createdAt" | "completed">
@@ -201,6 +207,18 @@ export function ProgressionProvider({ children }: { children: ReactNode }) {
     if (!state || state.todayStats.activityLogged) return;
     persist(recordHubActivity(state));
   }, [persist, state]);
+
+  const recordPassageViewAction = useCallback(
+    (documentSlug: DocumentSlug, passageId: string) => {
+      if (!state) return null;
+      const result = recordPassageView(state, documentSlug, passageId);
+      if (result.isNew) {
+        persist(result.state);
+      }
+      return result;
+    },
+    [persist, state]
+  );
 
   const dismissPromotion = useCallback(() => {
     if (!state) return;
@@ -357,6 +375,7 @@ export function ProgressionProvider({ children }: { children: ReactNode }) {
       dismissAdaptiveMission,
       recordAnswer,
       logHubActivity,
+      recordPassageView: recordPassageViewAction,
       dismissPromotion,
       saveGrokMission,
       finishGrokMission,
@@ -374,6 +393,7 @@ export function ProgressionProvider({ children }: { children: ReactNode }) {
       dailyMission,
       recordAnswer,
       logHubActivity,
+      recordPassageViewAction,
       dismissPromotion,
       saveGrokMission,
       finishGrokMission,

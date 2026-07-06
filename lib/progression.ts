@@ -24,6 +24,8 @@ import {
   SCRIBE_OF_LIBERTY_THRESHOLD,
 } from "@/lib/saved-lines";
 import type { ScenarioDifficulty } from "@/lib/scenario-difficulty";
+import type { DocumentSlug } from "@/lib/document-links";
+import { mergeViewedPassages } from "@/lib/document-progress";
 import {
   createInitialWeeklyChallengeState,
   recordWeeklyParticipation,
@@ -244,6 +246,7 @@ export type ProgressionState = {
   squadId: string | null;
   cloudSyncedAt: string | null;
   republicSimulatorHistory?: RepublicSimulatorHistoryRecord[];
+  viewedPassages?: Partial<Record<DocumentSlug, string[]>>;
 };
 
 export const SCORE_AWARDS = {
@@ -1048,10 +1051,16 @@ export function mergeCloudProgressionState(
     ]
       .sort((a, b) => a.completedAt.localeCompare(b.completedAt))
       .slice(-20),
+    viewedPassages: mergeViewedPassages(
+      local.viewedPassages ?? {},
+      remote.viewedPassages
+    ),
     cloudSyncedAt: new Date().toISOString(),
   };
   return merged;
 }
+
+export { recordPassageView } from "@/lib/document-progress";
 
 export function recordRepublicSimulatorCompletion(
   state: ProgressionState,

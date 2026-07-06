@@ -1,6 +1,9 @@
+import { useEffect, useRef } from "react";
 import { BookOpen, Lightbulb, Scale } from "lucide-react";
 
+import { useDefenderBadges } from "@/components/badges/defender-badge-provider";
 import { SaveLineButton } from "@/components/my-lines/save-line-button";
+import { useProgression } from "@/hooks/use-progression";
 import { GuardianCharacter } from "@/components/guardian/guardian-character";
 import { accentStyles } from "@/components/documents/accent-styles";
 import type { DocumentSlug } from "@/lib/document-links";
@@ -24,6 +27,27 @@ export function PassagePanel({
   className,
 }: PassagePanelProps) {
   const styles = accentStyles[accent];
+  const { recordPassageView } = useProgression();
+  const { requestDocumentBadge } = useDefenderBadges();
+  const lastRecordedRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!passage) return;
+
+    const key = `${documentSlug}:${passage.id}`;
+    if (lastRecordedRef.current === key) return;
+    lastRecordedRef.current = key;
+
+    const result = recordPassageView(documentSlug, passage.id);
+    if (result?.documentComplete) {
+      void requestDocumentBadge(documentSlug);
+    }
+  }, [
+    documentSlug,
+    passage,
+    recordPassageView,
+    requestDocumentBadge,
+  ]);
 
   if (!passage) {
     return (

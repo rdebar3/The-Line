@@ -12,6 +12,7 @@ import { LeaderboardSyncProvider } from "@/components/leaderboard/leaderboard-sy
 import { FirstLoginTutorial } from "@/components/onboarding/first-login-tutorial";
 import { WelcomeOnboarding } from "@/components/onboarding/welcome-onboarding";
 import { UnlockCelebration } from "@/components/monetization/unlock-celebration";
+import { DefenderBadgeProvider } from "@/components/badges/defender-badge-provider";
 import { ProgressionProvider } from "@/components/progression/progression-provider";
 import { SubscriptionProvider } from "@/components/monetization/subscription-provider";
 import { getAppUrl } from "@/lib/app-url";
@@ -76,15 +77,17 @@ export default function RootLayout({
             <TikTokBrowserBanner />
             <AuthHeader />
             <ProgressionProvider>
-              <LeaderboardSyncProvider>
-                <SavedLinesProvider>
-                  {children}
+              <DefenderBadgeProvider>
+                <LeaderboardSyncProvider>
+                  <SavedLinesProvider>
+                    {children}
                   <WelcomeOnboarding />
                   <FirstLoginTutorial />
                   <CallsignPrompt />
-                  <UnlockCelebration />
-                </SavedLinesProvider>
-              </LeaderboardSyncProvider>
+                    <UnlockCelebration />
+                  </SavedLinesProvider>
+                </LeaderboardSyncProvider>
+              </DefenderBadgeProvider>
             </ProgressionProvider>
           </SubscriptionProvider>
         </ClerkProvider>

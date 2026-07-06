@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import { Bookmark, ScrollText, Swords } from "lucide-react";
 
+import { DefenderBadgesSection } from "@/components/badges/defender-badges-section";
 import { PageHeader } from "@/components/layout/page-header";
 import { SavedLineCard } from "@/components/my-lines/saved-line-card";
 import { useSavedLines } from "@/components/my-lines/saved-lines-provider";
@@ -46,6 +47,8 @@ export function MyLinesExperience() {
           </div>
         }
       />
+
+      <DefenderBadgesSection />
 
       {lines.length === 0 ? (
         <motion.div

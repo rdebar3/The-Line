@@ -58,6 +58,7 @@ export async function saveCloudProgression(
     weeklyChallenge: state.weeklyChallenge,
     onboarding: state.onboarding,
     squadId: state.squadId,
+    viewedPassages: state.viewedPassages,
     cloudSyncedAt: new Date().toISOString(),
   };
   await redis.set(`${PROGRESSION_PREFIX}${userId}`, JSON.stringify(payload));
