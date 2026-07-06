@@ -16,7 +16,7 @@ const QUICK_LINKS = [
   { href: "/declaration", label: "Declaration" },
   { href: "/constitution", label: "Constitution" },
   { href: "/bill-of-rights", label: "Bill of Rights" },
-  { href: "/rights-under-pressure", label: "Training" },
+  { href: "/path", label: "Path" },
 ];
 
 const PREMIUM_QUICK_LINKS = [

@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 
 import { getPremiumStatus, requireAuth } from "@/lib/api-guards";
+import { hasAllCapstoneCertifications } from "@/lib/learning-path";
+import {
+  isCloudSaveConfigured,
+  loadCloudProgression,
+} from "@/lib/progression-cloud";
 import {
   buildFallbackHistoricalReality,
   buildFallbackOutcome,
@@ -24,11 +29,39 @@ import {
 const XAI_API_URL = "https://api.x.ai/v1/chat/completions";
 const GROK_MODEL = "grok-3-mini";
 
+async function ensureCapstoneComplete(userId: string) {
+  if (!isCloudSaveConfigured()) {
+    return { allowed: true as const, error: null as null };
+  }
+
+  const state = await loadCloudProgression(userId);
+  if (!state || !hasAllCapstoneCertifications(state.certifications)) {
+    return {
+      allowed: false as const,
+      error: NextResponse.json(
+        {
+          error:
+            "Complete all three founding document certifications to unlock the Republic Simulator capstone.",
+          code: "CAPSTONE_INCOMPLETE",
+        },
+        { status: 403 }
+      ),
+    };
+  }
+
+  return { allowed: true as const, error: null as null };
+}
+
 async function ensureRepublicSimulatorAccess(
   userId: string,
   isPremium: boolean,
   consumeDemo: boolean
 ) {
+  const capstone = await ensureCapstoneComplete(userId);
+  if (!capstone.allowed) {
+    return capstone;
+  }
+
   if (isPremium) {
     return { allowed: true as const, error: null as null };
   }

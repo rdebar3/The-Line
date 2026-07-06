@@ -38,8 +38,9 @@ import {
   writeRepublicSimulatorDemoUsed,
 } from "@/lib/republic-simulator-demo";
 import { buildRepublicSimulatorLineId } from "@/lib/saved-lines";
+import { getRepublicSimulatorAccess } from "@/lib/republic-simulator-access";
+import { RepublicSimulatorCapstoneGate } from "@/components/republic-simulator/republic-simulator-capstone-gate";
 import {
-  canAccessRepublicSimulator,
   FREE_REPUBLIC_SIMULATOR_LIMIT,
   PREMIUM_PRICE_LABEL,
   UNLOCK_CTA_LABEL,
@@ -58,7 +59,8 @@ export function RepublicSimulatorExperience() {
   const { isSignedIn, isLoaded: authLoaded } = useAuth();
   const { isPremium, isLoading: subscriptionLoading, openUnlockModal } =
     useSubscription();
-  const { completeRepublicSimulator, defenderScore } = useProgression();
+  const { state, isLoaded: progressionLoaded, completeRepublicSimulator, defenderScore } =
+    useProgression();
 
   const [phase, setPhase] = useState<SimulatorPhase>("intro");
   const [roleId, setRoleId] = useState<string | null>(null);
@@ -77,10 +79,17 @@ export function RepublicSimulatorExperience() {
   const currentDecision = scenario.decisions[decisionIndex];
   const selectedRole = REPUBLIC_SIMULATOR_ROLES.find((role) => role.id === roleId);
 
-  const canPlay = useMemo(
-    () => canAccessRepublicSimulator(isPremium, demoUsed),
-    [demoUsed, isPremium]
-  );
+  const access = useMemo(() => {
+    if (!state) {
+      return {
+        canPlay: false,
+        reason: "capstone_incomplete" as const,
+        capstoneComplete: false,
+        premiumOrDemoAvailable: false,
+      };
+    }
+    return getRepublicSimulatorAccess(state, isPremium, demoUsed);
+  }, [demoUsed, isPremium, state]);
 
   const fidelityScore = useMemo(
     () => calculateFidelityScore(records),
@@ -261,7 +270,7 @@ export function RepublicSimulatorExperience() {
 
   const keyMoments = buildKeyMoments(records, outcomes);
 
-  if (!authLoaded || subscriptionLoading) {
+  if (!authLoaded || subscriptionLoading || !progressionLoaded || !state) {
     return (
       <div className="animate-pulse rounded-2xl border border-navy-border/60 bg-navy-elevated/40 p-12 text-center">
         <p className="text-sm text-muted-foreground">Loading simulator…</p>
@@ -277,11 +286,12 @@ export function RepublicSimulatorExperience() {
           Sign In to Enter the Chamber
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          Republic Simulator uses Grok counsel grounded in Founding-era sources.
-          Sign in to play your free demo scenario.
+          The Republic Simulator capstone unlocks after you certify all three
+          founding document units. Sign in to track your path and enter the
+          chamber when you&apos;re cleared.
         </p>
         <Link
-          href="/sign-in?redirect_url=/republic-simulator"
+          href="/sign-in?redirect_url=/path/simulator"
           className="btn-gold btn-cta mt-6 inline-flex h-11 w-full items-center justify-center rounded-lg text-sm font-semibold"
         >
           Sign In
@@ -290,17 +300,22 @@ export function RepublicSimulatorExperience() {
     );
   }
 
-  if (!canPlay && phase === "intro") {
+  if (!access.canPlay && phase === "intro") {
+    if (access.reason === "capstone_incomplete") {
+      return <RepublicSimulatorCapstoneGate state={state} />;
+    }
+
     return (
       <div className="mx-auto max-w-lg rounded-2xl border border-gold/30 bg-gradient-to-b from-gold/[0.08] to-navy-elevated/60 p-8 text-center">
         <Lock className="mx-auto size-10 text-gold" />
         <h2 className="mt-4 font-heading text-xl font-bold text-foreground">
-          Demo Complete
+          Full Access Required
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          You&apos;ve used your {FREE_REPUBLIC_SIMULATOR_LIMIT} free Republic
-          Simulator scenario. Unlock Full Access for unlimited historical
-          decision-making — {PREMIUM_PRICE_LABEL} one-time.
+          You&apos;ve cleared the training path capstone and used your{" "}
+          {FREE_REPUBLIC_SIMULATOR_LIMIT} free Republic Simulator scenario.
+          Unlock Full Access for unlimited historical decision-making —{" "}
+          {PREMIUM_PRICE_LABEL} one-time.
         </p>
         <Button onClick={openUnlockModal} className="btn-gold btn-cta mt-6 w-full">
           {UNLOCK_CTA_LABEL}
@@ -312,9 +327,9 @@ export function RepublicSimulatorExperience() {
   return (
     <div className="space-y-6 sm:space-y-8">
       <PageHeader
-        eyebrow="Republic Simulator"
-        title={scenario.title}
-        description={scenario.subtitle}
+        eyebrow="Capstone Challenge"
+        title="Republic Simulator"
+        description={`${scenario.subtitle} Your final test after certifying the Declaration, Constitution, and Bill of Rights.`}
         className="animate-fade-up border-b border-gold/15 pb-5 sm:pb-6"
       />
 
@@ -465,7 +480,7 @@ function IntroPanel({
         </span>
         <div>
           <p className="font-heading text-xs font-semibold tracking-[0.28em] text-gold uppercase">
-            Interactive Decision-Making
+            Final Capstone Challenge
           </p>
           <p className="mt-3 font-serif text-base leading-relaxed text-foreground/90 sm:text-lg">
             {scenarioSummary}
@@ -490,8 +505,9 @@ function IntroPanel({
 
       {!isPremium && demoAvailable && (
         <p className="mt-5 rounded-lg border border-gold/20 bg-gold/[0.06] px-4 py-3 text-center text-xs text-muted-foreground">
-          <span className="font-semibold text-gold">Free demo</span> — play this
-          scenario once. Unlock for unlimited Republic Simulator access.
+          <span className="font-semibold text-gold">Capstone cleared.</span> Play
+          this scenario once on the free tier, or unlock Full Access for
+          unlimited chamber sessions.
         </p>
       )}
 

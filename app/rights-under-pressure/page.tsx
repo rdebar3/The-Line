@@ -1,16 +1,7 @@
-import { PageShell } from "@/components/layout/page-shell";
-import { ScenarioExperience } from "@/components/rights/scenario-experience";
+import { redirect } from "next/navigation";
 
-export const metadata = {
-  title: "Rights Under Pressure | The Line",
-  description:
-    "Grok-powered constitutional training scaled to your Defender rank. Fresh scenarios, progressive difficulty, and No Face Patriot field debriefs.",
-};
+import { LEGACY_TRAINING_REDIRECTS } from "@/lib/path-routes";
 
-export default function RightsUnderPressurePage() {
-  return (
-    <PageShell footerTagline="Know the standard. Hold the line.">
-      <ScenarioExperience />
-    </PageShell>
-  );
+export default function RightsUnderPressureRedirectPage() {
+  redirect(LEGACY_TRAINING_REDIRECTS["/rights-under-pressure"]);
 }

@@ -39,9 +39,9 @@ export function SavedLineCard({ line, index }: SavedLineCardProps) {
     line.documentSlug && line.passageId
       ? getPassageUrl(line.documentSlug, line.passageId)
       : line.source === "republic-simulator"
-        ? "/republic-simulator"
+        ? "/path/simulator"
         : line.source === "scenario"
-          ? "/rights-under-pressure"
+          ? "/path/scenario"
           : null;
 
   async function handleSaveNote() {

@@ -11,6 +11,7 @@ import {
   getViewedPassages,
 } from "@/lib/document-progress";
 import { getMasteryTracks } from "@/lib/mastery-tracks";
+import { PATH_ROUTES } from "@/lib/path-routes";
 import type { ProgressionState } from "@/lib/progression";
 
 export type PathStepId = "read" | "drill" | "scenario" | "certify";
@@ -77,8 +78,8 @@ const UNIT_SEQUENCE: {
 ];
 
 const STEP_LINKS = {
-  drill: "/quick-drills",
-  scenario: "/rights-under-pressure",
+  drill: PATH_ROUTES.drill,
+  scenario: PATH_ROUTES.scenario,
   certify: "/certifications",
 } as const;
 
@@ -378,5 +379,127 @@ export function getLearningPathSummary(state: ProgressionState): {
     completedUnits,
     totalUnits: units.length,
     activeUnit,
+  };
+}
+
+export type TrainingPathCapstoneUnit = {
+  id: DocumentTrackId;
+  title: string;
+  certificationId: CertificationId;
+  certificationTitle: string;
+  earned: boolean;
+};
+
+export function hasAllCapstoneCertifications(
+  certifications: ProgressionState["certifications"]
+): boolean {
+  const earned = certifications ?? [];
+  return UNIT_SEQUENCE.every((unit) =>
+    earned.some((cert) => cert.id === unit.certificationId)
+  );
+}
+
+export function isTrainingPathComplete(state: ProgressionState): boolean {
+  return hasAllCapstoneCertifications(state.certifications);
+}
+
+export function getTrainingPathCapstoneStatus(state: ProgressionState): {
+  complete: boolean;
+  completedCount: number;
+  totalCount: number;
+  units: TrainingPathCapstoneUnit[];
+  nextIncompleteUnit: TrainingPathCapstoneUnit | null;
+} {
+  const units = UNIT_SEQUENCE.map((unit) => {
+    const certDefinition = CERTIFICATION_DEFINITIONS.find(
+      (cert) => cert.id === unit.certificationId
+    )!;
+
+    return {
+      id: unit.id,
+      title: unit.title,
+      certificationId: unit.certificationId,
+      certificationTitle: certDefinition.title,
+      earned: hasCertification(state, unit.certificationId),
+    };
+  });
+
+  const completedCount = units.filter((unit) => unit.earned).length;
+
+  return {
+    complete: completedCount === units.length,
+    completedCount,
+    totalCount: units.length,
+    units,
+    nextIncompleteUnit: units.find((unit) => !unit.earned) ?? null,
+  };
+}
+
+export type ContinueTrainingTarget = {
+  unit: PathUnit;
+  step: PathStep;
+  href: string;
+  headline: string;
+  detail: string;
+  allUnitsComplete: boolean;
+};
+
+function findNextStepInUnit(unit: PathUnit): PathStep | null {
+  const inProgress = unit.steps.find((step) => step.status === "in-progress");
+  if (inProgress) return inProgress;
+
+  const available = unit.steps.find((step) => step.status === "available");
+  if (available) return available;
+
+  return (
+    unit.steps.find(
+      (step) => step.status !== "complete" && step.status !== "locked"
+    ) ?? null
+  );
+}
+
+function findFurthestIncompleteUnit(units: PathUnit[]): PathUnit | null {
+  let targetUnit: PathUnit | null = null;
+
+  for (const unit of units) {
+    if (unit.status === "locked") break;
+    if (unit.status === "complete") continue;
+    targetUnit = unit;
+  }
+
+  return targetUnit;
+}
+
+export function getContinueTrainingTarget(
+  state: ProgressionState
+): ContinueTrainingTarget {
+  const units = getLearningPath(state);
+  const allUnitsComplete = units.every((unit) => unit.status === "complete");
+
+  if (allUnitsComplete) {
+    const finalUnit = units[units.length - 1]!;
+    return {
+      unit: finalUnit,
+      step: finalUnit.steps[finalUnit.steps.length - 1]!,
+      href: "/path",
+      headline: "Training path complete",
+      detail: "You have certified all three founding document units.",
+      allUnitsComplete: true,
+    };
+  }
+
+  const targetUnit =
+    findFurthestIncompleteUnit(units) ?? units.find((unit) => unit.status !== "locked") ?? units[0]!;
+  const step = findNextStepInUnit(targetUnit) ?? targetUnit.steps[0]!;
+
+  return {
+    unit: targetUnit,
+    step,
+    href: step.href,
+    headline: `${step.label} · ${targetUnit.title}`,
+    detail: step.progressLabel
+      ? `${step.description} (${step.progressLabel})`
+      : step.description,
+    allUnitsComplete: false,
   };
 }

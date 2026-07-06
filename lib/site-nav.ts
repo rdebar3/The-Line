@@ -10,15 +10,9 @@ export const PRIMARY_NAV: SiteNavItem[] = [
   { label: "History", href: "/history", match: ["/history"] },
   { label: "Documents", href: "/#documents", match: ["/declaration", "/constitution", "/bill-of-rights"] },
   {
-    label: "Training",
-    href: "/rights-under-pressure",
-    match: ["/rights-under-pressure"],
-  },
-  { label: "Drills", href: "/quick-drills", match: ["/quick-drills"] },
-  {
-    label: "Simulator",
-    href: "/republic-simulator",
-    match: ["/republic-simulator"],
+    label: "Path",
+    href: "/path",
+    match: ["/path"],
   },
   { label: "My Lines", href: "/my-lines", match: ["/my-lines"] },
   {

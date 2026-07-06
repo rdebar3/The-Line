@@ -55,9 +55,9 @@ export const TIER_COMPARISON = [
     full: "Full defense scripts & tools",
   },
   {
-    label: "Republic Simulator",
-    free: `${FREE_REPUBLIC_SIMULATOR_LIMIT} demo scenario`,
-    full: "Full simulator access",
+    label: "Republic Simulator capstone",
+    free: `${FREE_REPUBLIC_SIMULATOR_LIMIT} demo after path complete`,
+    full: "Unlimited capstone access",
   },
 ] as const;
 
@@ -143,9 +143,9 @@ export const FREE_VS_PREMIUM_ROWS = [
     full: "Full defense scripts & tools",
   },
   {
-    label: "Republic Simulator",
-    free: `${FREE_REPUBLIC_SIMULATOR_LIMIT} demo scenario`,
-    full: "Full simulator access",
+    label: "Republic Simulator capstone",
+    free: `${FREE_REPUBLIC_SIMULATOR_LIMIT} demo after path complete`,
+    full: "Unlimited capstone access",
   },
 ] as const;
 
@@ -176,8 +176,8 @@ export const PREMIUM_FEATURES = [
       "Every explanation, historical context, and modern relevance across all founding documents.",
   },
   {
-    title: "Republic Simulator",
+    title: "Republic Simulator capstone",
     description:
-      "Run full republican-government scenarios — free tier includes 1 demo scenario to try it out.",
+      "Unlocks after all three path certifications. Free tier includes 1 demo chamber session once cleared.",
   },
 ] as const;

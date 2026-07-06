@@ -53,7 +53,7 @@ export function HubJourney() {
 
       <div className="relative">
         <p className="mb-3 px-0.5 font-mono text-[0.6rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase sm:mb-4 sm:text-xs">
-          Advanced Simulation
+          Path Capstone
         </p>
         <RepublicSimulatorHubCard />
       </div>

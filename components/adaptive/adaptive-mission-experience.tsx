@@ -160,7 +160,7 @@ export function AdaptiveMissionExperience() {
         </p>
         <Button
           nativeButton={false}
-          render={<Link href="/quick-drills" />}
+          render={<Link href="/path/drill" />}
           className="btn-gold mt-8 min-w-[220px]"
         >
           Open Quick Drills
@@ -241,7 +241,7 @@ export function AdaptiveMissionExperience() {
           <Button
             onClick={() => {
               dismissAdaptiveMission();
-              router.push("/quick-drills");
+              router.push("/path/drill");
             }}
             className="btn-gold min-w-[200px]"
           >
@@ -249,7 +249,7 @@ export function AdaptiveMissionExperience() {
           </Button>
           <Button
             nativeButton={false}
-            render={<Link href="/rights-under-pressure" />}
+            render={<Link href="/path/scenario" />}
             variant="outline"
             className="min-w-[200px] border-navy-border"
           >

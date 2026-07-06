@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 import {
   Award,
   BookOpen,
   CheckCircle2,
   Circle,
+  Landmark,
   Lock,
   Map,
   Swords,
@@ -18,13 +21,17 @@ import { Button } from "@/components/ui/button";
 import { useProgression } from "@/hooks/use-progression";
 import { CHARACTER_NAME } from "@/lib/guardian";
 import {
+  getContinueTrainingTarget,
   getLearningPath,
   getLearningPathSummary,
+  getTrainingPathCapstoneStatus,
   type PathStep,
   type PathStepStatus,
   type PathUnit,
   type PathUnitStatus,
 } from "@/lib/learning-path";
+import { PATH_ROUTES } from "@/lib/path-routes";
+import type { ProgressionState } from "@/lib/progression";
 import { cn } from "@/lib/utils";
 
 const STEP_ICONS = {
@@ -170,7 +177,10 @@ function PathUnitCard({ unit, isLast }: { unit: PathUnit; isLast: boolean }) {
   const unitLocked = unit.status === "locked";
 
   return (
-    <li className="relative flex gap-4 sm:gap-6">
+    <li
+      id={`unit-${unit.id}`}
+      className="relative flex scroll-mt-24 gap-4 sm:gap-6"
+    >
       {!isLast && (
         <span
           aria-hidden
@@ -257,7 +267,11 @@ function PathUnitCard({ unit, isLast }: { unit: PathUnit; isLast: boolean }) {
 
         <ol className="space-y-2.5 px-4 py-4 sm:px-5 sm:py-5">
           {unit.steps.map((step) => (
-            <li key={step.id}>
+            <li
+              key={step.id}
+              id={`unit-${unit.id}-step-${step.id}`}
+              className="scroll-mt-24"
+            >
               <PathStepCard step={step} unitLocked={unitLocked} />
             </li>
           ))}
@@ -267,8 +281,57 @@ function PathUnitCard({ unit, isLast }: { unit: PathUnit; isLast: boolean }) {
   );
 }
 
+function resolveDeepLinkTarget(
+  units: PathUnit[],
+  stepParam: string | null,
+  unitParam: string | null
+): string | null {
+  if (unitParam && stepParam) {
+    return `unit-${unitParam}-step-${stepParam}`;
+  }
+
+  if (unitParam) {
+    return `unit-${unitParam}`;
+  }
+
+  if (stepParam) {
+    const activeUnit =
+      units.find((unit) => unit.status === "in-progress") ??
+      units.find((unit) => unit.status !== "locked");
+    if (activeUnit) {
+      return `unit-${activeUnit.id}-step-${stepParam}`;
+    }
+  }
+
+  return null;
+}
+
 export function PathExperience() {
+  const searchParams = useSearchParams();
   const { state, isLoaded, rank, defenderScore } = useProgression();
+
+  const stepParam = searchParams.get("step");
+  const unitParam = searchParams.get("unit");
+
+  useEffect(() => {
+    if (!isLoaded || !state) return;
+
+    const targetId = resolveDeepLinkTarget(
+      getLearningPath(state),
+      stepParam,
+      unitParam
+    );
+    if (!targetId) return;
+
+    const frame = requestAnimationFrame(() => {
+      document.getElementById(targetId)?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [isLoaded, state, stepParam, unitParam]);
 
   if (!isLoaded || !state) {
     return (
@@ -282,6 +345,7 @@ export function PathExperience() {
 
   const units = getLearningPath(state);
   const summary = getLearningPathSummary(state);
+  const continueTarget = getContinueTrainingTarget(state);
 
   return (
     <div className="space-y-8">
@@ -321,18 +385,10 @@ export function PathExperience() {
               </p>
             </div>
           </div>
-          {summary.activeUnit && summary.activeUnit.status !== "locked" && (
+          {!continueTarget.allUnitsComplete && (
             <Button
               nativeButton={false}
-              render={
-                <Link
-                  href={
-                    summary.activeUnit.steps.find(
-                      (step) => step.status === "in-progress" || step.status === "available"
-                    )?.href ?? summary.activeUnit.readHref
-                  }
-                />
-              }
+              render={<Link href={continueTarget.href} />}
               className="btn-gold h-10 rounded-xl text-sm font-semibold"
             >
               Continue path
@@ -350,6 +406,102 @@ export function PathExperience() {
           />
         ))}
       </ol>
+
+      <PathCapstoneCard state={state} />
     </div>
+  );
+}
+
+function PathCapstoneCard({ state }: { state: ProgressionState }) {
+  const capstone = getTrainingPathCapstoneStatus(state);
+  const unlocked = capstone.complete;
+
+  return (
+    <section
+      id="capstone-republic-simulator"
+      className="scroll-mt-24 rounded-2xl border border-constitution-blue/30 bg-gradient-to-b from-constitution-blue/[0.08] to-navy/50 p-5 sm:p-6"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <span
+            className={cn(
+              "flex size-11 shrink-0 items-center justify-center rounded-xl border",
+              unlocked
+                ? "border-constitution-blue/40 bg-constitution-blue/20"
+                : "border-navy-border/60 bg-navy/40"
+            )}
+          >
+            {unlocked ? (
+              <Landmark className="size-5 text-constitution-blue-light" />
+            ) : (
+              <Lock className="size-4 text-muted-foreground" />
+            )}
+          </span>
+          <div className="min-w-0">
+            <p className="font-mono text-[0.6rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+              Capstone Challenge
+            </p>
+            <h2 className="mt-1 font-heading text-lg font-bold tracking-wide text-foreground sm:text-xl">
+              Republic Simulator
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              {unlocked
+                ? "All three units certified. Enter the First Congress for the final Grok-powered decision challenge."
+                : "Unlocks when you earn all three founding document certifications. Complete each unit's Read, Drill, Scenario, and Certify steps first."}
+            </p>
+          </div>
+        </div>
+        <span
+          className={cn(
+            "rounded-lg border px-2.5 py-1 text-[0.65rem] font-semibold tracking-[0.12em] uppercase",
+            unlocked
+              ? "border-constitution-blue/35 bg-constitution-blue/10 text-constitution-blue-light"
+              : "border-navy-border/60 bg-navy/40 text-muted-foreground"
+          )}
+        >
+          {unlocked ? "Unlocked" : `${capstone.completedCount}/${capstone.totalCount} certified`}
+        </span>
+      </div>
+
+      {!unlocked && (
+        <ul className="mt-4 space-y-2">
+          {capstone.units.map((unit) => (
+            <li
+              key={unit.id}
+              className="flex items-center gap-2 text-sm text-muted-foreground"
+            >
+              {unit.earned ? (
+                <CheckCircle2 className="size-4 text-gold" />
+              ) : (
+                <Circle className="size-4 text-muted-foreground/50" />
+              )}
+              <span>{unit.certificationTitle}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="mt-5">
+        {unlocked ? (
+          <Button
+            nativeButton={false}
+            render={<Link href={PATH_ROUTES.simulator} />}
+            className="btn-gold h-10 rounded-xl text-sm font-semibold"
+          >
+            Enter capstone chamber
+          </Button>
+        ) : capstone.nextIncompleteUnit ? (
+          <Button
+            nativeButton={false}
+            render={
+              <Link href={getContinueTrainingTarget(state).href} />
+            }
+            className="btn-gold h-10 rounded-xl text-sm font-semibold"
+          >
+            Continue toward capstone
+          </Button>
+        ) : null}
+      </div>
+    </section>
   );
 }

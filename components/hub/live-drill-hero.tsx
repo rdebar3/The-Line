@@ -1,230 +1,150 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { ArrowRight, Lock, Radio } from "lucide-react";
+import {
+  ArrowRight,
+  Award,
+  BookOpen,
+  CheckCircle2,
+  Map,
+  Swords,
+  Target,
+} from "lucide-react";
 
 import { HeroBackground } from "@/components/hub/hero-cinematic/hero-background";
 import { Button } from "@/components/ui/button";
-import { useMidnightCountdown } from "@/hooks/use-midnight-countdown";
-import { useSubscription } from "@/hooks/use-subscription";
-import {
-  canTakeDailyDrill,
-  FREE_DAILY_DRILL_LIMIT,
-  readDailyDrillState,
-  recordDailyDrill,
-} from "@/lib/daily-drill-limit";
+import { useProgression } from "@/hooks/use-progression";
 import { CHARACTER_NAME } from "@/lib/guardian";
 import {
-  buildQuickDrillExplanation,
-  buildQuickDrillPrompt,
-  pickRandomQuickDrill,
-} from "@/lib/quick-drill-bank";
-import type { Scenario } from "@/lib/scenarios";
-import { UNLOCK_CTA_LABEL } from "@/lib/subscription";
+  getContinueTrainingTarget,
+  getLearningPathSummary,
+  type PathStepId,
+} from "@/lib/learning-path";
 import { cn } from "@/lib/utils";
 
-function DailyLimitReached({
-  onUpgrade,
-}: {
-  onUpgrade: () => void;
-}) {
-  const countdown = useMidnightCountdown();
+const STEP_ICONS: Record<PathStepId, typeof BookOpen> = {
+  read: BookOpen,
+  drill: Target,
+  scenario: Swords,
+  certify: Award,
+};
 
-  return (
-    <div className="live-drill-limit rounded-2xl border border-gold/25 bg-navy/45 px-4 py-5 text-center sm:px-6 sm:py-6">
-      <p className="font-heading text-base font-bold tracking-wide text-foreground sm:text-lg">
-        You&apos;ve held the line today.
-      </p>
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-        Training resets at midnight.
-      </p>
-      <p
-        className="live-drill-countdown mt-4 font-mono text-2xl font-bold tracking-wider text-gold tabular-nums sm:text-3xl"
-        aria-live="polite"
-      >
-        {countdown}
-      </p>
-      <Button
-        onClick={onUpgrade}
-        className="btn-gold btn-cta mt-5 h-12 w-full max-w-sm rounded-xl font-semibold shadow-[0_0_28px_rgba(201,162,39,0.25)]"
-      >
-        <Lock className="size-4 shrink-0" />
-        {UNLOCK_CTA_LABEL}
-      </Button>
-      <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-        Unlock unlimited daily drills and full tactical training.
-      </p>
-    </div>
-  );
-}
+const UNIT_ACCENT = {
+  declaration: "text-gold",
+  constitution: "text-constitution-blue-light",
+  "bill-of-rights": "text-crimson",
+} as const;
 
-function LiveDrillWidget({
-  authLoaded,
-  isSignedIn,
-  isPremium,
-  isGuest,
-  onUpgrade,
-}: {
-  authLoaded: boolean;
-  isSignedIn: boolean;
-  isPremium: boolean;
-  isGuest: boolean;
-  onUpgrade: () => void;
-}) {
-  const [ready, setReady] = useState(false);
-  const [scenario, setScenario] = useState<Scenario | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [drillsCompleted, setDrillsCompleted] = useState(0);
-  const [limitReached, setLimitReached] = useState(false);
+function ContinueTrainingCard() {
+  const { isSignedIn, isLoaded: authLoaded } = useAuth();
+  const { state, isLoaded: progressionLoaded } = useProgression();
+  const isGuest = !authLoaded || !isSignedIn;
 
-  useEffect(() => {
-    if (!authLoaded) {
-      setReady(false);
-      return;
-    }
-
-    const state = readDailyDrillState();
-    setDrillsCompleted(state.drillsCompleted);
-    setSelected(null);
-
-    if (!canTakeDailyDrill(isPremium)) {
-      setLimitReached(true);
-      setScenario(null);
-      setReady(true);
-      return;
-    }
-
-    setLimitReached(false);
-    setScenario(pickRandomQuickDrill());
-    setReady(true);
-  }, [authLoaded, isPremium, isSignedIn]);
-
-  if (!ready) {
+  if (!progressionLoaded || !state) {
     return (
       <div
         className="live-drill-panel rounded-2xl border border-white/15 bg-white/[0.08] p-5 backdrop-blur-2xl sm:p-6"
         aria-hidden
       >
-        <div className="h-40 animate-pulse rounded-xl bg-navy/40" />
+        <div className="h-36 animate-pulse rounded-xl bg-navy/40" />
       </div>
     );
   }
 
-  if (limitReached && !isPremium) {
-    return <DailyLimitReached onUpgrade={onUpgrade} />;
-  }
-
-  if (!scenario) {
-    return null;
-  }
-
-  const answered = selected !== null;
-  const wasCorrect = selected === scenario.correctChoiceId;
-  const drillsUsedAfterAnswer = drillsCompleted + (answered ? 1 : 0);
-
-  function handleSelect(choiceId: string) {
-    if (answered) return;
-
-    setSelected(choiceId);
-
-    if (!isPremium) {
-      const next = recordDailyDrill(false);
-      setDrillsCompleted(next.drillsCompleted);
-
-      if (next.drillsCompleted >= FREE_DAILY_DRILL_LIMIT) {
-        setLimitReached(true);
-      }
-    }
-  }
+  const target = getContinueTrainingTarget(state);
+  const summary = getLearningPathSummary(state);
+  const StepIcon = STEP_ICONS[target.step.id];
+  const unitAccent = UNIT_ACCENT[target.unit.id];
 
   return (
     <div className="live-drill-panel rounded-2xl border border-white/20 bg-white/[0.1] p-4 backdrop-blur-2xl sm:p-5">
-      <div className="live-drill-eyebrow mb-3 inline-flex items-center gap-2 font-mono text-[0.58rem] font-semibold tracking-[0.24em] text-gold uppercase sm:text-xs">
-        <span className="live-drill-live" />
-        <Radio className="size-3 text-crimson-hover" />
-        <span>Live Drill</span>
-      </div>
-
-      <p className="text-pretty text-sm leading-relaxed text-foreground sm:text-base">
-        {buildQuickDrillPrompt(scenario)}
-      </p>
-
-      <div className="mt-4 flex flex-col gap-2.5">
-        {scenario.choices.map((choice) => {
-          const isSelected = selected === choice.id;
-          const isCorrect = choice.id === scenario.correctChoiceId;
-
-          return (
-            <button
-              key={choice.id}
-              type="button"
-              disabled={answered}
-              onClick={() => handleSelect(choice.id)}
-              className={cn(
-                "live-drill-choice min-h-12 w-full rounded-xl border px-4 py-3 text-left text-sm leading-snug transition-colors duration-200",
-                !answered &&
-                  "border-navy-border/80 bg-navy-elevated/60 hover:border-gold/35 hover:bg-navy-elevated/90",
-                answered &&
-                  isCorrect &&
-                  "live-drill-correct border-emerald-500/50 bg-emerald-500/15 text-foreground",
-                answered &&
-                  isSelected &&
-                  !isCorrect &&
-                  "border-red-500/50 bg-red-500/15 text-foreground",
-                answered &&
-                  !isSelected &&
-                  !isCorrect &&
-                  "border-navy-border/50 text-muted-foreground"
-              )}
-            >
-              {choice.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {answered && selected !== null && (
-        <div
-          className={cn(
-            "live-drill-explanation mt-4 space-y-4 rounded-xl border px-4 py-4",
-            wasCorrect
-              ? "border-emerald-500/30 bg-emerald-500/10"
-              : "border-red-500/30 bg-red-500/10"
-          )}
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <p className="font-mono text-[0.58rem] font-semibold tracking-[0.24em] text-gold uppercase sm:text-xs">
+          Continue your training
+        </p>
+        <Link
+          href="/path"
+          className="inline-flex items-center gap-1 text-[0.65rem] font-medium text-muted-foreground transition-colors hover:text-gold"
         >
-          <p className="text-pretty text-sm leading-relaxed text-foreground/95">
-            <span className="font-semibold text-gold">{CHARACTER_NAME}:</span>{" "}
-            {buildQuickDrillExplanation(scenario, wasCorrect)}
-          </p>
+          <Map className="size-3" />
+          Full path
+        </Link>
+      </div>
 
-          {!isPremium && (
-            <p className="text-sm font-medium text-muted-foreground">
-              That was {drillsUsedAfterAnswer} of your {FREE_DAILY_DRILL_LIMIT}{" "}
-              free daily drills
+      {target.allUnitsComplete ? (
+        <div className="space-y-4 text-center sm:text-left">
+          <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
+            <span className="flex size-11 items-center justify-center rounded-xl border border-gold/35 bg-gold/15">
+              <CheckCircle2 className="size-5 text-gold" />
+            </span>
+            <div className="min-w-0">
+              <p className="font-heading text-base font-bold tracking-wide text-foreground sm:text-lg">
+                {target.headline}
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                {target.detail}
+              </p>
+            </div>
+          </div>
+          <Button
+            nativeButton={false}
+            render={<Link href="/path" />}
+            className="btn-gold btn-cta h-12 w-full rounded-xl text-sm font-semibold shadow-[0_0_28px_rgba(201,162,39,0.25)]"
+          >
+            View training path
+            <ArrowRight className="size-4 shrink-0" />
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-navy/45">
+              <StepIcon className={cn("size-5", unitAccent)} />
+            </span>
+            <div className="min-w-0">
+              <p className="font-mono text-[0.6rem] font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+                Unit {target.unit.order} · {target.step.label}
+              </p>
+              <p className="mt-1 font-heading text-base font-bold leading-snug tracking-wide text-foreground sm:text-lg">
+                {target.headline}
+              </p>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                {target.detail}
+              </p>
+              <p className="mt-2 text-xs text-muted-foreground/90">
+                {summary.completedUnits} of {summary.totalUnits} units certified
+              </p>
+            </div>
+          </div>
+
+          <Button
+            nativeButton={false}
+            render={<Link href={target.href} />}
+            className="btn-crimson btn-cta h-12 w-full rounded-xl text-sm font-semibold shadow-[0_4px_24px_rgba(185,28,28,0.25)]"
+          >
+            Continue {target.step.label.toLowerCase()}
+            <ArrowRight className="size-4 shrink-0" />
+          </Button>
+
+          {isGuest && (
+            <Link
+              href="/sign-up"
+              className="block text-center text-xs font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-gold hover:underline"
+            >
+              Create a free account to save your Defender Score and path progress.
+            </Link>
+          )}
+
+          {!isGuest && (
+            <p className="text-center text-xs leading-relaxed text-muted-foreground sm:text-left">
+              <span className="font-semibold text-foreground/90">
+                {CHARACTER_NAME}
+              </span>{" "}
+              routes you through Read, Drill, Scenario, and Certify for each
+              founding document.
             </p>
           )}
-
-          <div className="flex flex-col gap-2.5">
-            <Button
-              nativeButton={false}
-              render={<Link href="/quick-drills" />}
-              className="btn-crimson btn-cta h-12 w-full rounded-xl text-sm font-semibold shadow-[0_4px_24px_rgba(185,28,28,0.25)]"
-            >
-              Continue Training
-              <ArrowRight className="size-4 shrink-0" />
-            </Button>
-
-            {isGuest && (
-              <Link
-                href="/sign-up"
-                className="text-center text-xs font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-gold hover:underline"
-              >
-                Create free account to track your Defender Score.
-              </Link>
-            )}
-          </div>
         </div>
       )}
     </div>
@@ -232,10 +152,6 @@ function LiveDrillWidget({
 }
 
 export function LiveDrillHero() {
-  const { isSignedIn, isLoaded: authLoaded } = useAuth();
-  const { isPremium, openUnlockModal } = useSubscription();
-  const isGuest = !authLoaded || !isSignedIn;
-
   return (
     <header className="hub-live-drill-hero relative isolate w-full overflow-hidden">
       <HeroBackground />
@@ -252,13 +168,7 @@ export function LiveDrillHero() {
         </div>
 
         <div className="mx-auto mt-5 max-w-xl sm:mt-6">
-          <LiveDrillWidget
-            authLoaded={authLoaded}
-            isSignedIn={Boolean(isSignedIn)}
-            isPremium={isPremium}
-            isGuest={isGuest}
-            onUpgrade={openUnlockModal}
-          />
+          <ContinueTrainingCard />
         </div>
       </div>
     </header>

@@ -1,23 +1,7 @@
-import { GrokProgressionPanel } from "@/components/progression/grok-progression-panel";
-import { PageHeader } from "@/components/layout/page-header";
-import { PageShell } from "@/components/layout/page-shell";
+import { redirect } from "next/navigation";
 
-export const metadata = {
-  title: "Quick Drills | The Line",
-  description:
-    "Short tactical constitutional drills issued by No Face Patriot — general missions and weak-area remedial training.",
-};
+import { LEGACY_TRAINING_REDIRECTS } from "@/lib/path-routes";
 
-export default function QuickDrillsPage() {
-  return (
-    <PageShell footerTagline="Drill hard. Hold the line.">
-      <PageHeader
-        className="mb-8 sm:mb-10"
-        eyebrow="Tactical Training"
-        title="Quick Drills"
-        description="Short missions to sharpen judgment between full training sessions."
-      />
-      <GrokProgressionPanel />
-    </PageShell>
-  );
+export default function QuickDrillsRedirectPage() {
+  redirect(LEGACY_TRAINING_REDIRECTS["/quick-drills"]);
 }
