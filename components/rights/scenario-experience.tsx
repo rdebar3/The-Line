@@ -42,7 +42,7 @@ import {
   SCENARIOS_PER_REQUEST,
   type ScenarioDifficulty,
 } from "@/lib/scenario-difficulty";
-import { pickNextTopicAssignment } from "@/lib/scenario-curriculum";
+
 import {
   getSituationHeading,
   QUESTION_FORMAT_LABELS,
@@ -547,19 +547,6 @@ export function ScenarioExperience() {
         : sessionScenarios.map((item) => item.id);
       const activeSessionTopicIds = resetSession ? [] : sessionTopicIds;
 
-      const topicAssignment = pickNextTopicAssignment({
-        difficulty,
-        weakAreas: weakAreas.map((area) => area.amendment),
-        recentTopicIds: [
-          ...generationHistory.recentTopicIds,
-          ...generationState.recentTopicIds,
-          ...activeSessionTopicIds,
-        ],
-        sessionTopicIds: activeSessionTopicIds,
-        scenarioIndexInSession,
-        sessionSeed,
-      });
-
       const response = await fetch("/api/grok/scenarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -572,7 +559,8 @@ export function ScenarioExperience() {
           weakAreas: weakAreas.map((area) => area.amendment),
           isPremium,
           sessionSeed,
-          topicAssignments: [topicAssignment],
+          scenarioIndexInSession,
+          sessionTopicIds: activeSessionTopicIds,
           previousScenarioIds: [
             ...progressionState.scenarioHistory
               .slice(-25)
@@ -597,6 +585,7 @@ export function ScenarioExperience() {
         difficulty?: ScenarioDifficulty;
         generated?: boolean;
         fallback?: boolean;
+        assignedTopicId?: string;
         error?: string;
         message?: string;
       };
@@ -605,18 +594,11 @@ export function ScenarioExperience() {
         throw new Error(data.error ?? "Could not generate scenario.");
       }
 
-      const sourceDocument =
-        data.scenarios[0].sourceDocument ?? topicAssignment.sourceDocument;
+      const assignedTopicId = data.assignedTopicId ?? data.scenarios[0].id;
+      const sourceDocument = data.scenarios[0].sourceDocument;
       const scenario: Scenario = {
         ...data.scenarios[0],
         sourceDocument,
-        questionFormat:
-          data.scenarios[0].questionFormat ?? topicAssignment.questionFormat,
-        amendmentLabel:
-          data.scenarios[0].amendmentLabel || topicAssignment.amendmentLabel,
-        amendment: data.scenarios[0].amendment || topicAssignment.amendment,
-        passageIds:
-          data.scenarios[0].passageIds ?? topicAssignment.passageIds,
         documentSlug:
           data.scenarios[0].documentSlug ??
           getDocumentSlugFromSource(sourceDocument) ??
@@ -626,7 +608,7 @@ export function ScenarioExperience() {
       };
 
       recordScenarioGeneration(SCENARIOS_PER_REQUEST, isPremium, {
-        topicIds: [topicAssignment.topicId],
+        topicIds: [assignedTopicId],
         titles: [scenario.title],
         isNewSession: resetSession,
       });
@@ -639,7 +621,7 @@ export function ScenarioExperience() {
           generated: Boolean(data.generated),
           fallback: Boolean(data.fallback),
         },
-        topicId: topicAssignment.topicId,
+        topicId: assignedTopicId,
       };
     },
     [

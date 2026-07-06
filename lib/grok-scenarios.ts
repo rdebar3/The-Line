@@ -3,9 +3,11 @@ import {
   QUESTION_FORMAT_PROMPTS,
   type QuestionFormat,
 } from "@/lib/question-formats";
+import type { GenerationTopicHistory } from "@/lib/generation-topic-history";
 import type { TopicAssignment } from "@/lib/scenario-curriculum";
 import { getCurriculumOverview } from "@/lib/scenario-curriculum";
 import type { ScenarioDifficulty } from "@/lib/scenario-difficulty";
+import { buildAntiRepeatPromptSection } from "@/lib/shared-generator";
 import { shuffleScenarioChoices } from "@/lib/choice-shuffle";
 import type { Scenario } from "@/lib/scenarios";
 import { CHARACTER_NAME } from "@/lib/guardian";
@@ -23,6 +25,9 @@ export type GrokScenarioRequest = {
   recentTopicIds?: string[];
   topicAssignments?: TopicAssignment[];
   sessionSeed?: number;
+  scenarioIndexInSession?: number;
+  sessionTopicIds?: string[];
+  generationHistory?: GenerationTopicHistory;
 };
 
 const BASE_CONTEXT = `You are No Face Patriot, training officer for "The Line" — a civic education platform for the founding documents.
@@ -158,6 +163,40 @@ function formatTopicAssignments(assignments: TopicAssignment[]): string {
     .join("\n\n");
 }
 
+function buildMergedGenerationHistory(
+  request: GrokScenarioRequest
+): GenerationTopicHistory {
+  if (request.generationHistory) {
+    return {
+      ...request.generationHistory,
+      scenarioIds: [
+        ...request.generationHistory.scenarioIds,
+        ...(request.previousScenarioIds ?? []),
+      ].slice(-40),
+      scenarioTitles: [
+        ...request.generationHistory.scenarioTitles,
+        ...(request.previousScenarioTitles ?? []),
+      ].slice(-40),
+      topicIds: [
+        ...request.generationHistory.topicIds,
+        ...(request.recentTopicIds ?? []),
+        ...(request.sessionTopicIds ?? []),
+      ].slice(-40),
+    };
+  }
+
+  return {
+    topicIds: [
+      ...(request.recentTopicIds ?? []),
+      ...(request.sessionTopicIds ?? []),
+    ],
+    scenarioTitles: request.previousScenarioTitles ?? [],
+    scenarioIds: request.previousScenarioIds ?? [],
+    amendmentTags: [],
+    updatedAt: new Date().toISOString(),
+  };
+}
+
 export function buildScenarioGenerationUserPrompt(
   request: GrokScenarioRequest
 ): string {
@@ -165,21 +204,6 @@ export function buildScenarioGenerationUserPrompt(
     request.weakAreas.length > 0
       ? request.weakAreas.join(", ")
       : "Rotate broadly across the full curriculum.";
-
-  const avoidIds =
-    request.previousScenarioIds && request.previousScenarioIds.length > 0
-      ? request.previousScenarioIds.slice(-20).join(", ")
-      : "none";
-
-  const avoidTitles =
-    request.previousScenarioTitles && request.previousScenarioTitles.length > 0
-      ? request.previousScenarioTitles.slice(-20).join(" | ")
-      : "none";
-
-  const avoidTopics =
-    request.recentTopicIds && request.recentTopicIds.length > 0
-      ? request.recentTopicIds.slice(-15).join(", ")
-      : "none";
 
   const assignments =
     request.topicAssignments && request.topicAssignments.length > 0
@@ -198,9 +222,7 @@ export function buildScenarioGenerationUserPrompt(
     `ASSIGNMENTS (mandatory — follow questionFormat for each):\n${assignments}`,
     `Weak areas to emphasize when compatible: ${weak}`,
     `Performance intel:\n${request.performanceSummary}`,
-    `BANNED IDs/patterns: ${avoidIds}`,
-    `BANNED titles (do not paraphrase): ${avoidTitles}`,
-    `Recent topic IDs (use different angles): ${avoidTopics}`,
+    buildAntiRepeatPromptSection(buildMergedGenerationHistory(request)),
     `FINAL CHECK: Would a high school civics student understand the situation, question, and all four choices on the first read? Would they learn something useful about the founding documents? If the wording is wordy, legalistic, or the fact pattern feels forced, simplify the language or discard it and write a direct teach or passage question instead.`,
   ]
     .filter(Boolean)

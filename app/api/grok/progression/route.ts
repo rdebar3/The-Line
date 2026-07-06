@@ -7,9 +7,26 @@ import {
   parseGrokMissionPayload,
   type GrokProgressionRequest,
 } from "@/lib/grok-progression";
+import { getRankForScore } from "@/lib/progression";
+import {
+  getDifficultyForRankObject,
+  type ScenarioDifficulty,
+} from "@/lib/scenario-difficulty";
+import {
+  callGrokCompletion,
+  prepareSharedGeneration,
+  recordSharedGenerationOutput,
+} from "@/lib/shared-generator";
 
-const XAI_API_URL = "https://api.x.ai/v1/chat/completions";
-const GROK_MODEL = "grok-3-mini";
+function resolveDrillDifficulty(
+  defenderScore?: number
+): ScenarioDifficulty {
+  if (typeof defenderScore !== "number" || Number.isNaN(defenderScore)) {
+    return "medium";
+  }
+
+  return getDifficultyForRankObject(getRankForScore(defenderScore));
+}
 
 export async function POST(request: Request) {
   const authResult = await requireAuth();
@@ -30,10 +47,18 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: GrokProgressionRequest;
+  let body: GrokProgressionRequest & {
+    defenderScore?: number;
+    weakAreas?: string[];
+    sessionSeed?: number;
+  };
 
   try {
-    body = (await request.json()) as GrokProgressionRequest;
+    body = (await request.json()) as GrokProgressionRequest & {
+      defenderScore?: number;
+      weakAreas?: string[];
+      sessionSeed?: number;
+    };
   } catch {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
@@ -51,57 +76,51 @@ export async function POST(request: Request) {
     );
   }
 
+  let generationRequest: GrokProgressionRequest = body;
+  const sessionSeed = body.sessionSeed ?? Date.now();
+
+  if (
+    body.action === "next_mission" ||
+    body.action === "personalized_scenario"
+  ) {
+    const difficulty = resolveDrillDifficulty(body.defenderScore);
+    const { history, topicAssignment } = await prepareSharedGeneration(
+      authResult.userId,
+      {
+        mode: body.action === "personalized_scenario" ? "weak_area" : "general",
+        difficulty,
+        weakAreas: body.weakAreas ?? [],
+        recentTopicIds: [],
+        recentAmendmentTags: [],
+        sessionSeed,
+        focusArea: body.focusArea,
+      }
+    );
+
+    generationRequest = {
+      ...body,
+      topicAssignment,
+      generationHistory: history,
+    };
+  }
+
   const systemPrompt = getProgressionSystemPrompt(body.action);
-  const userPrompt = buildProgressionUserPrompt(body);
+  const userPrompt = buildProgressionUserPrompt(generationRequest);
 
   try {
-    const response = await fetch(XAI_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: GROK_MODEL,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt.slice(0, 4000) },
-        ],
-        temperature: body.action === "promotion_commentary" ? 0.5 : 0.35,
-        max_tokens: body.action === "promotion_commentary" ? 600 : 1200,
-      }),
+    const content = await callGrokCompletion({
+      systemPrompt,
+      userPrompt: userPrompt.slice(0, 4000),
+      temperature: body.action === "promotion_commentary" ? 0.5 : 0.35,
+      maxTokens: body.action === "promotion_commentary" ? 600 : 1200,
     });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Grok progression API error:", response.status, errorText);
-      return NextResponse.json(
-        { error: "Unable to reach Grok. Please try again shortly." },
-        { status: 502 }
-      );
-    }
-
-    const data = (await response.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
-
-    const content = data.choices?.[0]?.message?.content?.trim();
-
-    if (!content) {
-      return NextResponse.json(
-        { error: "Grok returned an empty response." },
-        { status: 502 }
-      );
-    }
 
     if (body.action === "promotion_commentary") {
       return NextResponse.json({ commentary: content });
     }
 
-    const mission = parseGrokMissionPayload(
-      content,
-      `mission-${authResult.userId}-${Date.now()}`
-    );
+    const missionId = `mission-${authResult.userId}-${Date.now()}`;
+    const mission = parseGrokMissionPayload(content, missionId);
 
     if (!mission) {
       return NextResponse.json(
@@ -110,12 +129,21 @@ export async function POST(request: Request) {
       );
     }
 
+    if (generationRequest.topicAssignment) {
+      await recordSharedGenerationOutput(authResult.userId, {
+        topicIds: [generationRequest.topicAssignment.topicId],
+        titles: [mission.title],
+        scenarioIds: [missionId],
+        amendmentTags: [generationRequest.topicAssignment.amendment],
+      });
+    }
+
     return NextResponse.json({ mission });
   } catch (error) {
     console.error("Grok progression route error:", error);
     return NextResponse.json(
-      { error: "An unexpected error occurred. Please try again." },
-      { status: 500 }
+      { error: "Unable to reach Grok. Please try again shortly." },
+      { status: 502 }
     );
   }
 }

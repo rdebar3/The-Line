@@ -8,20 +8,19 @@ import {
   type GrokScenarioRequest,
 } from "@/lib/grok-scenarios";
 import type { ScenarioDifficulty } from "@/lib/scenario-difficulty";
+import {
+  callGrokCompletion,
+  prepareSharedGeneration,
+  recordSharedGenerationOutput,
+} from "@/lib/shared-generator";
 import { consumeScenarioGeneration } from "@/lib/server-usage-limits";
 import { buildFallbackSession } from "@/lib/scenarios";
-
-const XAI_API_URL = "https://api.x.ai/v1/chat/completions";
-const GROK_MODEL = "grok-3-mini";
 
 function isValidDifficulty(value: string): value is ScenarioDifficulty {
   return value === "easy" || value === "medium" || value === "hard";
 }
 
-function fallbackResponse(
-  body: GrokScenarioRequest,
-  message: string
-) {
+function fallbackResponse(body: GrokScenarioRequest, message: string) {
   const fallback = buildFallbackSession({
     size: body.sessionSize,
     difficulty: body.difficulty,
@@ -87,62 +86,56 @@ export async function POST(request: Request) {
     }
   }
 
-  const systemPrompt = getScenarioGenerationSystemPrompt(body.difficulty);
-  const userPrompt = buildScenarioGenerationUserPrompt({
+  const sessionSeed = body.sessionSeed ?? Date.now();
+  const { history, topicAssignment } = await prepareSharedGeneration(
+    authResult.userId,
+    {
+      mode: "session",
+      difficulty: body.difficulty,
+      weakAreas: body.weakAreas ?? [],
+      recentTopicIds: body.recentTopicIds ?? [],
+      recentAmendmentTags: [],
+      sessionTopicIds: body.sessionTopicIds ?? [],
+      scenarioIndexInSession: body.scenarioIndexInSession ?? 0,
+      sessionSeed,
+      clientHistory: {
+        topicIds: [
+          ...(body.recentTopicIds ?? []),
+          ...(body.sessionTopicIds ?? []),
+        ],
+        titles: body.previousScenarioTitles ?? [],
+        scenarioIds: body.previousScenarioIds ?? [],
+      },
+    }
+  );
+
+  const generationRequest: GrokScenarioRequest = {
     ...body,
     isPremium,
     weakAreas: body.weakAreas ?? [],
     previousScenarioIds: body.previousScenarioIds ?? [],
     previousScenarioTitles: body.previousScenarioTitles ?? [],
     recentTopicIds: body.recentTopicIds ?? [],
-    topicAssignments: body.topicAssignments ?? [],
-  });
+    topicAssignments: [topicAssignment],
+    sessionSeed,
+    generationHistory: history,
+  };
+
+  const systemPrompt = getScenarioGenerationSystemPrompt(body.difficulty);
+  const userPrompt = buildScenarioGenerationUserPrompt(generationRequest);
 
   try {
-    const response = await fetch(XAI_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: GROK_MODEL,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt.slice(0, 12000) },
-        ],
-        temperature: isPremium ? 0.72 : 0.68,
-        max_tokens: Math.min(6000, 900 * body.sessionSize + 500),
-      }),
+    const content = await callGrokCompletion({
+      systemPrompt,
+      userPrompt: userPrompt.slice(0, 12000),
+      temperature: isPremium ? 0.72 : 0.68,
+      maxTokens: Math.min(6000, 900 * body.sessionSize + 500),
     });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Grok scenarios API error:", response.status, errorText);
-
-      return fallbackResponse(
-        body,
-        "Grok unavailable — deployed curated fallback scenarios."
-      );
-    }
-
-    const data = (await response.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
-
-    const content = data.choices?.[0]?.message?.content?.trim();
-
-    if (!content) {
-      return NextResponse.json(
-        { error: "Grok returned an empty response." },
-        { status: 502 }
-      );
-    }
 
     let scenarios = parseGrokScenariosPayload(
       content,
       body.difficulty,
-      body.sessionSeed ?? Date.now()
+      sessionSeed
     );
 
     if (scenarios.length < body.sessionSize) {
@@ -151,9 +144,7 @@ export async function POST(request: Request) {
         difficulty: body.difficulty,
         weakAreas: body.weakAreas ?? [],
         excludeIds: scenarios.map((scenario) => scenario.id),
-        topicAssignments: (body.topicAssignments ?? []).slice(
-          scenarios.length
-        ),
+        topicAssignments: [topicAssignment].slice(scenarios.length),
       });
       scenarios = [...scenarios, ...fallback].slice(0, body.sessionSize);
     }
@@ -165,14 +156,30 @@ export async function POST(request: Request) {
       );
     }
 
+    await recordSharedGenerationOutput(authResult.userId, {
+      topicIds: [topicAssignment.topicId],
+      titles: scenarios.map((scenario) => scenario.title),
+      scenarioIds: scenarios.map((scenario) => scenario.id),
+      amendmentTags: [topicAssignment.amendment],
+    });
+
     return NextResponse.json({
       scenarios,
       difficulty: body.difficulty,
       generated: true,
       fallback: false,
+      assignedTopicId: topicAssignment.topicId,
     });
   } catch (error) {
     console.error("Grok scenarios route error:", error);
+
+    if (error instanceof Error && error.message.startsWith("Grok API error")) {
+      return fallbackResponse(
+        body,
+        "Grok unavailable — deployed curated fallback scenarios."
+      );
+    }
+
     return NextResponse.json(
       { error: "An unexpected error occurred. Please try again." },
       { status: 500 }

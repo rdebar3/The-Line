@@ -481,6 +481,57 @@ const DIFFICULTY_RANK: Record<ScenarioDifficulty, number> = {
   hard: 2,
 };
 
+export const BILL_OF_RIGHTS_AMENDMENTS = [
+  "1st",
+  "2nd",
+  "3rd",
+  "4th",
+  "5th",
+  "6th",
+  "7th",
+  "8th",
+  "9th",
+  "10th",
+] as const;
+
+function amendmentRecencyScore(
+  amendment: string,
+  recentAmendmentTags: string[]
+): number {
+  const index = recentAmendmentTags.lastIndexOf(amendment);
+  return index === -1 ? -1 : index;
+}
+
+function prioritizeBillOfRightsTopics(
+  topics: CurriculumTopic[],
+  recentAmendmentTags: string[]
+): CurriculumTopic[] {
+  if (topics.length <= 1) return topics;
+
+  return [...topics].sort((left, right) => {
+    const leftScore = amendmentRecencyScore(left.amendment, recentAmendmentTags);
+    const rightScore = amendmentRecencyScore(
+      right.amendment,
+      recentAmendmentTags
+    );
+
+    if (leftScore !== rightScore) return leftScore - rightScore;
+
+    const leftOrder = BILL_OF_RIGHTS_AMENDMENTS.indexOf(
+      left.amendment as (typeof BILL_OF_RIGHTS_AMENDMENTS)[number]
+    );
+    const rightOrder = BILL_OF_RIGHTS_AMENDMENTS.indexOf(
+      right.amendment as (typeof BILL_OF_RIGHTS_AMENDMENTS)[number]
+    );
+
+    if (leftOrder !== -1 && rightOrder !== -1) {
+      return leftOrder - rightOrder;
+    }
+
+    return 0;
+  });
+}
+
 export type DocumentFamily =
   | "declaration"
   | "constitution"
@@ -774,12 +825,14 @@ function pickTopicForFamily({
   difficulty,
   weakAreas,
   excludedTopicIds,
+  recentAmendmentTags,
   sessionSeed,
 }: {
   family: DocumentFamily;
   difficulty: ScenarioDifficulty;
   weakAreas: string[];
   excludedTopicIds: Set<string>;
+  recentAmendmentTags: string[];
   sessionSeed: number;
 }): CurriculumTopic | undefined {
   const floor = DIFFICULTY_RANK[difficulty];
@@ -800,23 +853,27 @@ function pickTopicForFamily({
   const weakMatched = pool.filter((topic) =>
     weakAreas.some((area) => topicMatchesWeakArea(topic, area))
   );
-  const prioritized = [
-    ...shuffleWithSeed(weakMatched, sessionSeed),
-    ...shuffleWithSeed(
-      pool.filter(
-        (topic) => !weakMatched.some((match) => match.id === topic.id)
-      ),
-      sessionSeed + 13
-    ),
-  ];
+  const nonWeakPool = pool.filter(
+    (topic) => !weakMatched.some((match) => match.id === topic.id)
+  );
 
-  return prioritized[0];
+  const orderedWeakMatched =
+    family === "bill-of-rights"
+      ? prioritizeBillOfRightsTopics(weakMatched, recentAmendmentTags)
+      : shuffleWithSeed(weakMatched, sessionSeed);
+  const orderedPool =
+    family === "bill-of-rights"
+      ? prioritizeBillOfRightsTopics(nonWeakPool, recentAmendmentTags)
+      : shuffleWithSeed(nonWeakPool, sessionSeed + 13);
+
+  return [...orderedWeakMatched, ...orderedPool][0];
 }
 
 export function pickNextTopicAssignment({
   difficulty,
   weakAreas,
   recentTopicIds,
+  recentAmendmentTags = [],
   sessionTopicIds,
   scenarioIndexInSession,
   sessionSeed,
@@ -824,6 +881,7 @@ export function pickNextTopicAssignment({
   difficulty: ScenarioDifficulty;
   weakAreas: string[];
   recentTopicIds: string[];
+  recentAmendmentTags?: string[];
   sessionTopicIds: string[];
   scenarioIndexInSession: number;
   sessionSeed: number;
@@ -839,6 +897,7 @@ export function pickNextTopicAssignment({
     difficulty,
     weakAreas,
     excludedTopicIds,
+    recentAmendmentTags,
     sessionSeed: sessionSeed + scenarioIndexInSession * 7919,
   });
 
@@ -858,6 +917,7 @@ export function pickNextTopicAssignment({
         difficulty,
         weakAreas,
         excludedTopicIds,
+        recentAmendmentTags,
         sessionSeed: sessionSeed + scenarioIndexInSession * 7919 + family.length,
       });
       if (topic) break;
@@ -915,6 +975,87 @@ export function getDocumentFamilyFromSource(sourceDocument: string): DocumentFam
     return "later-amendments";
   }
   return "constitution";
+}
+
+export function getLeastRecentlyUsedBillOfRightsAmendments(
+  recentAmendmentTags: string[],
+  count = 5
+): string[] {
+  const scored = BILL_OF_RIGHTS_AMENDMENTS.map((amendment) => ({
+    amendment,
+    recency: amendmentRecencyScore(amendment, recentAmendmentTags),
+  }));
+
+  scored.sort((left, right) => {
+    if (left.recency !== right.recency) return left.recency - right.recency;
+    return (
+      BILL_OF_RIGHTS_AMENDMENTS.indexOf(left.amendment) -
+      BILL_OF_RIGHTS_AMENDMENTS.indexOf(right.amendment)
+    );
+  });
+
+  return scored.slice(0, count).map((entry) => entry.amendment);
+}
+
+export function pickWeakAreaTopicAssignment({
+  focusArea,
+  difficulty,
+  recentTopicIds,
+  recentAmendmentTags = [],
+  sessionSeed,
+}: {
+  focusArea: string;
+  difficulty: ScenarioDifficulty;
+  recentTopicIds: string[];
+  recentAmendmentTags?: string[];
+  sessionSeed: number;
+}): TopicAssignment {
+  const floor = DIFFICULTY_RANK[difficulty];
+  const excludedTopicIds = new Set(recentTopicIds);
+  const eligible = CURRICULUM_TOPICS.filter(
+    (topic) => DIFFICULTY_RANK[topic.difficultyFloor] <= floor
+  );
+
+  const matched = eligible.filter((topic) =>
+    topicMatchesWeakArea(topic, focusArea)
+  );
+  const freshMatched = matched.filter((topic) => !excludedTopicIds.has(topic.id));
+  const pool = freshMatched.length > 0 ? freshMatched : matched;
+
+  const billOfRightsPool = pool.filter(
+    (topic) => getTopicFamily(topic) === "bill-of-rights"
+  );
+  const orderedPool =
+    billOfRightsPool.length > 0
+      ? [
+          ...prioritizeBillOfRightsTopics(billOfRightsPool, recentAmendmentTags),
+          ...pool.filter((topic) => getTopicFamily(topic) !== "bill-of-rights"),
+        ]
+      : shuffleWithSeed(pool, sessionSeed);
+
+  const topic =
+    orderedPool[0] ??
+    eligible.find((candidate) => topicMatchesWeakArea(candidate, focusArea)) ??
+    eligible[0]!;
+
+  const questionFormat = pickQuestionFormat(difficulty, 0, topic.id);
+  const settingHint =
+    questionFormat === "passage" || questionFormat === "teach"
+      ? "Use founding text and plain explanation — no required fictional setting"
+      : SETTING_POOL[hashSeed(sessionSeed, 0) % SETTING_POOL.length];
+
+  return {
+    topicId: topic.id,
+    label: topic.label,
+    sourceDocument: topic.sourceDocument,
+    amendment: topic.amendment,
+    amendmentLabel: topic.amendmentLabel,
+    principles: topic.principles,
+    isMultiDocument: topic.isMultiDocument,
+    passageIds: topic.passageIds,
+    questionFormat,
+    settingHint,
+  };
 }
 
 export function getCurriculumOverview(): string {

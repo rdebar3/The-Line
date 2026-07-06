@@ -21,7 +21,11 @@ import {
   getWeakestDrillTarget,
   type GrokMissionPayload,
 } from "@/lib/grok-progression";
-import { buildPerformanceSummary, type GrokMission } from "@/lib/progression";
+import {
+  buildPerformanceSummary,
+  getWeakAreas,
+  type GrokMission,
+} from "@/lib/progression";
 import { cn } from "@/lib/utils";
 
 function GrokMissionCard({
@@ -235,6 +239,9 @@ export function GrokProgressionPanel() {
             action === "personalized_scenario"
               ? weakestTarget?.focusArea
               : undefined,
+          defenderScore: state.defenderScore,
+          weakAreas: getWeakAreas(state.weakAreas).map((area) => area.amendment),
+          sessionSeed: Date.now(),
         }),
       });
 

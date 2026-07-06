@@ -1,3 +1,11 @@
+import { getIntelligenceReport } from "@/lib/adaptive-intelligence";
+import { shuffleMissionChoices } from "@/lib/choice-shuffle";
+import type { GenerationTopicHistory } from "@/lib/generation-topic-history";
+import { QUESTION_FORMAT_PROMPTS } from "@/lib/question-formats";
+import { getWeakAreas, type ProgressionState } from "@/lib/progression";
+import type { TopicAssignment } from "@/lib/scenario-curriculum";
+import { buildAntiRepeatPromptSection } from "@/lib/shared-generator";
+
 export type GrokProgressionAction =
   | "promotion_commentary"
   | "next_mission"
@@ -9,6 +17,8 @@ export type GrokProgressionRequest = {
   rankTitle?: string;
   rankAbbreviation?: string;
   focusArea?: string;
+  topicAssignment?: TopicAssignment;
+  generationHistory?: GenerationTopicHistory;
 };
 
 export type WeakestDrillTarget = {
@@ -16,10 +26,6 @@ export type WeakestDrillTarget = {
   displayLabel: string;
   accuracy: number;
 };
-
-import { getIntelligenceReport } from "@/lib/adaptive-intelligence";
-import { shuffleMissionChoices } from "@/lib/choice-shuffle";
-import { getWeakAreas, type ProgressionState } from "@/lib/progression";
 
 export type GrokMissionPayload = {
   title: string;
@@ -53,7 +59,7 @@ Do not use markdown headers. Write in second person ("you").`;
     case "next_mission":
       return `${BASE_CONTEXT}
 
-Design a GENERAL training mission — not a weak-area remedial drill. Pick a fresh constitutional topic at random across the Declaration of Independence, U.S. Constitution, Bill of Rights, and core founding principles. Vary topics between missions; do not repeat the user's weakest areas by default.
+Design a GENERAL training mission — not a weak-area remedial drill. The user prompt includes a mandatory curriculum topic assignment from the shared generator. Teach that assigned source and angle exactly. Do not drift to the user's weak areas by default.
 
 Respond ONLY with valid JSON in this exact shape:
 {
@@ -80,7 +86,7 @@ MULTIPLE-CHOICE DESIGN:
     case "personalized_scenario":
       return `${BASE_CONTEXT}
 
-Generate a WEAK AREA REMEDIAL DRILL. The user prompt names their lowest-accuracy topic — focus EXCLUSIVELY on that area. Every part of the scenario, question, distractors, and explanation must drill that specific constitutional topic.
+Generate a WEAK AREA REMEDIAL DRILL. The user prompt includes a mandatory curriculum topic assignment tied to the user's lowest-accuracy area. Focus EXCLUSIVELY on that assigned source and angle. Every part of the scenario, question, distractors, and explanation must drill that specific constitutional topic.
 
 Respond ONLY with valid JSON in this exact shape:
 {
@@ -103,6 +109,23 @@ Respond ONLY with valid JSON in this exact shape:
   }
 }
 
+function formatDrillTopicAssignment(assignment: TopicAssignment): string {
+  const formatRules =
+    QUESTION_FORMAT_PROMPTS[assignment.questionFormat] ?? "";
+
+  return [
+    `Topic ID: ${assignment.topicId}`,
+    `Focus: ${assignment.label}`,
+    `Source document: ${assignment.sourceDocument}`,
+    `Source label: ${assignment.amendment} / ${assignment.amendmentLabel}`,
+    `Principles: ${assignment.principles.join(", ")}`,
+    `Preferred question style: ${assignment.questionFormat}`,
+    `Format notes: ${formatRules.replace(/\n/g, " ")}`,
+    `Setting note: ${assignment.settingHint}`,
+    `Passage IDs (cite when relevant): ${assignment.passageIds?.join(", ") ?? "derive from source"}`,
+  ].join("\n");
+}
+
 export function buildProgressionUserPrompt(
   request: GrokProgressionRequest
 ): string {
@@ -114,7 +137,7 @@ export function buildProgressionUserPrompt(
 
   if (request.action === "next_mission") {
     lines.push(
-      "Mission type: GENERAL TRAINING — select a varied constitutional topic for broad practice. Do not target weak areas."
+      "Mission type: GENERAL TRAINING — honor the assigned curriculum topic for broad practice. Do not target weak areas."
     );
   }
 
@@ -131,6 +154,27 @@ export function buildProgressionUserPrompt(
         "Mission type: WEAK AREA DRILL — no specific weak area provided; choose the most foundational gap from the performance summary."
       );
     }
+  }
+
+  if (
+    request.topicAssignment &&
+    (request.action === "next_mission" ||
+      request.action === "personalized_scenario")
+  ) {
+    lines.push(
+      `ASSIGNED CURRICULUM TOPIC (mandatory):\n${formatDrillTopicAssignment(request.topicAssignment)}`
+    );
+    lines.push(
+      `The focusArea field in your JSON must reflect the assigned source label: ${request.topicAssignment.amendmentLabel}`
+    );
+  }
+
+  if (
+    request.generationHistory &&
+    (request.action === "next_mission" ||
+      request.action === "personalized_scenario")
+  ) {
+    lines.push(buildAntiRepeatPromptSection(request.generationHistory));
   }
 
   return lines.join("\n\n");

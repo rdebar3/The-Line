@@ -1,3 +1,6 @@
+import Link from "next/link";
+import { Map } from "lucide-react";
+
 import { isLeaderboardConfigured } from "@/lib/leaderboard";
 
 import { CertificationsHubCard } from "@/components/hub/certifications-hub-card";
@@ -17,6 +20,15 @@ export function HubJourney() {
         <p className="hub-section-subtitle">
           Train, save, certify, and rank up — every module feeds your Defender
           Score.
+        </p>
+        <p className="mt-3">
+          <Link
+            href="/path"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-gold"
+          >
+            <Map className="size-3.5" />
+            Preview training path
+          </Link>
         </p>
       </header>
 
