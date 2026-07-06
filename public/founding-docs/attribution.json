@@ -1,0 +1,25 @@
+{
+  "credit": "Image: National Archives",
+  "sourcePage": "https://www.archives.gov/founding-docs/downloads",
+  "license": "Public domain — credit the National Archives as the original source.",
+  "files": [
+    {
+      "id": "declaration",
+      "card": "/founding-docs/declaration-card.jpg",
+      "source": "/founding-docs/declaration-source.jpg",
+      "archivesUrl": "https://www.archives.gov/files/founding-docs/downloads/Declaration_Pg1of1_AC.jpg"
+    },
+    {
+      "id": "constitution",
+      "card": "/founding-docs/constitution-card.jpg",
+      "source": "/founding-docs/constitution-source.jpg",
+      "archivesUrl": "https://www.archives.gov/files/founding-docs/downloads/Constitution_Pg1of4_AC.jpg"
+    },
+    {
+      "id": "bill-of-rights",
+      "card": "/founding-docs/bill-of-rights-card.jpg",
+      "source": "/founding-docs/bill-of-rights-source.jpg",
+      "archivesUrl": "https://www.archives.gov/files/founding-docs/downloads/Bill_of_Rights_Pg1of1_AC.jpg"
+    }
+  ]
+}

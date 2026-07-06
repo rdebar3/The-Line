@@ -1,10 +1,15 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
 import { ArrowRight, BookOpen } from "lucide-react";
 import { motion } from "motion/react";
 
+import {
+  FOUNDING_DOC_CARD_IMAGES,
+  NATIONAL_ARCHIVES_CREDIT,
+  type FoundingDocImageId,
+} from "@/lib/founding-doc-images";
 import { cn } from "@/lib/utils";
 
 type HubFeaturedDocumentCardProps = {
@@ -14,7 +19,7 @@ type HubFeaturedDocumentCardProps = {
   description: string;
   preview: string;
   href: string;
-  icon: LucideIcon;
+  imageId: FoundingDocImageId;
   accent: "gold" | "crimson" | "blue";
   index: number;
 };
@@ -23,29 +28,26 @@ const accentConfig = {
   gold: {
     border: "border-gold/35 hover:border-gold/55",
     glow: "shadow-[0_12px_48px_rgba(201,162,39,0.18)] hover:shadow-[0_16px_56px_rgba(201,162,39,0.28)]",
-    icon: "border-gold/40 bg-gold/15 text-gold",
-    preview: "from-gold/[0.12] via-gold/[0.04] to-transparent",
+    preview: "from-gold/[0.22] via-gold/[0.08] to-navy/75",
     badge: "border-gold/30 bg-gold/10 text-gold",
     cta: "text-gold",
-    line: "bg-gold/25",
+    line: "bg-gold/35",
   },
   crimson: {
     border: "border-crimson/35 hover:border-crimson/50",
     glow: "shadow-[0_12px_48px_rgba(185,28,28,0.15)] hover:shadow-[0_16px_56px_rgba(185,28,28,0.25)]",
-    icon: "border-crimson/40 bg-crimson/15 text-crimson-light",
-    preview: "from-crimson/[0.12] via-crimson/[0.04] to-transparent",
+    preview: "from-crimson/[0.22] via-crimson/[0.08] to-navy/75",
     badge: "border-crimson/30 bg-crimson/10 text-crimson-light",
     cta: "text-crimson-light",
-    line: "bg-crimson/25",
+    line: "bg-crimson/35",
   },
   blue: {
     border: "border-constitution-blue/35 hover:border-constitution-blue/50",
     glow: "shadow-[0_12px_48px_rgba(59,89,152,0.15)] hover:shadow-[0_16px_56px_rgba(59,89,152,0.25)]",
-    icon: "border-constitution-blue/40 bg-constitution-blue/15 text-constitution-blue-light",
-    preview: "from-constitution-blue/[0.14] via-constitution-blue/[0.04] to-transparent",
+    preview: "from-constitution-blue/[0.24] via-constitution-blue/[0.08] to-navy/75",
     badge: "border-constitution-blue/30 bg-constitution-blue/10 text-constitution-blue-light",
     cta: "text-constitution-blue-light",
-    line: "bg-constitution-blue/25",
+    line: "bg-constitution-blue/35",
   },
 };
 
@@ -56,11 +58,12 @@ export function HubFeaturedDocumentCard({
   description,
   preview,
   href,
-  icon: Icon,
+  imageId,
   accent,
   index,
 }: HubFeaturedDocumentCardProps) {
   const styles = accentConfig[accent];
+  const image = FOUNDING_DOC_CARD_IMAGES[imageId];
 
   return (
     <motion.div
@@ -76,41 +79,59 @@ export function HubFeaturedDocumentCard({
             styles.glow
           )}
         >
-          <div
-            className={cn(
-              "relative border-b border-navy-border/50 bg-gradient-to-br px-5 py-6 sm:px-6 sm:py-7",
-              styles.preview
-            )}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <span
+          <div className="relative overflow-hidden border-b border-navy-border/50">
+            <div className="relative h-40 sm:h-44">
+              <Image
+                src={image.src}
+                alt={image.alt}
+                fill
+                sizes="(max-width: 640px) 100vw, 33vw"
+                className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                style={{ objectPosition: image.objectPosition }}
+                priority={index === 0}
+              />
+              <div
+                aria-hidden
                 className={cn(
-                  "flex size-16 shrink-0 items-center justify-center rounded-2xl border shadow-[0_0_32px_rgba(201,162,39,0.12)] transition-transform duration-300 group-hover:scale-105 sm:size-[4.5rem]",
-                  styles.icon
+                  "absolute inset-0 bg-gradient-to-br",
+                  styles.preview
                 )}
+              />
+              <div
+                aria-hidden
+                className="absolute inset-0 bg-gradient-to-t from-navy/90 via-navy/25 to-transparent"
+              />
+
+              <div className="relative z-10 flex items-start justify-end p-5 sm:px-6 sm:pt-5">
+                <span
+                  className={cn(
+                    "rounded-lg border px-3 py-1.5 font-heading text-sm font-bold tracking-wider backdrop-blur-sm",
+                    styles.badge
+                  )}
+                >
+                  {year}
+                </span>
+              </div>
+
+              <div
+                className="absolute inset-x-0 bottom-0 z-10 space-y-2 px-5 pb-4 sm:px-6"
+                aria-hidden
               >
-                <Icon className="size-8 sm:size-9" strokeWidth={1.5} />
-              </span>
-              <span
-                className={cn(
-                  "rounded-lg border px-3 py-1.5 font-heading text-sm font-bold tracking-wider",
-                  styles.badge
-                )}
-              >
-                {year}
-              </span>
+                <div className={cn("h-1.5 w-full rounded-full", styles.line)} />
+                <div className={cn("h-1.5 w-[92%] rounded-full", styles.line)} />
+                <div className={cn("h-1.5 w-[78%] rounded-full", styles.line)} />
+                <div className={cn("h-1.5 w-[85%] rounded-full", styles.line)} />
+              </div>
             </div>
 
-            <div className="mt-5 space-y-2 opacity-80" aria-hidden>
-              <div className={cn("h-1.5 w-full rounded-full", styles.line)} />
-              <div className={cn("h-1.5 w-[92%] rounded-full", styles.line)} />
-              <div className={cn("h-1.5 w-[78%] rounded-full", styles.line)} />
-              <div className={cn("h-1.5 w-[85%] rounded-full", styles.line)} />
+            <div className="relative bg-navy/55 px-5 py-4 sm:px-6">
+              <p className="font-serif text-sm italic leading-relaxed text-foreground/85 sm:text-base">
+                &ldquo;{preview}&rdquo;
+              </p>
+              <p className="mt-2 text-[0.65rem] tracking-wide text-muted-foreground/80">
+                {NATIONAL_ARCHIVES_CREDIT}
+              </p>
             </div>
-
-            <p className="mt-4 font-serif text-sm italic leading-relaxed text-foreground/75 sm:text-base">
-              &ldquo;{preview}&rdquo;
-            </p>
           </div>
 
           <div className="flex flex-1 flex-col justify-between gap-4 p-5 sm:p-6">

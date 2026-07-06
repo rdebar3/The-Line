@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Landmark, ScrollText, Shield, Sparkles } from "lucide-react";
+import { Shield, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 
 import { HubFeaturedDocumentCard } from "@/components/hub/hub-featured-document-card";
@@ -21,7 +21,7 @@ const documents = [
     description:
       "Natural rights, self-government, and the moral case for liberty — every passage with tap-to-learn context.",
     href: "/declaration",
-    icon: ScrollText,
+    imageId: "declaration" as const,
     accent: "gold" as const,
   },
   {
@@ -32,7 +32,7 @@ const documents = [
     description:
       "Limited government, separated powers, and ordered liberty — interactive notes and modern relevance.",
     href: "/constitution",
-    icon: Landmark,
+    imageId: "constitution" as const,
     accent: "blue" as const,
   },
   {
@@ -43,7 +43,7 @@ const documents = [
     description:
       "Ten amendments that limit federal power — study, save Lines, and train on real scenarios.",
     href: "/bill-of-rights",
-    icon: FileText,
+    imageId: "bill-of-rights" as const,
     accent: "crimson" as const,
   },
 ];
