@@ -7,19 +7,36 @@ import { ensureThisDay250Entry } from "@/lib/this-day-250-service";
 /** Grok web search can take 30–90s; cron must outlive the default serverless limit. */
 export const maxDuration = 120;
 
+/**
+ * Vercel Cron auth.
+ *
+ * When a CRON_SECRET env var exists, Vercel sends it on every scheduled
+ * invocation as `Authorization: Bearer <CRON_SECRET>` — require it strictly.
+ *
+ * Without a secret configured, fall back to the `x-vercel-cron-schedule`
+ * header that Vercel attaches to cron invocations. (The previous check
+ * looked for `x-vercel-cron: 1`, which Vercel never sends — every cron run
+ * was rejected with 401.)
+ */
 function verifyCronAuth(request: Request): boolean {
-  // Vercel Cron sets this header on scheduled invocations (trusted on Vercel).
-  if (request.headers.get("x-vercel-cron") === "1") return true;
-
   const secret = process.env.CRON_SECRET;
-  if (!secret) return false;
 
-  const authHeader = request.headers.get("authorization");
-  return authHeader === `Bearer ${secret}`;
+  if (secret) {
+    return request.headers.get("authorization") === `Bearer ${secret}`;
+  }
+
+  return Boolean(request.headers.get("x-vercel-cron-schedule"));
 }
 
 export async function GET(request: Request) {
   if (!verifyCronAuth(request)) {
+    console.warn("Cron this-day-250: unauthorized invocation rejected.", {
+      hasCronScheduleHeader: Boolean(
+        request.headers.get("x-vercel-cron-schedule")
+      ),
+      hasAuthHeader: Boolean(request.headers.get("authorization")),
+      cronSecretConfigured: Boolean(process.env.CRON_SECRET),
+    });
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
