@@ -13,6 +13,8 @@ export async function GET() {
       isPremium: false,
       purchasedAt: null,
       isSignedIn: false,
+      trial: { active: false, endsAt: null, daysRemaining: 0 },
+      hasFullAccess: false,
     });
   }
 
@@ -22,6 +24,8 @@ export async function GET() {
     isPremium: premium.isPremium,
     purchasedAt: premium.purchasedAt,
     isSignedIn: true,
+    trial: premium.trial,
+    hasFullAccess: premium.hasFullAccess,
   });
 }
 

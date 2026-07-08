@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { TrialBanner } from "@/components/monetization/trial-banner";
 import { UnlockFullExperienceModal } from "@/components/monetization/unlock-full-experience-modal";
 import {
   getOptimisticPremiumState,
@@ -24,10 +25,15 @@ import {
   type PremiumFeature,
   type PremiumState,
 } from "@/lib/subscription";
+import { getTrialState, type TrialState } from "@/lib/trial";
 
 type SubscriptionContextValue = {
   isPremium: boolean;
   purchasedAt: string | null;
+  /** 7-day full-access trial state for the signed-in account. */
+  trial: TrialState;
+  /** Purchased OR on an active trial — use for feature gating displays. */
+  hasFullAccess: boolean;
   isLoading: boolean;
   isSignedIn: boolean;
   isModalOpen: boolean;
@@ -83,6 +89,19 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     () =>
       readClerkPremiumState(user?.publicMetadata as PremiumMetadata | undefined),
     [user?.publicMetadata]
+  );
+
+  /**
+   * Trial window derives from the Clerk account creation date — available
+   * client-side without another network call. Recomputed on each render
+   * cycle where auth state changes; day-level precision is all the UI needs.
+   */
+  const trial = useMemo(
+    () =>
+      isSignedIn
+        ? getTrialState(user?.createdAt ?? null, state.isPremium)
+        : getTrialState(null, false),
+    [isSignedIn, user?.createdAt, state.isPremium]
   );
 
   const syncPremiumState = useCallback(async () => {
@@ -217,15 +236,19 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     }
   }, [isSignedIn]);
 
+  const hasFullAccess = state.isPremium || trial.active;
+
   const canAccess = useCallback(
-    (feature: PremiumFeature) => hasFeature(state.isPremium, feature),
-    [state.isPremium]
+    (feature: PremiumFeature) => hasFeature(hasFullAccess, feature),
+    [hasFullAccess]
   );
 
   const value = useMemo(
     () => ({
       isPremium: state.isPremium,
       purchasedAt: state.purchasedAt,
+      trial,
+      hasFullAccess,
       isLoading: !authLoaded || isLoading,
       isSignedIn: Boolean(isSignedIn),
       isModalOpen,
@@ -241,6 +264,8 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     [
       state.isPremium,
       state.purchasedAt,
+      trial,
+      hasFullAccess,
       authLoaded,
       isLoading,
       isSignedIn,
@@ -266,6 +291,11 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         isPurchasing={isPurchasing}
         purchaseError={purchaseError}
         isSignedIn={Boolean(isSignedIn)}
+      />
+      <TrialBanner
+        trial={trial}
+        isPremium={state.isPremium}
+        onUnlock={openUnlockModal}
       />
     </SubscriptionContext.Provider>
   );
