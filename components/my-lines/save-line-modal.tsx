@@ -59,7 +59,7 @@ export function SaveLineModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton
-        className="premium-card max-w-lg border-gold/20 bg-navy-elevated/95"
+        className="max-w-lg border border-gold/20 bg-navy-elevated/95"
       >
         <DialogHeader>
           <DialogTitle className="font-heading text-xl font-bold text-foreground">

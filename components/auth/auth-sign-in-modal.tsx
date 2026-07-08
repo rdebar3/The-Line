@@ -45,119 +45,117 @@ export function AuthSignInModal({ open, onOpenChange }: AuthSignInModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton
-        className="premium-card max-w-md border-gold/20 bg-navy-elevated/95 p-0 shadow-[0_0_80px_rgba(201,162,39,0.12)] backdrop-blur-md sm:max-w-md"
+        className="max-w-md gap-0 border border-gold/20 bg-navy-elevated/95 p-0 shadow-[0_0_80px_rgba(201,162,39,0.12)] backdrop-blur-md sm:max-w-md"
       >
-        <div className="relative overflow-hidden rounded-xl">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(201,162,39,0.1)_0%,transparent_60%)]"
-          />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(ellipse_at_top,rgba(201,162,39,0.1)_0%,transparent_70%)]"
+        />
 
-          <div className="relative space-y-5 p-6 sm:p-7">
-            {view !== "welcome" && (
-              <button
-                type="button"
-                onClick={() => setView("welcome")}
-                className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <ArrowLeft className="size-3.5" />
-                Back
-              </button>
-            )}
-
-            <DialogHeader
-              className={cn(
-                "text-center",
-                view !== "welcome" && "items-center"
-              )}
+        <div className="relative space-y-5 p-6 sm:p-7">
+          {view !== "welcome" && (
+            <button
+              type="button"
+              onClick={() => setView("welcome")}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              <DialogTitle className="font-heading text-xl font-bold tracking-wide text-foreground sm:text-2xl">
-                {view === "email-sign-up" ? "Create your account" : "Welcome back"}
-              </DialogTitle>
-              <DialogDescription className="text-sm leading-relaxed text-muted-foreground">
-                {view === "welcome"
-                  ? "Sign in to save progress, join the leaderboard, and unlock your constitutional training."
-                  : view === "email-sign-in"
-                    ? "Use your email to sign in securely."
-                    : "Create a free account to track your training journey."}
-              </DialogDescription>
-            </DialogHeader>
+              <ArrowLeft className="size-3.5" />
+              Back
+            </button>
+          )}
 
-            {view === "welcome" && (
-              <div className="space-y-4">
-                <SocialAuthButtons
-                  mode="sign-in"
-                  onEmailFallback={() => setView("email-sign-in")}
-                />
+          <DialogHeader
+            className={cn(
+              "text-center",
+              view !== "welcome" && "items-center"
+            )}
+          >
+            <DialogTitle className="font-heading text-xl font-bold tracking-wide text-foreground sm:text-2xl">
+              {view === "email-sign-up" ? "Create your account" : "Welcome back"}
+            </DialogTitle>
+            <DialogDescription className="text-sm leading-relaxed text-muted-foreground">
+              {view === "welcome"
+                ? "Sign in to save progress, join the leaderboard, and unlock your constitutional training."
+                : view === "email-sign-in"
+                  ? "Use your email to sign in securely."
+                  : "Create a free account to track your training journey."}
+            </DialogDescription>
+          </DialogHeader>
 
-                <Button
+          {view === "welcome" && (
+            <div className="space-y-4">
+              <SocialAuthButtons
+                mode="sign-in"
+                onEmailFallback={() => setView("email-sign-in")}
+              />
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setView("email-sign-in")}
+                className="h-11 w-full gap-2 border-navy-border/80 bg-navy/40 text-sm font-semibold hover:border-gold/30 hover:bg-navy-elevated"
+              >
+                <Mail className="size-4" />
+                Continue with Email
+              </Button>
+
+              <p className="text-center text-sm text-muted-foreground">
+                New to The Line?{" "}
+                <button
                   type="button"
-                  variant="outline"
-                  onClick={() => setView("email-sign-in")}
-                  className="h-11 w-full gap-2 border-navy-border/80 bg-navy/40 text-sm font-semibold hover:border-gold/30 hover:bg-navy-elevated"
+                  onClick={() => setView("email-sign-up")}
+                  className="font-semibold text-gold underline-offset-2 transition-colors hover:underline"
                 >
-                  <Mail className="size-4" />
-                  Continue with Email
-                </Button>
+                  Sign up
+                </button>
+              </p>
+            </div>
+          )}
 
-                <p className="text-center text-sm text-muted-foreground">
-                  New to The Line?{" "}
-                  <button
-                    type="button"
-                    onClick={() => setView("email-sign-up")}
-                    className="font-semibold text-gold underline-offset-2 transition-colors hover:underline"
-                  >
-                    Sign up
-                  </button>
-                </p>
-              </div>
-            )}
+          {view === "email-sign-in" && (
+            <div>
+              <SignIn
+                routing="hash"
+                appearance={appearance}
+                signUpUrl="/sign-up"
+                fallbackRedirectUrl="/"
+                forceRedirectUrl="/"
+              />
+              <p className="mt-4 text-center text-sm text-muted-foreground">
+                New to The Line?{" "}
+                <button
+                  type="button"
+                  onClick={() => setView("email-sign-up")}
+                  className="font-semibold text-gold underline-offset-2 transition-colors hover:underline"
+                >
+                  Sign up
+                </button>
+              </p>
+            </div>
+          )}
 
-            {view === "email-sign-in" && (
-              <div className="max-h-[min(52dvh,28rem)] overflow-y-auto pr-1">
-                <SignIn
-                  routing="hash"
-                  appearance={appearance}
-                  signUpUrl="/sign-up"
-                  fallbackRedirectUrl="/"
-                  forceRedirectUrl="/"
-                />
-                <p className="mt-4 text-center text-sm text-muted-foreground">
-                  New to The Line?{" "}
-                  <button
-                    type="button"
-                    onClick={() => setView("email-sign-up")}
-                    className="font-semibold text-gold underline-offset-2 transition-colors hover:underline"
-                  >
-                    Sign up
-                  </button>
-                </p>
-              </div>
-            )}
-
-            {view === "email-sign-up" && (
-              <div className="max-h-[min(52dvh,28rem)] overflow-y-auto pr-1">
-                <SocialAuthButtons mode="sign-up" />
-                <SignUp
-                  routing="hash"
-                  appearance={appearance}
-                  signInUrl="/sign-in"
-                  fallbackRedirectUrl="/"
-                  forceRedirectUrl="/"
-                />
-                <p className="mt-4 text-center text-sm text-muted-foreground">
-                  Already have an account?{" "}
-                  <button
-                    type="button"
-                    onClick={() => setView("email-sign-in")}
-                    className="font-semibold text-gold underline-offset-2 transition-colors hover:underline"
-                  >
-                    Sign in
-                  </button>
-                </p>
-              </div>
-            )}
-          </div>
+          {view === "email-sign-up" && (
+            <div>
+              <SocialAuthButtons mode="sign-up" />
+              <SignUp
+                routing="hash"
+                appearance={appearance}
+                signInUrl="/sign-in"
+                fallbackRedirectUrl="/"
+                forceRedirectUrl="/"
+              />
+              <p className="mt-4 text-center text-sm text-muted-foreground">
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => setView("email-sign-in")}
+                  className="font-semibold text-gold underline-offset-2 transition-colors hover:underline"
+                >
+                  Sign in
+                </button>
+              </p>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

@@ -110,7 +110,7 @@ export function CallsignPrompt() {
     >
       <DialogContent
         showCloseButton
-        className="premium-card max-w-md border-gold/20 bg-navy-elevated/95"
+        className="max-w-md border border-gold/20 bg-navy-elevated/95"
       >
         <DialogHeader className="text-center">
           <div className="mx-auto mb-2 flex size-11 items-center justify-center rounded-full border border-gold/30 bg-gold/10">

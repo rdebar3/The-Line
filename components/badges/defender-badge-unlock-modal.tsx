@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Loader2, Medal } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
@@ -69,7 +70,7 @@ export function DefenderBadgeUnlockModal({
               )}
 
               {!loading && (
-                <div className="mt-4 flex justify-center">
+                <div className="mt-4 flex flex-col items-center gap-2">
                   <Button
                     type="button"
                     variant="outline"
@@ -78,6 +79,13 @@ export function DefenderBadgeUnlockModal({
                   >
                     Continue
                   </Button>
+                  <Link
+                    href="/"
+                    onClick={() => onOpenChange(false)}
+                    className="text-xs font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-gold hover:underline"
+                  >
+                    Return to Hub
+                  </Link>
                 </div>
               )}
             </motion.div>

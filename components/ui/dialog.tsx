@@ -43,6 +43,7 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  style,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
@@ -57,6 +58,11 @@ function DialogContent({
             "pointer-events-auto grid w-full max-w-[calc(100%-1.5rem)] max-h-[min(90dvh,100%)] min-h-0 gap-4 overflow-y-auto rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-200 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
             className
           )}
+          // Inline style so no merged utility class (e.g. `premium-card`'s
+          // overflow-hidden) can disable scrolling and clip tall content.
+          // Callers that manage their own internal scroll regions are
+          // unaffected: their content never exceeds the max height.
+          style={{ overflowY: "auto", ...style }}
           {...props}
         >
           {children}
