@@ -24,7 +24,13 @@ export type GrokProgressionRequest = {
 export type WeakestDrillTarget = {
   focusArea: string;
   displayLabel: string;
-  accuracy: number;
+  /** Percent 0–100 when tracked; null for provisional (no invented accuracy). */
+  accuracy: number | null;
+  /** Number of tracked answers for this topic (0 when provisional). */
+  total: number;
+  correct: number;
+  /** tracked = real progression stats; provisional = starter focus before enough data. */
+  source: "tracked" | "provisional";
 };
 
 export type GrokMissionPayload = {
@@ -36,6 +42,26 @@ export type GrokMissionPayload = {
   correctChoiceId: string;
   explanation: string;
 };
+
+/** Foundational topics offered before enough answers exist to rank a weak area. */
+const PROVISIONAL_DRILL_FOCI = [
+  {
+    focusArea: "Consent of the Governed",
+    displayLabel: "Consent of the Governed",
+  },
+  {
+    focusArea: "4th Amendment",
+    displayLabel: "4th Amendment",
+  },
+  {
+    focusArea: "Due Process",
+    displayLabel: "Due Process",
+  },
+  {
+    focusArea: "Separation of Powers",
+    displayLabel: "Separation of Powers",
+  },
+] as const;
 
 const BASE_CONTEXT = `You are No Face Patriot, the Tactical Training Officer for "The Line," a civic defense education platform focused on constitutional rights and the Bill of Rights.
 
@@ -180,57 +206,148 @@ export function buildProgressionUserPrompt(
   return lines.join("\n\n");
 }
 
+/** Prefer at least this many answers before ranking a topic as a weak area. */
 const MIN_DRILL_ANSWERS = 2;
 
+function sortByWeakestFirst<T extends { accuracy: number; total: number }>(
+  areas: T[]
+): T[] {
+  return [...areas].sort((a, b) => {
+    if (a.accuracy !== b.accuracy) return a.accuracy - b.accuracy;
+    // Prefer the better-sampled topic when accuracy ties.
+    return b.total - a.total;
+  });
+}
+
+function pickProvisionalDrillTarget(state: ProgressionState): WeakestDrillTarget {
+  // Stable daily rotation so the suggestion feels intentional, not random flash.
+  const daySeed = new Date().toISOString().slice(0, 10);
+  const hash =
+    daySeed.split("").reduce((sum, ch) => sum + ch.charCodeAt(0), 0) +
+    state.defenderScore;
+  const pick = PROVISIONAL_DRILL_FOCI[hash % PROVISIONAL_DRILL_FOCI.length]!;
+
+  return {
+    focusArea: pick.focusArea,
+    displayLabel: pick.displayLabel,
+    accuracy: null,
+    total: 0,
+    correct: 0,
+    source: "provisional",
+  };
+}
+
+/**
+ * Resolve the best weak-area drill target from real progression data.
+ *
+ * Priority:
+ * 1. Major-topic performance (topicPerformance / intelligence report) with ≥2 answers
+ * 2. Legacy weakAreas amendment keys with ≥2 answers
+ * 3. Thin real samples (1 answer) — still tracked accuracy, not invented
+ * 4. Provisional curriculum focus (no accuracy %) so drills stay available for new users
+ */
 export function getWeakestDrillTarget(
   state: ProgressionState
-): WeakestDrillTarget | null {
+): WeakestDrillTarget {
   const report = getIntelligenceReport(state);
-  const qualifiedTopics = report.weakAreas.filter(
-    (area) => area.total >= MIN_DRILL_ANSWERS
-  );
 
+  const qualifiedTopics = sortByWeakestFirst(
+    report.topics.filter((area) => area.total >= MIN_DRILL_ANSWERS)
+  );
   if (qualifiedTopics.length > 0) {
     const weakest = qualifiedTopics[0]!;
     return {
       focusArea: weakest.label,
       displayLabel: weakest.label,
       accuracy: weakest.accuracy,
+      total: weakest.total,
+      correct: weakest.correct,
+      source: "tracked",
     };
   }
 
-  const amendmentAreas = getWeakAreas(state.weakAreas).filter(
-    (area) => area.total >= MIN_DRILL_ANSWERS
+  const amendmentRows = Object.entries(state.weakAreas)
+    .filter(([, stats]) => stats.total > 0)
+    .map(([amendment, stats]) => ({
+      amendment,
+      accuracy:
+        stats.total > 0
+          ? Math.round((stats.correct / stats.total) * 100)
+          : 0,
+      total: stats.total,
+      correct: stats.correct,
+    }));
+
+  const amendmentAreas = sortByWeakestFirst(
+    amendmentRows.filter((area) => area.total >= MIN_DRILL_ANSWERS)
   );
   if (amendmentAreas.length > 0) {
     const weakest = amendmentAreas[0]!;
     return {
       focusArea: weakest.amendment,
       displayLabel: weakest.amendment,
-      accuracy: Math.round(weakest.accuracy * 100),
+      accuracy: weakest.accuracy,
+      total: weakest.total,
+      correct: weakest.correct,
+      source: "tracked",
     };
   }
 
-  if (report.weakAreas.length > 0) {
-    const weakest = report.weakAreas[0]!;
+  // Thin real sample — surface true accuracy, never fabricate percentages.
+  const thinTopics = sortByWeakestFirst(
+    report.topics.filter((area) => area.total > 0)
+  );
+  if (thinTopics.length > 0) {
+    const weakest = thinTopics[0]!;
     return {
       focusArea: weakest.label,
       displayLabel: weakest.label,
       accuracy: weakest.accuracy,
+      total: weakest.total,
+      correct: weakest.correct,
+      source: "tracked",
     };
   }
 
-  const fallbackAreas = getWeakAreas(state.weakAreas);
-  if (fallbackAreas.length > 0) {
-    const weakest = fallbackAreas[0]!;
+  const thinAmendments = sortByWeakestFirst(amendmentRows);
+  if (thinAmendments.length > 0) {
+    const weakest = thinAmendments[0]!;
     return {
       focusArea: weakest.amendment,
       displayLabel: weakest.amendment,
-      accuracy: Math.round(weakest.accuracy * 100),
+      accuracy: weakest.accuracy,
+      total: weakest.total,
+      correct: weakest.correct,
+      source: "tracked",
     };
   }
 
-  return null;
+  return pickProvisionalDrillTarget(state);
+}
+
+/** Compact summary of progression stats for Quick Drills UI. */
+export function getDrillProgressSnapshot(state: ProgressionState): {
+  defenderScore: number;
+  overallAccuracy: number;
+  totalAnswered: number;
+  hasEnoughData: boolean;
+  completedDrills: number;
+  activeDrills: number;
+  weakest: WeakestDrillTarget;
+} {
+  const report = getIntelligenceReport(state);
+  const completedDrills = state.grokMissions.filter((m) => m.completed).length;
+  const activeDrills = state.grokMissions.filter((m) => !m.completed).length;
+
+  return {
+    defenderScore: state.defenderScore,
+    overallAccuracy: report.overallAccuracy,
+    totalAnswered: report.totalAnswered,
+    hasEnoughData: report.hasEnoughData,
+    completedDrills,
+    activeDrills,
+    weakest: getWeakestDrillTarget(state),
+  };
 }
 
 export function parseGrokMissionPayload(

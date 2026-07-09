@@ -251,10 +251,17 @@ export function getIntelligenceReport(state: ProgressionState): IntelligenceRepo
   const difficulty = getDifficultyForRankObject(rank);
   const entries = getTopicPerformanceEntries(state);
 
-  const sorted = [...entries].sort((a, b) => a.accuracy - b.accuracy);
+  // Weakest first; prefer better-sampled topics on accuracy ties.
+  const sorted = [...entries].sort((a, b) => {
+    if (a.accuracy !== b.accuracy) return a.accuracy - b.accuracy;
+    return b.total - a.total;
+  });
   const weakAreas = sorted.slice(0, 3);
   const strongAreas = [...entries]
-    .sort((a, b) => b.accuracy - a.accuracy)
+    .sort((a, b) => {
+      if (b.accuracy !== a.accuracy) return b.accuracy - a.accuracy;
+      return b.total - a.total;
+    })
     .slice(0, 2);
 
   const totalAnswered = entries.reduce((sum, entry) => sum + entry.total, 0);

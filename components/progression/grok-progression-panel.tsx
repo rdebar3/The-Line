@@ -18,8 +18,9 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { CHARACTER_NAME } from "@/lib/guardian";
 import { UNLOCK_CTA_LABEL } from "@/lib/subscription";
 import {
-  getWeakestDrillTarget,
+  getDrillProgressSnapshot,
   type GrokMissionPayload,
+  type WeakestDrillTarget,
 } from "@/lib/grok-progression";
 import {
   buildPerformanceSummary,
@@ -27,6 +28,71 @@ import {
   type GrokMission,
 } from "@/lib/progression";
 import { cn } from "@/lib/utils";
+
+function formatWeakTargetLabel(target: WeakestDrillTarget): {
+  title: string;
+  detail: string;
+} {
+  if (target.source === "tracked" && target.accuracy !== null) {
+    const sample =
+      target.total === 1 ? "1 answer" : `${target.total} answers`;
+    return {
+      title: target.displayLabel,
+      detail: `${target.accuracy}% accuracy · ${sample}`,
+    };
+  }
+
+  return {
+    title: target.displayLabel,
+    detail: "no tracked accuracy yet",
+  };
+}
+
+function DrillStatsStrip({
+  defenderScore,
+  overallAccuracy,
+  totalAnswered,
+  completedDrills,
+}: {
+  defenderScore: number;
+  overallAccuracy: number;
+  totalAnswered: number;
+  completedDrills: number;
+}) {
+  const stats = [
+    { label: "Defender Score", value: defenderScore.toLocaleString() },
+    {
+      label: "Topic Accuracy",
+      value: totalAnswered > 0 ? `${overallAccuracy}%` : "—",
+    },
+    {
+      label: "Tracked Answers",
+      value: totalAnswered.toLocaleString(),
+    },
+    {
+      label: "Drills Done",
+      value: completedDrills.toLocaleString(),
+    },
+  ];
+
+  return (
+    <div className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+      {stats.map((stat) => (
+        <div
+          key={stat.label}
+          className="rounded-lg border border-gold/12 bg-navy/40 px-2.5 py-2.5 text-center sm:px-3"
+        >
+          <p className="text-[0.58rem] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+            {stat.label}
+          </p>
+          <p className="mt-1 font-heading text-base font-semibold tabular-nums text-foreground sm:text-lg">
+            {stat.value}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function GrokMissionCard({
   mission,
@@ -262,10 +328,14 @@ export function GrokProgressionPanel() {
   const canUseGrok = canAccess("grok_progression");
   const showLocked = !subscriptionLoading && !canUseGrok;
 
-  const weakestTarget = useMemo(
-    () => (state ? getWeakestDrillTarget(state) : null),
+  const drillSnapshot = useMemo(
+    () => (state ? getDrillProgressSnapshot(state) : null),
     [state]
   );
+  const weakestTarget = drillSnapshot?.weakest ?? null;
+  const weakTargetCopy = weakestTarget
+    ? formatWeakTargetLabel(weakestTarget)
+    : null;
 
   async function requestGrokMission(
     action: "next_mission" | "personalized_scenario"
@@ -275,19 +345,22 @@ export function GrokProgressionPanel() {
       return;
     }
 
-    if (!state) return;
-
-    if (action === "personalized_scenario" && !weakestTarget) {
-      setError(
-        "Complete a few training scenarios first so we can identify your weakest area."
-      );
-      return;
-    }
+    if (!state || !weakestTarget) return;
 
     setLoadingAction(action);
     setError(null);
 
     try {
+      // Prefer major-topic weak labels for targeting; include raw amendment
+      // keys so the API can still match curriculum matchers.
+      const trackedWeakLabels = getWeakAreas(state.weakAreas).map(
+        (area) => area.amendment
+      );
+      const focusLabels =
+        weakestTarget.source === "tracked"
+          ? [weakestTarget.focusArea, ...trackedWeakLabels]
+          : trackedWeakLabels;
+
       const response = await fetch("/api/grok/progression", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -296,10 +369,10 @@ export function GrokProgressionPanel() {
           performanceSummary: buildPerformanceSummary(state),
           focusArea:
             action === "personalized_scenario"
-              ? weakestTarget?.focusArea
+              ? weakestTarget.focusArea
               : undefined,
           defenderScore: state.defenderScore,
-          weakAreas: getWeakAreas(state.weakAreas).map((area) => area.amendment),
+          weakAreas: Array.from(new Set(focusLabels)),
           sessionSeed: Date.now(),
         }),
       });
@@ -418,6 +491,15 @@ export function GrokProgressionPanel() {
             <LockedTrainingGate onUnlock={openUnlockModal} />
           ) : (
             <div className="p-4 sm:p-6">
+              {drillSnapshot && (
+                <DrillStatsStrip
+                  defenderScore={drillSnapshot.defenderScore}
+                  overallAccuracy={drillSnapshot.overallAccuracy}
+                  totalAnswered={drillSnapshot.totalAnswered}
+                  completedDrills={drillSnapshot.completedDrills}
+                />
+              )}
+
               {displayedMissions.length > 0 ? (
                 <div className="space-y-4">
                   {!reviewMissionId && (
@@ -459,25 +541,31 @@ export function GrokProgressionPanel() {
               <FeatureHint
                 hintId="quick_drills"
                 title="Quick Drills — how they work"
-                message="Next Mission covers a random topic for general practice. Weak Area Drill targets your lowest-accuracy topic once you've completed a few training sessions."
+                message="Next Mission covers a random topic for general practice. Weak Area Drill targets your lowest-accuracy topic from real training results (or a recommended foundational focus if you are just starting)."
               >
                 <div className="mt-6 flex flex-col items-center">
-                  {weakestTarget ? (
-                    <p className="mb-3 max-w-md rounded-full border border-gold/22 bg-gold/[0.06] px-3.5 py-1.5 text-center text-[0.7rem] leading-snug text-gold/90">
-                      Weak area ready:{" "}
+                  {weakTargetCopy && weakestTarget && (
+                    <div
+                      className={cn(
+                        "mb-3 max-w-md rounded-full border px-3.5 py-1.5 text-center text-[0.7rem] leading-snug",
+                        weakestTarget.source === "tracked"
+                          ? "border-gold/22 bg-gold/[0.06] text-gold/90"
+                          : "border-navy-border/70 bg-navy/45 text-muted-foreground"
+                      )}
+                    >
+                      <span className="font-medium">
+                        {weakestTarget.source === "tracked"
+                          ? "Weak area from your training: "
+                          : "Starter focus: "}
+                      </span>
                       <span className="font-semibold text-foreground">
-                        {weakestTarget.displayLabel}
+                        {weakTargetCopy.title}
                       </span>
                       <span className="text-foreground/50">
                         {" "}
-                        · {weakestTarget.accuracy}% accuracy
+                        · {weakTargetCopy.detail}
                       </span>
-                    </p>
-                  ) : (
-                    <p className="mb-3 max-w-md text-center text-[0.7rem] text-muted-foreground">
-                      Complete a few training sessions to unlock weak-area
-                      targeting
-                    </p>
+                    </div>
                   )}
 
                   <div className="grid w-full max-w-md grid-cols-2 gap-3">
@@ -519,7 +607,9 @@ export function GrokProgressionPanel() {
                           : "Weak Area Drill"}
                       </Button>
                       <p className="text-center text-[0.65rem] leading-snug text-muted-foreground">
-                        Lowest accuracy
+                        {weakestTarget?.source === "tracked"
+                          ? "Lowest accuracy"
+                          : "Foundational focus"}
                       </p>
                     </div>
                   </div>
