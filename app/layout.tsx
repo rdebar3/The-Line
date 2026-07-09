@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Inter, Playfair_Display } from "next/font/google";
 
 import { AppBackground } from "@/components/background/app-background";
 import { UserScopeSync } from "@/components/auth/user-scope-sync";
@@ -18,6 +19,18 @@ import { SubscriptionProvider } from "@/components/monetization/subscription-pro
 import { getAppUrl } from "@/lib/app-url";
 import { clerkAppearance } from "@/lib/clerk-appearance";
 import "./globals.css";
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 const appUrl = getAppUrl();
 
@@ -60,9 +73,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className="dark min-h-full antialiased"
+      className={`dark min-h-full antialiased ${playfair.variable} ${inter.variable}`}
     >
-      <body className="relative flex min-h-full min-w-0 flex-col overflow-x-clip bg-navy font-sans">
+      <body className="relative flex min-h-full min-w-0 flex-col overflow-x-clip bg-navy font-sans text-foreground">
         <AppBackground />
         <ClerkProvider
           appearance={clerkAppearance}
@@ -74,16 +87,16 @@ export default function RootLayout({
           <UserScopeSync />
           <ClearStaleServiceWorker />
           <SubscriptionProvider>
-            <TikTokBrowserBanner />
-            <AuthHeader />
             <ProgressionProvider>
+              <TikTokBrowserBanner />
+              <AuthHeader />
               <DefenderBadgeProvider>
                 <LeaderboardSyncProvider>
                   <SavedLinesProvider>
                     {children}
-                  <WelcomeOnboarding />
-                  <FirstLoginTutorial />
-                  <CallsignPrompt />
+                    <WelcomeOnboarding />
+                    <FirstLoginTutorial />
+                    <CallsignPrompt />
                     <UnlockCelebration />
                   </SavedLinesProvider>
                 </LeaderboardSyncProvider>

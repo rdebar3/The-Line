@@ -11,17 +11,17 @@ const SOURCES = [
   {
     id: "declaration",
     url: "https://www.archives.gov/files/founding-docs/downloads/Declaration_Pg1of1_AC.jpg",
-    objectPosition: "center 35%",
+    cardPosition: "north",
   },
   {
     id: "constitution",
     url: "https://www.archives.gov/files/founding-docs/downloads/Constitution_Pg1of4_AC.jpg",
-    objectPosition: "center 28%",
+    cardPosition: "north",
   },
   {
     id: "bill-of-rights",
     url: "https://www.archives.gov/files/founding-docs/downloads/Bill_of_Rights_Pg1of1_AC.jpg",
-    objectPosition: "center 30%",
+    cardPosition: "north",
   },
 ];
 
@@ -50,7 +50,12 @@ async function main() {
       .toFile(fullPath);
 
     await sharp(raw)
-      .resize({ width: 900, height: 520, fit: "cover", position: "centre" })
+      .resize({
+        width: 900,
+        height: 520,
+        fit: "cover",
+        position: source.cardPosition,
+      })
       .jpeg({ quality: 82, mozjpeg: true })
       .toFile(cardPath);
 

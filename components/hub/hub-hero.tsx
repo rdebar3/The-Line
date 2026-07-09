@@ -1,5 +1,5 @@
-import { LiveDrillHero } from "@/components/hub/live-drill-hero";
+import { MuseumHero } from "@/components/hub/hero/museum-hero";
 
 export function HubHero() {
-  return <LiveDrillHero />;
+  return <MuseumHero />;
 }

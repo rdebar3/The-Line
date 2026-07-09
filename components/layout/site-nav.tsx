@@ -25,10 +25,8 @@ function NavLink({
       href={href}
       onClick={onClick}
       className={cn(
-        "rounded-lg px-3 py-2 text-xs font-semibold tracking-wide transition-colors sm:text-sm",
-        active
-          ? "border border-gold/25 bg-gold/12 text-gold shadow-[0_0_16px_rgba(201,162,39,0.12)]"
-          : "text-muted-foreground hover:border hover:border-gold/15 hover:bg-navy-elevated/80 hover:text-foreground",
+        "museum-nav-link",
+        active && "is-active",
         className
       )}
       aria-current={active ? "page" : undefined}
@@ -48,7 +46,7 @@ export function SiteNav({ mobileOpen, onMobileOpenChange }: SiteNavProps) {
 
   return (
     <>
-      <nav aria-label="Main" className="hidden items-center gap-0.5 md:flex">
+      <nav aria-label="Main" className="hidden items-center gap-0.5 lg:flex">
         {PRIMARY_NAV.map((item) => (
           <NavLink
             key={item.href}
@@ -64,7 +62,7 @@ export function SiteNav({ mobileOpen, onMobileOpenChange }: SiteNavProps) {
         aria-expanded={mobileOpen}
         aria-controls="mobile-site-nav"
         onClick={() => onMobileOpenChange(!mobileOpen)}
-        className="inline-flex size-9 items-center justify-center rounded-lg border border-navy-border/70 bg-navy-elevated/50 text-muted-foreground transition-colors hover:border-gold/25 hover:text-foreground md:hidden"
+        className="inline-flex size-10 items-center justify-center rounded-full border border-[rgba(197,164,110,0.18)] bg-[rgba(15,29,51,0.5)] text-[rgba(245,241,233,0.7)] transition-colors hover:border-[rgba(197,164,110,0.35)] hover:text-[#F5F1E9] lg:hidden"
       >
         {mobileOpen ? (
           <X className="size-4" aria-hidden />
@@ -92,7 +90,7 @@ export function MobileSiteNav({
     <nav
       id="mobile-site-nav"
       aria-label="Main"
-      className="border-b border-gold/10 bg-navy/95 px-3 py-3 backdrop-blur-md md:hidden"
+      className="border-b border-[rgba(197,164,110,0.12)] bg-[rgba(10,22,40,0.96)] px-4 py-4 backdrop-blur-md lg:hidden"
     >
       <div className="mx-auto flex max-w-6xl flex-col gap-1">
         {PRIMARY_NAV.map((item) => (
@@ -102,7 +100,7 @@ export function MobileSiteNav({
             label={item.label}
             active={isNavItemActive(pathname, item)}
             onClick={onClose}
-            className="px-4 py-2.5"
+            className="rounded-lg px-4 py-3 text-sm after:hidden"
           />
         ))}
       </div>

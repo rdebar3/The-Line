@@ -80,20 +80,40 @@ export function formatHistoricalDateLabel(dateString: string): string {
   });
 }
 
-/** Returns the historical calendar date exactly HISTORY_YEARS_AGO years before `reference`. */
-export function getHistoricalCalendarDate(reference = new Date()): string {
-  const year = reference.getUTCFullYear() - HISTORY_YEARS_AGO;
-  const month = reference.getUTCMonth() + 1;
-  const day = reference.getUTCDate();
+const HISTORY_TIME_ZONE = "America/New_York";
 
-  const lastDayOfMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  const safeDay = Math.min(day, lastDayOfMonth);
+function getEasternDateParts(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: HISTORY_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
 
-  return `${year}-${pad2(month)}-${pad2(safeDay)}`;
+  const year = Number(parts.find((part) => part.type === "year")?.value);
+  const month = Number(parts.find((part) => part.type === "month")?.value);
+  const day = Number(parts.find((part) => part.type === "day")?.value);
+
+  return { year, month, day };
 }
 
+/** Calendar date for daily history (YYYY-MM-DD) in US Eastern time. */
 export function getTodayDateString(date = new Date()): string {
-  return date.toISOString().slice(0, 10);
+  const { year, month, day } = getEasternDateParts(date);
+  return `${year}-${pad2(month)}-${pad2(day)}`;
+}
+
+/** Returns the historical calendar date exactly HISTORY_YEARS_AGO years before `reference`. */
+export function getHistoricalCalendarDate(reference = new Date()): string {
+  const { year, month, day } = getEasternDateParts(reference);
+  const historicalYear = year - HISTORY_YEARS_AGO;
+
+  const lastDayOfMonth = new Date(
+    Date.UTC(historicalYear, month, 0)
+  ).getUTCDate();
+  const safeDay = Math.min(day, lastDayOfMonth);
+
+  return `${historicalYear}-${pad2(month)}-${pad2(safeDay)}`;
 }
 
 export function getThisDay250SystemPrompt() {

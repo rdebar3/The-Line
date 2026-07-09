@@ -12,6 +12,8 @@
 @import "@fontsource/libre-baskerville/400.css";
 @import "@fontsource/libre-baskerville/700.css";
 @import "@fontsource/geist-mono/latin-400.css";
+@import "./cinematic.css";
+@import "./museum.css";
 
 @custom-variant dark (&:is(.dark *));
 

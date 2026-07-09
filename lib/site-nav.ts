@@ -6,17 +6,23 @@ export type SiteNavItem = {
 };
 
 export const PRIMARY_NAV: SiteNavItem[] = [
-  { label: "Hub", href: "/", match: ["/"] },
-  { label: "History", href: "/history", match: ["/history"] },
-  { label: "Documents", href: "/#documents", match: ["/declaration", "/constitution", "/bill-of-rights"] },
   {
-    label: "Path",
+    label: "Today in History",
+    href: "/#today-in-history",
+    match: ["/history"],
+  },
+  {
+    label: "Founding Documents",
+    href: "/#documents",
+    match: ["/declaration", "/constitution", "/bill-of-rights"],
+  },
+  {
+    label: "The Path",
     href: "/path",
     match: ["/path"],
   },
-  { label: "My Lines", href: "/my-lines", match: ["/my-lines"] },
   {
-    label: "Certs",
+    label: "Defenders",
     href: "/certifications",
     match: ["/certifications"],
   },
@@ -33,18 +39,21 @@ export const STUDY_NAV: SiteNavItem[] = [
 ];
 
 export const FOOTER_NAV: SiteNavItem[] = [
+  { label: "Home", href: "/", match: ["/"] },
   ...PRIMARY_NAV,
   ...STUDY_NAV,
   { label: "Privacy", href: "/privacy", match: ["/privacy"] },
 ];
 
 export function isNavItemActive(pathname: string, item: SiteNavItem) {
-  if (item.href === "/") {
-    return pathname === "/";
+  if (item.href === "/" || item.href === "/#today-in-history") {
+    if (item.href === "/") return pathname === "/";
   }
 
-  const prefixes = item.match ?? [item.href];
+  const prefixes = item.match ?? [item.href.split("#")[0] || item.href];
   return prefixes.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+    (prefix) =>
+      prefix !== "/" &&
+      (pathname === prefix || pathname.startsWith(`${prefix}/`))
   );
 }

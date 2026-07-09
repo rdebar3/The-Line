@@ -1,0 +1,660 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   THE LINE — Cinematic design layer (v1)
+   Imported from app/globals.css:  @import "./cinematic.css";
+
+   Namespaces:
+     .ph-*   Patriot Hero (hub command deck)
+     .msn-*  Mission / training flow (Rights Under Pressure)
+     .cine-* Shared cinematic primitives (grain, vignette, panel)
+
+   Principles:
+     - One glow at a time. The Patriot and the primary CTA own the light;
+       everything else sits back.
+     - Solid warm gold instead of rainbow gradient text.
+     - Every animation has a reduced-motion fallback.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Shared primitives ─────────────────────────────────────────────── */
+
+.cine-grain {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+  mix-blend-mode: overlay;
+}
+
+.cine-vignette {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse at center,
+      transparent 30%,
+      rgba(4, 6, 12, 0.55) 74%,
+      rgba(2, 3, 8, 0.92) 100%
+    );
+}
+
+/* Command panel: the single glass recipe for the redesign. */
+.cine-panel {
+  position: relative;
+  overflow: hidden;
+  border-radius: calc(var(--radius) * 1.8);
+  border: 1px solid rgba(201, 162, 39, 0.22);
+  background: linear-gradient(
+    168deg,
+    rgba(14, 20, 36, 0.82) 0%,
+    rgba(8, 12, 24, 0.9) 55%,
+    rgba(11, 16, 30, 0.84) 100%
+  );
+  backdrop-filter: blur(20px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 24px 64px rgba(2, 4, 10, 0.6),
+    0 0 0 1px rgba(10, 15, 28, 0.6);
+}
+
+.cine-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 28% 0%,
+    rgba(201, 162, 39, 0.12) 0%,
+    transparent 55%
+  );
+}
+
+.cine-panel-accent {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(201, 162, 39, 0.75) 50%,
+    transparent
+  );
+}
+
+/* ── Patriot Hero ──────────────────────────────────────────────────── */
+
+.ph-root {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  overflow: hidden;
+  background: #04060c;
+  min-height: calc(100dvh - var(--site-header-height) - var(--tiktok-banner-offset, 0px));
+}
+
+/* Background stack (back → front) */
+.ph-void {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 22% 60%, rgba(201, 162, 39, 0.07) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 30%, rgba(185, 28, 28, 0.06) 0%, transparent 46%),
+    linear-gradient(180deg, #04060c 0%, #0a0f1c 48%, #05080f 100%);
+}
+
+.ph-flag {
+  position: absolute;
+  inset: 0;
+  background-image: url("/flag-background.png");
+  background-size: cover;
+  background-position: center 32%;
+  opacity: 0.16;
+  filter: saturate(0.7) contrast(1.1) brightness(0.55);
+  mask-image: radial-gradient(ellipse at 50% 40%, black 20%, transparent 78%);
+}
+
+.ph-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(201, 162, 39, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201, 162, 39, 0.05) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at 35% 55%, black 0%, transparent 75%);
+}
+
+.ph-pools {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 22% 62%, rgba(201, 162, 39, 0.2) 0%, transparent 42%),
+    radial-gradient(ellipse at 78% 30%, rgba(185, 28, 28, 0.13) 0%, transparent 38%);
+}
+
+.ph-scan {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201, 162, 39, 0.5) 50%, transparent);
+  box-shadow: 0 0 20px rgba(201, 162, 39, 0.2);
+  animation: ph-scan-drift 14s linear infinite;
+  opacity: 0.3;
+}
+
+@keyframes ph-scan-drift {
+  0%   { transform: translateY(-10vh); opacity: 0; }
+  8%   { opacity: 0.3; }
+  92%  { opacity: 0.3; }
+  100% { transform: translateY(105vh); opacity: 0; }
+}
+
+/* Layout */
+.ph-layout {
+  position: relative;
+  z-index: 10;
+  margin-inline: auto;
+  display: flex;
+  height: 100%;
+  min-height: inherit;
+  width: 100%;
+  max-width: 90rem;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1rem 1rem 2rem;
+}
+
+@media (min-width: 1024px) {
+  .ph-layout {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 2rem 3rem;
+  }
+}
+
+/* Patriot figure */
+.ph-patriot-wrap {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: clamp(18rem, 46vh, 34rem);
+}
+
+@media (min-width: 1024px) {
+  .ph-patriot-wrap {
+    width: 50%;
+    justify-content: flex-start;
+    min-height: auto;
+    align-self: stretch;
+    align-items: flex-end;
+  }
+}
+
+.ph-patriot-aura {
+  pointer-events: none;
+  position: absolute;
+  bottom: 4%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 9999px;
+}
+
+@media (min-width: 1024px) {
+  .ph-patriot-aura {
+    left: 40%;
+    transform: none;
+  }
+}
+
+.ph-patriot-aura--crimson {
+  width: clamp(16rem, 60vw, 32rem);
+  height: clamp(16rem, 60vw, 32rem);
+  box-shadow:
+    0 0 80px 36px rgba(185, 28, 28, 0.14),
+    0 0 160px 72px rgba(185, 28, 28, 0.06);
+}
+
+.ph-patriot-aura--gold {
+  width: clamp(13rem, 48vw, 24rem);
+  height: clamp(13rem, 48vw, 24rem);
+  box-shadow:
+    0 0 64px 24px rgba(201, 162, 39, 0.3),
+    0 0 128px 48px rgba(201, 162, 39, 0.12);
+  animation: ph-aura-breathe 7s ease-in-out infinite;
+}
+
+@keyframes ph-aura-breathe {
+  0%, 100% { opacity: 0.75; transform: translateX(-50%) scale(1); }
+  50%      { opacity: 1;    transform: translateX(-50%) scale(1.05); }
+}
+
+@media (min-width: 1024px) {
+  @keyframes ph-aura-breathe-lg {
+    0%, 100% { opacity: 0.75; transform: scale(1); }
+    50%      { opacity: 1;    transform: scale(1.05); }
+  }
+  .ph-patriot-aura--gold {
+    animation-name: ph-aura-breathe-lg;
+  }
+}
+
+.ph-patriot-floor {
+  pointer-events: none;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 5rem;
+  width: min(85vw, 26rem);
+  border-radius: 100%;
+  background: radial-gradient(ellipse, rgba(201, 162, 39, 0.38) 0%, transparent 70%);
+  filter: blur(14px);
+}
+
+@media (min-width: 1024px) {
+  .ph-patriot-floor {
+    left: 38%;
+    transform: none;
+  }
+}
+
+.ph-patriot-img {
+  position: relative;
+  z-index: 2;
+  margin-inline: auto;
+  height: auto;
+  width: auto;
+  max-height: min(62vh, 38rem);
+  max-width: min(78vw, 32rem);
+  object-fit: contain;
+  object-position: bottom;
+  /* Feather the JPG into the void regardless of its background */
+  mask-image: radial-gradient(ellipse 62% 78% at 50% 46%, black 58%, transparent 92%);
+  filter:
+    drop-shadow(0 0 40px rgba(201, 162, 39, 0.35))
+    drop-shadow(0 0 88px rgba(185, 28, 28, 0.16))
+    drop-shadow(0 24px 48px rgba(0, 0, 0, 0.6));
+}
+
+@media (min-width: 1024px) {
+  .ph-patriot-img {
+    max-height: min(78vh, 42rem);
+    max-width: none;
+  }
+}
+
+.ph-patriot-breathe {
+  animation: ph-breathe 8s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+@keyframes ph-breathe {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50%      { transform: scale(1.012) translateY(-4px); }
+}
+
+.ph-patriot-label {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 50%;
+  z-index: 3;
+  transform: translateX(-50%);
+  font-family: var(--font-geist-mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(201, 162, 39, 0.75);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+}
+
+@media (min-width: 1024px) {
+  .ph-patriot-label {
+    left: 38%;
+    transform: none;
+  }
+}
+
+/* Command panel */
+.ph-panel {
+  width: 100%;
+  max-width: 34rem;
+  padding: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .ph-panel {
+    padding: 2rem;
+  }
+}
+
+.ph-eyebrow {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-geist-mono);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--color-gold, #c9a227);
+}
+
+@media (min-width: 640px) {
+  .ph-eyebrow { font-size: 0.7rem; }
+}
+
+.ph-live-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: #dc2626;
+  box-shadow: 0 0 10px rgba(220, 38, 38, 0.9);
+  animation: ph-live-blink 2.4s ease-in-out infinite;
+}
+
+@keyframes ph-live-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+
+.ph-title {
+  position: relative;
+  z-index: 1;
+  margin-top: 1rem;
+  line-height: 1;
+}
+
+.ph-title-pre {
+  display: block;
+  font-family: var(--font-cinzel);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.5em;
+  padding-left: 0.25em;
+  text-transform: uppercase;
+  color: rgba(201, 162, 39, 0.85);
+  text-shadow: 0 0 18px rgba(201, 162, 39, 0.35);
+}
+
+.ph-title-main {
+  display: block;
+  margin-top: 0.25rem;
+  font-family: var(--font-cinzel);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  font-size: clamp(3.25rem, 9vw, 6rem);
+  line-height: 0.9;
+  /* Solid warm gold with a single top light — no rainbow */
+  background: linear-gradient(180deg, #f3e3ae 0%, #ddbc55 42%, #c9a227 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.7))
+          drop-shadow(0 0 32px rgba(201, 162, 39, 0.22));
+}
+
+.ph-tagline {
+  position: relative;
+  z-index: 1;
+  margin-top: 1rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--foreground);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.8);
+}
+
+@media (min-width: 640px) {
+  .ph-tagline { font-size: 1.25rem; }
+}
+
+/* Defender status strip */
+.ph-status {
+  position: relative;
+  z-index: 1;
+  margin-top: 1.25rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.ph-status-cell {
+  border-radius: calc(var(--radius) * 0.8);
+  border: 1px solid rgba(30, 42, 69, 0.9);
+  background: rgba(10, 15, 28, 0.55);
+  padding: 0.55rem 0.65rem;
+  text-align: center;
+}
+
+.ph-status-cell--gold {
+  border-color: rgba(201, 162, 39, 0.28);
+  background: rgba(201, 162, 39, 0.06);
+}
+
+.ph-status-label {
+  font-family: var(--font-geist-mono);
+  font-size: 0.52rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.ph-status-value {
+  margin-top: 0.15rem;
+  font-family: var(--font-cinzel);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.ph-status-cell--gold .ph-status-value {
+  color: var(--color-gold, #c9a227);
+  text-shadow: 0 0 18px rgba(201, 162, 39, 0.35);
+}
+
+/* Mission card (inside panel) */
+.ph-mission {
+  position: relative;
+  z-index: 1;
+  margin-top: 1.25rem;
+  border-radius: calc(var(--radius) * 1.2);
+  border: 1px solid rgba(201, 162, 39, 0.18);
+  background: rgba(6, 10, 20, 0.6);
+  padding: 1rem;
+}
+
+@media (min-width: 640px) {
+  .ph-mission { padding: 1.25rem; }
+}
+
+.ph-progress-track {
+  margin-top: 0.75rem;
+  height: 0.375rem;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: rgba(30, 42, 69, 0.8);
+}
+
+.ph-progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, rgba(201, 162, 39, 0.7), #c9a227, #e0c04a);
+  box-shadow: 0 0 12px rgba(201, 162, 39, 0.45);
+}
+
+/* Primary CTA — the one element allowed a strong glow */
+.ph-cta {
+  position: relative;
+  display: flex;
+  height: 3.5rem;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  overflow: hidden;
+  border-radius: calc(var(--radius) * 1.2);
+  border: 1px solid rgba(201, 162, 39, 0.5);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #fff;
+  background: linear-gradient(135deg, #c9a227 0%, #a8681f 34%, #b91c1c 72%, #7f1d1d 100%);
+  box-shadow:
+    0 0 36px rgba(201, 162, 39, 0.35),
+    0 12px 40px rgba(185, 28, 28, 0.3),
+    0 8px 32px rgba(0, 0, 0, 0.4);
+  transition: filter 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
+}
+
+.ph-cta:hover {
+  filter: brightness(1.12) saturate(1.12);
+  box-shadow:
+    0 0 52px rgba(201, 162, 39, 0.5),
+    0 0 72px rgba(185, 28, 28, 0.35),
+    0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.ph-cta:active {
+  transform: scale(0.985);
+}
+
+.ph-cta-sheen {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 70%
+  );
+  transform: translateX(-160%) skewX(-16deg);
+}
+
+.ph-cta:hover .ph-cta-sheen {
+  animation: ph-sheen 0.9s ease-out;
+}
+
+@keyframes ph-sheen {
+  to { transform: translateX(220%) skewX(-16deg); }
+}
+
+/* ── Mission flow (Rights Under Pressure) ──────────────────────────── */
+
+.msn-choice {
+  min-height: 52px;
+  width: 100%;
+  border-radius: calc(var(--radius) * 1.2);
+  border: 1px solid rgba(30, 42, 69, 0.9);
+  background: rgba(10, 15, 28, 0.62);
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.12s ease,
+    box-shadow 0.2s ease;
+}
+
+.msn-choice:not(:disabled):hover {
+  border-color: rgba(201, 162, 39, 0.4);
+  background: rgba(18, 26, 46, 0.85);
+  box-shadow: 0 0 20px rgba(201, 162, 39, 0.08);
+}
+
+.msn-choice:not(:disabled):active {
+  transform: scale(0.99);
+}
+
+.msn-choice:disabled {
+  cursor: default;
+}
+
+.msn-choice--correct {
+  border-color: rgba(201, 162, 39, 0.5);
+  background: rgba(201, 162, 39, 0.1);
+  color: var(--foreground);
+  animation: msn-correct-pulse 0.5s ease-out;
+}
+
+.msn-choice--wrong {
+  border-color: rgba(185, 28, 28, 0.5);
+  background: rgba(185, 28, 28, 0.1);
+  color: var(--foreground);
+  animation: msn-wrong-shake 0.4s ease-out;
+}
+
+.msn-choice--dim {
+  border-color: rgba(30, 42, 69, 0.5);
+  background: rgba(10, 15, 28, 0.4);
+  color: var(--muted-foreground);
+  opacity: 0.75;
+}
+
+@keyframes msn-correct-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(201, 162, 39, 0.5); }
+  100% { box-shadow: 0 0 0 12px rgba(201, 162, 39, 0); }
+}
+
+@keyframes msn-wrong-shake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-4px); }
+  50%      { transform: translateX(4px); }
+  75%      { transform: translateX(-2px); }
+}
+
+.msn-score-pop {
+  animation: msn-score-pop 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+
+@keyframes msn-score-pop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.14); text-shadow: 0 0 36px rgba(201, 162, 39, 0.7); }
+  100% { transform: scale(1); }
+}
+
+.msn-streak-pip {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: rgba(30, 42, 69, 1);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.msn-streak-pip--lit {
+  background: var(--color-gold, #c9a227);
+  box-shadow: 0 0 8px rgba(201, 162, 39, 0.8);
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .ph-scan,
+  .ph-patriot-breathe,
+  .ph-patriot-aura--gold,
+  .ph-live-dot,
+  .ph-cta-sheen,
+  .msn-choice--correct,
+  .msn-choice--wrong,
+  .msn-score-pop {
+    animation: none;
+  }
+
+  .ph-cta,
+  .msn-choice {
+    transition: none;
+  }
+}

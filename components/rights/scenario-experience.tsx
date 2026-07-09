@@ -1,68 +1,41 @@
 "use client";
 
+/**
+ * ScenarioExperience — Rights Under Pressure, rebuilt.
+ *
+ * All session logic now lives in hooks/use-training-session.ts; this file
+ * only renders. Phases hand off through AnimatePresence instead of hard
+ * swaps, choices reveal with a stagger, and answer feedback is choreographed
+ * (correct pulse / wrong shake via the .msn-* layer in app/cinematic.css).
+ *
+ * Every child component, API contract, and monetization gate is unchanged.
+ */
+
 import Link from "next/link";
-import { useAuth } from "@clerk/nextjs";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   ArrowRight,
   BookOpen,
-  CheckCircle2,
   Loader2,
   Scale,
   Sparkles,
-  XCircle,
 } from "lucide-react";
 
+import { CertificationUnlockModal } from "@/components/certifications/certification-unlock-modal";
+import { GuardianCharacter } from "@/components/guardian/guardian-character";
+import { EducationalDisclaimer } from "@/components/legal/educational-disclaimer";
 import { DailyScenarioLimitModal } from "@/components/monetization/daily-scenario-limit-modal";
 import { PremiumAccessBanner } from "@/components/monetization/premium-access-banner";
-import { GuardianCharacter } from "@/components/guardian/guardian-character";
-import { CHARACTER_NAME } from "@/lib/guardian";
-import { FieldDebriefPanel } from "@/components/rights/field-debrief-panel";
+import { SaveLineButton } from "@/components/my-lines/save-line-button";
 import { RankBadge } from "@/components/progression/rank-badge";
+import { FieldDebriefPanel } from "@/components/rights/field-debrief-panel";
 import { GuardianReaction } from "@/components/rights/guardian-reaction";
+import { PressureReplayDebrief } from "@/components/rights/pressure-replay-debrief";
+import { SourceLinksPanel } from "@/components/rights/source-links-panel";
 import { TrainingBriefing } from "@/components/rights/training-briefing";
 import { TrainingFocusHeader } from "@/components/rights/training-focus-header";
-import { Button } from "@/components/ui/button";
-import { useProgression } from "@/hooks/use-progression";
-import { useScenarioGeneration } from "@/hooks/use-scenario-generation";
-import { useSubscription } from "@/hooks/use-subscription";
-import {
-  buildPerformanceSummary,
-  getWeakAreas,
-  type ProgressionState,
-} from "@/lib/progression";
-import {
-  markDailyLimitModalShown,
-  shouldOfferDailyLimitModal,
-  wasDailyLimitModalShownToday,
-} from "@/lib/daily-limit-modal";
-import {
-  DIFFICULTY_LABELS,
-  getDifficultyForRankObject,
-  SCENARIOS_PER_REQUEST,
-  type ScenarioDifficulty,
-} from "@/lib/scenario-difficulty";
-
-import {
-  getSituationHeading,
-  QUESTION_FORMAT_LABELS,
-} from "@/lib/question-formats";
-import { getScenarioSourceDocument } from "@/lib/scenario-display";
-import {
-  readScenarioGenerationState,
-  recordScenarioGeneration,
-} from "@/lib/scenario-generation";
-import { SourceLinksPanel } from "@/components/rights/source-links-panel";
-import { PressureReplayDebrief } from "@/components/rights/pressure-replay-debrief";
-import { SaveLineButton } from "@/components/my-lines/save-line-button";
-import { CertificationUnlockModal } from "@/components/certifications/certification-unlock-modal";
 import { FieldCardShare } from "@/components/share/field-card-share";
-import type { CertificationId } from "@/lib/certifications";
-import { getDocumentSlugFromSource } from "@/lib/document-links";
-import { buildScenarioLineId } from "@/lib/saved-lines";
-import { EducationalDisclaimer } from "@/components/legal/educational-disclaimer";
-import { SCENARIO_DISCLAIMER } from "@/lib/legal-disclaimers";
-import { UNLOCK_FULL_LABEL } from "@/lib/subscription";
 import {
   Card,
   CardContent,
@@ -70,22 +43,40 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  useTrainingSession,
+  type TrainingSession,
+} from "@/hooks/use-training-session";
+import { getDocumentSlugFromSource } from "@/lib/document-links";
+import { CHARACTER_NAME } from "@/lib/guardian";
+import { SCENARIO_DISCLAIMER } from "@/lib/legal-disclaimers";
+import {
+  getSituationHeading,
+  QUESTION_FORMAT_LABELS,
+} from "@/lib/question-formats";
+import { buildScenarioLineId } from "@/lib/saved-lines";
+import {
+  DIFFICULTY_LABELS,
+  type ScenarioDifficulty,
+} from "@/lib/scenario-difficulty";
+import { getScenarioSourceDocument } from "@/lib/scenario-display";
 import type { Scenario } from "@/lib/scenarios";
+import { UNLOCK_FULL_LABEL } from "@/lib/subscription";
 import { cn } from "@/lib/utils";
 
-type AnswerRecord = {
-  scenarioId: string;
-  choiceId: string;
-  correct: boolean;
+/* ── Motion presets ──────────────────────────────────────────────────── */
+
+const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
+const PHASE_TRANSITION = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -12 },
+  transition: { duration: 0.35, ease: EASE_OUT },
 };
 
-type SessionMeta = {
-  difficulty: ScenarioDifficulty;
-  generated: boolean;
-  fallback: boolean;
-};
-
-type Phase = "briefing" | "generating" | "training" | "complete";
+/* ── Small pieces ────────────────────────────────────────────────────── */
 
 function DifficultyBadge({ difficulty }: { difficulty: ScenarioDifficulty }) {
   const meta = DIFFICULTY_LABELS[difficulty];
@@ -104,54 +95,30 @@ function DifficultyBadge({ difficulty }: { difficulty: ScenarioDifficulty }) {
   );
 }
 
-function GeneratingScreen({
-  focusLabel,
-  progressionState,
-  sessionScenarios,
-  answers,
-  defenderScore,
-  isFirstScenario,
-}: {
-  focusLabel: string;
-  progressionState: ProgressionState | null;
-  sessionScenarios: Scenario[];
-  answers: AnswerRecord[];
-  defenderScore: number;
-  isFirstScenario: boolean;
-}) {
-  return (
-    <div className="space-y-8">
-      <TrainingFocusHeader
-        focusLabel={focusLabel}
-        progressionState={progressionState}
-        sessionScenarios={sessionScenarios}
-        answers={answers}
-        defenderScore={defenderScore}
-        pointsEarned={null}
-        correctStreak={0}
-        loading
-      />
+function StreakPips({ answers }: { answers: TrainingSession["answers"] }) {
+  if (answers.length === 0) return null;
+  const recent = answers.slice(-6);
 
-      <Card className="premium-card rounded-2xl border-gold/25 py-0">
-        <CardContent className="flex flex-col items-center gap-6 py-16 text-center">
-          <Loader2 className="size-12 animate-spin text-gold" />
-          <div className="max-w-md space-y-2">
-            <p className="font-heading text-xl font-semibold tracking-wide text-foreground">
-              {isFirstScenario
-                ? "Deploying Training Session"
-                : "Generating Next Scenario"}
-            </p>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              {CHARACTER_NAME} is composing a fresh, rank-scaled scenario from
-              the full founding corpus. Stay on this screen — it will load
-              automatically.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+  return (
+    <div
+      className="flex items-center gap-1.5"
+      aria-label={`Session answers: ${answers.filter((a) => a.correct).length} of ${answers.length} correct`}
+    >
+      {recent.map((answer, index) => (
+        <span
+          key={`${answer.scenarioId}-${index}`}
+          className={cn(
+            "msn-streak-pip",
+            answer.correct && "msn-streak-pip--lit"
+          )}
+          aria-hidden
+        />
+      ))}
     </div>
   );
 }
+
+/* ── Feedback (unchanged content, choreographed entrance) ────────────── */
 
 function FeedbackPanel({
   scenario,
@@ -171,7 +138,12 @@ function FeedbackPanel({
     scenario.documentSlug ?? getDocumentSlugFromSource(scenario.sourceDocument);
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-2 space-y-5 duration-300">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: EASE_OUT, delay: 0.15 }}
+      className="space-y-5"
+    >
       <div className="xl:hidden">
         <GuardianReaction
           mood={isCorrect ? "positive" : "negative"}
@@ -195,7 +167,7 @@ function FeedbackPanel({
             isCorrect ? "text-gold" : "text-crimson"
           )}
         >
-          {isCorrect ? "Correct" : "Not quite"}
+          {isCorrect ? "Correct — line held" : "Not quite — line tested"}
         </p>
         {!isCorrect && correctChoice && (
           <p className="mt-2 text-sm text-foreground/90">
@@ -256,652 +228,99 @@ function FeedbackPanel({
         </div>
       </div>
       <EducationalDisclaimer className="pt-1" />
-      <p className="text-[0.65rem] text-muted-foreground/70">{SCENARIO_DISCLAIMER}</p>
+      <p className="text-[0.65rem] text-muted-foreground/70">
+        {SCENARIO_DISCLAIMER}
+      </p>
+    </motion.div>
+  );
+}
+
+/* ── Phase: generating ───────────────────────────────────────────────── */
+
+function GeneratingPhase({ session }: { session: TrainingSession }) {
+  return (
+    <div className="space-y-8">
+      <TrainingFocusHeader
+        focusLabel={session.generatingFocusLabel}
+        progressionState={session.progressionState}
+        sessionScenarios={session.sessionScenarios}
+        answers={session.answers}
+        defenderScore={session.defenderScore}
+        pointsEarned={null}
+        correctStreak={0}
+        loading
+      />
+
+      <Card className="premium-card rounded-2xl border-gold/25 py-0">
+        <CardContent className="flex flex-col items-center gap-6 py-16 text-center">
+          <div className="relative">
+            <Loader2 className="size-12 animate-spin text-gold" />
+            <span
+              className="absolute inset-0 -z-10 rounded-full blur-xl"
+              style={{ boxShadow: "0 0 48px 20px rgba(201,162,39,0.2)" }}
+              aria-hidden
+            />
+          </div>
+          <div className="max-w-md space-y-2">
+            <p className="font-heading text-xl font-semibold tracking-wide text-foreground">
+              {session.isFirstDeploy
+                ? "Deploying Training Session"
+                : "Generating Next Scenario"}
+            </p>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              {CHARACTER_NAME} is composing a fresh, rank-scaled scenario from
+              the full founding corpus. Stay on this screen — it will load
+              automatically.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
-function CompletionScreen({
-  sessionScore,
-  answers,
-  sessionScenarios,
-  sessionMeta,
-  defenderScore,
-  rank,
-  dailyStreak,
-  onNewSession,
-  onReturnToBriefing,
-  canGenerate,
-}: {
-  sessionScore: number;
-  answers: AnswerRecord[];
-  sessionScenarios: Scenario[];
-  sessionMeta: SessionMeta;
-  defenderScore: number;
-  rank: ReturnType<typeof useProgression>["rank"];
-  dailyStreak: number;
-  onNewSession: () => void;
-  onReturnToBriefing: () => void;
-  canGenerate: boolean;
-}) {
-  const correctCount = answers.filter((answer) => answer.correct).length;
-  const difficultyMeta = DIFFICULTY_LABELS[sessionMeta.difficulty];
+/* ── Phase: training ─────────────────────────────────────────────────── */
 
-  return (
-    <Card className="premium-card rounded-2xl border-gold/25 py-0">
-      <CardHeader className="border-b border-navy-border/60 pb-6 text-center">
-        <div className="mb-4 flex justify-center">
-          <GuardianCharacter mood="neutral" size="lg" floating showLabel />
-        </div>
-        <CardTitle className="font-heading text-3xl font-bold tracking-wide text-foreground">
-          Session Complete
-        </CardTitle>
-        <CardDescription className="text-base text-muted-foreground">
-          You completed {sessionScenarios.length} scenario
-          {sessionScenarios.length === 1 ? "" : "s"} in a {difficultyMeta.label.toLowerCase()}{" "}
-          open session at {rank.abbreviation} — each one{" "}
-          {sessionMeta.generated ? "Grok-generated" : "curated"} from the full
-          founding corpus.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6 py-8">
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <RankBadge rank={rank} size="lg" />
-          <DifficultyBadge difficulty={sessionMeta.difficulty} />
-          {sessionMeta.generated && (
-            <span className="inline-flex items-center gap-1.5 rounded-lg border border-gold/25 bg-gold/10 px-3 py-1 text-xs font-medium text-gold">
-              <Sparkles className="size-3.5" />
-              Grok Generated
-            </span>
-          )}
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-gold/20 bg-gold/5 p-5 text-center">
-            <p className="text-xs tracking-[0.2em] text-gold uppercase">
-              Total Defender Score
-            </p>
-            <p className="score-glow mt-2 font-heading text-3xl font-bold text-foreground">
-              {defenderScore}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              +{sessionScore} this session
-            </p>
-          </div>
-          <div className="rounded-xl border border-navy-border/80 bg-navy-elevated/50 p-5 text-center">
-            <p className="text-xs tracking-[0.2em] text-muted-foreground uppercase">
-              Correct
-            </p>
-            <p className="mt-2 font-heading text-3xl font-bold text-foreground">
-              {correctCount}/{sessionScenarios.length}
-            </p>
-          </div>
-          <div className="rounded-xl border border-crimson/20 bg-crimson/5 p-5 text-center">
-            <p className="text-xs tracking-[0.2em] text-crimson/80 uppercase">
-              Daily Streak
-            </p>
-            <p className="mt-2 font-heading text-3xl font-bold text-foreground">
-              {dailyStreak}
-              <span className="text-base font-medium text-muted-foreground">
-                d
-              </span>
-            </p>
-          </div>
-        </div>
-
-        <PressureReplayDebrief
-          sessionScenarios={sessionScenarios}
-          answers={answers}
-        />
-
-        {sessionScenarios[0] && (
-          <FieldCardShare
-            title={sessionScenarios[0].title}
-            subtitle={sessionScenarios[0].amendmentLabel}
-            body={
-              sessionScenarios[0].rememberLine ??
-              sessionScenarios[0].guardianPositive
-            }
-          />
-        )}
-
-        <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Button
-            onClick={onNewSession}
-            disabled={!canGenerate}
-            className="btn-crimson min-w-[220px]"
-          >
-            <Sparkles className="size-4" />
-            Start New Session
-          </Button>
-          {!canGenerate && (
-            <Button
-              onClick={onReturnToBriefing}
-              variant="outline"
-              className="min-w-[200px] border-navy-border text-muted-foreground hover:text-foreground"
-            >
-              View Briefing
-            </Button>
-          )}
-          <Button
-            nativeButton={false}
-            render={<Link href="/" />}
-            className="btn-gold min-w-[200px]"
-          >
-            Return to Hub
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-export function ScenarioExperience() {
-  const { isSignedIn } = useAuth();
+function TrainingPhase({ session }: { session: TrainingSession }) {
+  const reduceMotion = useReducedMotion();
+  const scenario = session.scenario!;
   const {
-    canAccess,
-    openUnlockModal,
-    unlock,
-    isPurchasing,
-    purchaseError,
-    isLoading: subscriptionLoading,
-  } = useSubscription();
-  const isPremium = canAccess("all_scenarios");
-  const [limitModalOpen, setLimitModalOpen] = useState(false);
-
-  const {
-    state: progressionState,
-    recordAnswer,
-    recordWeeklySession,
-    defenderScore,
-    rank,
-    dailyStreak,
-    correctStreak,
-  } = useProgression();
-
-  const {
-    isLoaded: generationLoaded,
-    state: generationState,
-    remaining,
-    canGenerate,
+    hasAnswered,
+    selectedChoiceId,
+    currentAnswer,
     canGenerateNext,
-    refresh: refreshGeneration,
-  } = useScenarioGeneration(isPremium);
-
-  const difficulty = useMemo(
-    () => getDifficultyForRankObject(rank),
-    [rank]
-  );
-
-  const weakAreas = useMemo(() => {
-    if (!progressionState) return [];
-    return getWeakAreas(progressionState.weakAreas).map((area) => ({
-      amendment: area.amendment,
-      accuracy: area.accuracy,
-    }));
-  }, [progressionState]);
-
-  const [phase, setPhase] = useState<Phase>("briefing");
-  const [sessionScenarios, setSessionScenarios] = useState<Scenario[]>([]);
-  const [sessionMeta, setSessionMeta] = useState<SessionMeta>({
-    difficulty,
-    generated: false,
-    fallback: false,
-  });
-  const [generationError, setGenerationError] = useState<string | null>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<AnswerRecord[]>([]);
-  const [selectedChoiceId, setSelectedChoiceId] = useState<string | null>(null);
-  const [lastPointsEarned, setLastPointsEarned] = useState<number | null>(null);
-  const [sessionPointsEarned, setSessionPointsEarned] = useState(0);
-  const [sessionTopicIds, setSessionTopicIds] = useState<string[]>([]);
-  const [isFirstDeploy, setIsFirstDeploy] = useState(true);
-  const [certUnlockOpen, setCertUnlockOpen] = useState(false);
-  const [pendingCertId, setPendingCertId] = useState<CertificationId | null>(
-    null
-  );
-  const [pendingCertBonus, setPendingCertBonus] = useState(0);
-
-  const generatingFocusLabel = useMemo(() => {
-    const lastScenario = sessionScenarios[sessionScenarios.length - 1];
-    if (lastScenario?.amendmentLabel) return lastScenario.amendmentLabel;
-    if (weakAreas[0]?.amendment) return weakAreas[0].amendment;
-    return "Rights Under Pressure";
-  }, [sessionScenarios, weakAreas]);
-
-  const sessionFocusLabel = useMemo(() => {
-    const current = sessionScenarios[currentIndex];
-    if (current?.amendmentLabel) return current.amendmentLabel;
-    const last = sessionScenarios[sessionScenarios.length - 1];
-    return last?.amendmentLabel ?? "Rights Under Pressure";
-  }, [sessionScenarios, currentIndex]);
-
-  const offerDailyLimitModal = useCallback(() => {
-    if (
-      !shouldOfferDailyLimitModal({
-        isSignedIn: Boolean(isSignedIn),
-        isPremium,
-        scenariosGenerated: generationState.scenariosGenerated,
-      })
-    ) {
-      return;
-    }
-
-    if (wasDailyLimitModalShownToday()) return;
-
-    markDailyLimitModalShown();
-    setLimitModalOpen(true);
-  }, [isSignedIn, isPremium, generationState.scenariosGenerated]);
-
-  useEffect(() => {
-    if (!generationLoaded || subscriptionLoading) return;
-    offerDailyLimitModal();
-  }, [generationLoaded, subscriptionLoading, offerDailyLimitModal]);
-
-  const limitModal = (
-    <DailyScenarioLimitModal
-      open={limitModalOpen}
-      onOpenChange={setLimitModalOpen}
-      onUnlock={unlock}
-      isPurchasing={isPurchasing}
-      purchaseError={purchaseError}
-    />
-  );
-
-  const pendingCertRecord =
-    pendingCertId && progressionState?.certifications
-      ? progressionState.certifications.find((cert) => cert.id === pendingCertId) ??
-        null
-      : null;
-
-  const certModal = (
-    <CertificationUnlockModal
-      open={certUnlockOpen}
-      onOpenChange={setCertUnlockOpen}
-      certificationId={pendingCertId}
-      record={pendingCertRecord}
-      rankTitle={rank.title}
-      bonusPoints={pendingCertBonus}
-    />
-  );
-
-  const fetchScenario = useCallback(
-    async ({
-      scenarioIndexInSession,
-      resetSession,
-    }: {
-      scenarioIndexInSession: number;
-      resetSession: boolean;
-    }) => {
-      if (!progressionState) {
-        throw new Error("Progression not loaded.");
-      }
-
-      const sessionSeed = Date.now() + Math.floor(Math.random() * 10000);
-      const generationHistory = readScenarioGenerationState();
-      const sessionTitles = resetSession
-        ? []
-        : sessionScenarios.map((item) => item.title);
-      const sessionIds = resetSession
-        ? []
-        : sessionScenarios.map((item) => item.id);
-      const activeSessionTopicIds = resetSession ? [] : sessionTopicIds;
-
-      const response = await fetch("/api/grok/scenarios", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          difficulty,
-          rankTitle: rank.title,
-          rankAbbreviation: rank.abbreviation,
-          sessionSize: SCENARIOS_PER_REQUEST,
-          performanceSummary: buildPerformanceSummary(progressionState),
-          weakAreas: weakAreas.map((area) => area.amendment),
-          isPremium,
-          sessionSeed,
-          scenarioIndexInSession,
-          sessionTopicIds: activeSessionTopicIds,
-          previousScenarioIds: [
-            ...progressionState.scenarioHistory
-              .slice(-25)
-              .map((entry) => entry.scenarioId),
-            ...sessionIds,
-          ],
-          previousScenarioTitles: [
-            ...generationHistory.recentScenarioTitles,
-            ...generationState.recentScenarioTitles,
-            ...sessionTitles,
-          ],
-          recentTopicIds: [
-            ...generationHistory.recentTopicIds,
-            ...generationState.recentTopicIds,
-            ...activeSessionTopicIds,
-          ],
-        }),
-      });
-
-      const data = (await response.json()) as {
-        scenarios?: Scenario[];
-        difficulty?: ScenarioDifficulty;
-        generated?: boolean;
-        fallback?: boolean;
-        assignedTopicId?: string;
-        error?: string;
-        message?: string;
-      };
-
-      if (!response.ok || !data.scenarios?.length) {
-        throw new Error(data.error ?? "Could not generate scenario.");
-      }
-
-      const assignedTopicId = data.assignedTopicId ?? data.scenarios[0].id;
-      const sourceDocument = data.scenarios[0].sourceDocument;
-      const scenario: Scenario = {
-        ...data.scenarios[0],
-        sourceDocument,
-        documentSlug:
-          data.scenarios[0].documentSlug ??
-          getDocumentSlugFromSource(sourceDocument) ??
-          undefined,
-        rememberLine:
-          data.scenarios[0].rememberLine ?? data.scenarios[0].guardianPositive,
-      };
-
-      recordScenarioGeneration(SCENARIOS_PER_REQUEST, isPremium, {
-        topicIds: [assignedTopicId],
-        titles: [scenario.title],
-        isNewSession: resetSession,
-      });
-      refreshGeneration();
-
-      return {
-        scenario,
-        meta: {
-          difficulty: data.difficulty ?? difficulty,
-          generated: Boolean(data.generated),
-          fallback: Boolean(data.fallback),
-        },
-        topicId: assignedTopicId,
-      };
-    },
-    [
-      progressionState,
-      difficulty,
-      rank,
-      weakAreas,
-      isPremium,
-      refreshGeneration,
-      generationState.recentTopicIds,
-      generationState.recentScenarioTitles,
-      sessionScenarios,
-      sessionTopicIds,
-    ]
-  );
-
-  const deploySession = useCallback(async () => {
-    if (!progressionState) return;
-
-    if (!canGenerate) {
-      offerDailyLimitModal();
-      return;
-    }
-
-    setPhase("generating");
-    setIsFirstDeploy(true);
-    setGenerationError(null);
-    setCurrentIndex(0);
-    setAnswers([]);
-    setSelectedChoiceId(null);
-    setLastPointsEarned(null);
-    setSessionPointsEarned(0);
-    setSessionTopicIds([]);
-    setSessionScenarios([]);
-
-    try {
-      const result = await fetchScenario({
-        scenarioIndexInSession: 0,
-        resetSession: true,
-      });
-
-      setSessionScenarios([result.scenario]);
-      setSessionTopicIds([result.topicId]);
-      setSessionMeta(result.meta);
-      setPhase("training");
-    } catch (error) {
-      setGenerationError(
-        error instanceof Error ? error.message : "Generation failed."
-      );
-      setPhase("briefing");
-    }
-  }, [progressionState, canGenerate, fetchScenario, offerDailyLimitModal]);
-
-  const resetToBriefing = useCallback(() => {
-    setPhase("briefing");
-    setSessionScenarios([]);
-    setSessionTopicIds([]);
-    setCurrentIndex(0);
-    setAnswers([]);
-    setSelectedChoiceId(null);
-    setGenerationError(null);
-  }, []);
-
-  const handleEndSession = useCallback(() => {
-    if (answers.length === 0) return;
-    setPhase("complete");
-    recordWeeklySession(sessionPointsEarned);
-  }, [answers.length, recordWeeklySession, sessionPointsEarned]);
-
-  const scenario = sessionScenarios[currentIndex];
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [phase, currentIndex]);
-
-  const currentAnswer = scenario
-    ? answers.find((answer) => answer.scenarioId === scenario.id)
-    : undefined;
-  const hasAnswered = Boolean(currentAnswer);
-
-  function handleChoice(choiceId: string) {
-    if (!scenario || hasAnswered) return;
-
-    const correct = choiceId === scenario.correctChoiceId;
-    setSelectedChoiceId(choiceId);
-    setAnswers((previous) => [
-      ...previous,
-      { scenarioId: scenario.id, choiceId, correct },
-    ]);
-
-    const result = recordAnswer({
-      scenarioId: scenario.id,
-      amendment: scenario.amendmentLabel,
-      correct,
-    });
-
-    if (result) {
-      setLastPointsEarned(result.pointsEarned);
-      setSessionPointsEarned((previous) => previous + result.pointsEarned);
-
-      if (result.newCertifications.length > 0) {
-        const certId = result.newCertifications[0]!;
-        setPendingCertId(certId);
-        setPendingCertBonus(result.certificationBonus);
-        setCertUnlockOpen(true);
-      }
-    }
-  }
-
-  async function handleNextScenario() {
-    if (!canGenerateNext) {
-      offerDailyLimitModal();
-      return;
-    }
-
-    setSelectedChoiceId(null);
-    setLastPointsEarned(null);
-    setGenerationError(null);
-    setIsFirstDeploy(false);
-    setPhase("generating");
-
-    try {
-      const result = await fetchScenario({
-        scenarioIndexInSession: sessionScenarios.length,
-        resetSession: false,
-      });
-
-      setSessionScenarios((previous) => [...previous, result.scenario]);
-      setSessionTopicIds((previous) => [...previous, result.topicId]);
-      setSessionMeta((previous) => ({
-        ...previous,
-        generated: result.meta.generated,
-        fallback: result.meta.fallback,
-      }));
-      setCurrentIndex(sessionScenarios.length);
-      setPhase("training");
-    } catch (error) {
-      setGenerationError(
-        error instanceof Error ? error.message : "Could not load next scenario."
-      );
-      setPhase("training");
-    }
-  }
-
-  if (!generationLoaded || !progressionState) {
-    return (
-      <>
-        <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4">
-          <Loader2 className="size-10 animate-spin text-gold" />
-          <p className="text-sm text-muted-foreground">
-            Loading training systems...
-          </p>
-        </div>
-        {limitModal}
-      {certModal}
-        {certModal}
-      </>
-    );
-  }
-
-  if (phase === "briefing") {
-    return (
-      <>
-      <div className="space-y-6">
-        {isPremium && <PremiumAccessBanner />}
-        <TrainingBriefing
-          rank={rank}
-          difficulty={difficulty}
-          weakAreas={weakAreas}
-          remainingGenerations={remaining === Infinity ? 999 : remaining}
-          isPremium={isPremium}
-          canGenerate={canGenerate}
-          isDeploying={false}
-          onDeploy={() => void deploySession()}
-          onUpgrade={openUnlockModal}
-        />
-        {generationError && (
-          <p className="rounded-xl border border-crimson/30 bg-crimson/10 px-4 py-3 text-center text-sm text-crimson">
-            {generationError}
-          </p>
-        )}
-        {!isPremium && (
-          <p className="text-center text-xs text-muted-foreground">
-            Free: {remaining} fresh scenarios left today ·{" "}
-            <button
-              type="button"
-              onClick={openUnlockModal}
-              className="text-gold underline-offset-2 hover:underline"
-            >
-              {UNLOCK_FULL_LABEL}
-            </button>
-          </p>
-        )}
-      </div>
-      {limitModal}
-      {certModal}
-      </>
-    );
-  }
-
-  if (phase === "generating") {
-    return (
-      <>
-      <GeneratingScreen
-        focusLabel={generatingFocusLabel}
-        progressionState={progressionState}
-        sessionScenarios={sessionScenarios}
-        answers={answers}
-        defenderScore={defenderScore}
-        isFirstScenario={isFirstDeploy}
-      />
-      {limitModal}
-      {certModal}
-      </>
-    );
-  }
-
-  if (phase === "complete") {
-    return (
-      <>
-      <div className="space-y-8">
-        <TrainingFocusHeader
-          focusLabel={sessionFocusLabel}
-          progressionState={progressionState}
-          sessionScenarios={sessionScenarios}
-          answers={answers}
-          defenderScore={defenderScore}
-          pointsEarned={null}
-          correctStreak={correctStreak}
-          generated={sessionMeta.generated}
-        />
-        <CompletionScreen
-          sessionScore={sessionPointsEarned}
-          answers={answers}
-          sessionScenarios={sessionScenarios}
-          sessionMeta={sessionMeta}
-          defenderScore={defenderScore}
-          rank={rank}
-          dailyStreak={dailyStreak}
-          onNewSession={() => void deploySession()}
-          onReturnToBriefing={resetToBriefing}
-          canGenerate={canGenerate}
-        />
-      </div>
-      {limitModal}
-      {certModal}
-      </>
-    );
-  }
-
-  if (!scenario) {
-    return limitModal;
-  }
+    isPremium,
+    generationError,
+  } = session;
 
   return (
-    <>
     <div className="space-y-6 sm:space-y-8">
       <TrainingFocusHeader
         focusLabel={scenario.amendmentLabel}
-        progressionState={progressionState}
-        sessionScenarios={sessionScenarios}
-        answers={answers}
-        defenderScore={defenderScore}
-        pointsEarned={lastPointsEarned}
-        correctStreak={correctStreak}
+        progressionState={session.progressionState}
+        sessionScenarios={session.sessionScenarios}
+        answers={session.answers}
+        defenderScore={session.defenderScore}
+        pointsEarned={session.lastPointsEarned}
+        correctStreak={session.correctStreak}
         generated={scenario.generated}
       />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
         <Card className="premium-card rounded-2xl py-0">
           <CardHeader className="gap-3 border-b border-navy-border/60 px-5 py-5 sm:px-6">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-md border border-navy-border/70 bg-navy/50 px-2.5 py-1 text-[0.65rem] font-medium tracking-wide text-muted-foreground">
-                {getScenarioSourceDocument(scenario)}
-              </span>
-              {scenario.questionFormat && (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-md border border-navy-border/70 bg-navy/50 px-2.5 py-1 text-[0.65rem] font-medium tracking-wide text-muted-foreground">
-                  {QUESTION_FORMAT_LABELS[scenario.questionFormat]}
+                  {getScenarioSourceDocument(scenario)}
                 </span>
-              )}
+                {scenario.questionFormat && (
+                  <span className="rounded-md border border-navy-border/70 bg-navy/50 px-2.5 py-1 text-[0.65rem] font-medium tracking-wide text-muted-foreground">
+                    {QUESTION_FORMAT_LABELS[scenario.questionFormat]}
+                  </span>
+                )}
+              </div>
+              <StreakPips answers={session.answers} />
             </div>
             <CardTitle className="font-heading text-xl font-semibold text-foreground sm:text-2xl">
               {scenario.title}
@@ -922,41 +341,49 @@ export function ScenarioExperience() {
                 {scenario.question}
               </h2>
               <div className="mt-4 grid gap-3">
-                {scenario.choices.map((choice) => {
+                {scenario.choices.map((choice, index) => {
                   const isSelected = selectedChoiceId === choice.id;
                   const isCorrectChoice =
                     choice.id === scenario.correctChoiceId;
                   const showResult = hasAnswered;
 
                   return (
-                    <button
+                    <motion.button
                       key={choice.id}
                       type="button"
                       disabled={hasAnswered}
-                      onClick={() => handleChoice(choice.id)}
+                      onClick={() => session.chooseAnswer(choice.id)}
+                      initial={
+                        reduceMotion ? undefined : { opacity: 0, y: 10 }
+                      }
+                      animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+                      transition={
+                        reduceMotion
+                          ? undefined
+                          : {
+                              duration: 0.3,
+                              delay: 0.08 * index,
+                              ease: EASE_OUT,
+                            }
+                      }
                       className={cn(
-                        "min-h-[52px] rounded-xl border px-4 py-4 text-left text-sm leading-relaxed transition-all",
-                        "disabled:cursor-default active:scale-[0.99]",
-                        !showResult &&
-                          "border-navy-border/80 bg-navy/60 hover:border-gold/30 hover:bg-navy-elevated",
-                        showResult &&
-                          isCorrectChoice &&
-                          "border-gold/40 bg-gold/10 text-foreground",
+                        "msn-choice",
+                        showResult && isCorrectChoice && "msn-choice--correct",
                         showResult &&
                           isSelected &&
                           !isCorrectChoice &&
-                          "border-crimson/40 bg-crimson/10 text-foreground",
+                          "msn-choice--wrong",
                         showResult &&
                           !isSelected &&
                           !isCorrectChoice &&
-                          "border-navy-border/50 bg-navy/40 text-muted-foreground"
+                          "msn-choice--dim"
                       )}
                     >
                       <span className="mr-3 font-heading font-semibold text-gold uppercase">
                         {choice.id}.
                       </span>
                       {choice.label}
-                    </button>
+                    </motion.button>
                   );
                 })}
               </div>
@@ -970,7 +397,12 @@ export function ScenarioExperience() {
             )}
 
             {hasAnswered && (
-              <div className="flex flex-col gap-3 border-t border-navy-border/60 pt-6 sm:flex-row sm:items-center sm:justify-between">
+              <motion.div
+                initial={reduceMotion ? undefined : { opacity: 0 }}
+                animate={reduceMotion ? undefined : { opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="flex flex-col gap-3 border-t border-navy-border/60 pt-6 sm:flex-row sm:items-center sm:justify-between"
+              >
                 {!canGenerateNext && !isPremium && (
                   <p className="text-xs text-muted-foreground">
                     Daily scenario limit reached — end session to view results.
@@ -981,14 +413,14 @@ export function ScenarioExperience() {
                 )}
                 <div className="flex flex-col gap-2 sm:ml-auto sm:flex-row">
                   <Button
-                    onClick={handleEndSession}
+                    onClick={session.endSession}
                     variant="outline"
                     className="min-w-[160px] border-navy-border text-muted-foreground hover:text-foreground"
                   >
                     End Session
                   </Button>
                   <Button
-                    onClick={() => void handleNextScenario()}
+                    onClick={() => void session.nextScenario()}
                     disabled={!canGenerateNext}
                     className="btn-gold min-w-[180px]"
                   >
@@ -996,7 +428,7 @@ export function ScenarioExperience() {
                     <ArrowRight className="size-4" />
                   </Button>
                 </div>
-              </div>
+              </motion.div>
             )}
           </CardContent>
         </Card>
@@ -1012,17 +444,289 @@ export function ScenarioExperience() {
               : undefined
           }
           awaitingMessage={
-            sessionMeta.difficulty === "hard"
+            session.sessionMeta.difficulty === "hard"
               ? "This is command-level pressure. Weigh the facts, identify the governing principle, then commit."
-              : sessionMeta.difficulty === "medium"
+              : session.sessionMeta.difficulty === "medium"
                 ? "Multiple principles may compete. Find the line the Constitution draws — not the line power prefers."
                 : "Read the situation carefully. The Constitution gives you the standard — apply it before the pressure decides for you."
           }
         />
       </div>
     </div>
-    {limitModal}
-    {certModal}
+  );
+}
+
+/* ── Phase: complete ─────────────────────────────────────────────────── */
+
+function CompletePhase({ session }: { session: TrainingSession }) {
+  const correctCount = session.answers.filter((answer) => answer.correct).length;
+  const difficultyMeta = DIFFICULTY_LABELS[session.sessionMeta.difficulty];
+
+  return (
+    <div className="space-y-8">
+      <TrainingFocusHeader
+        focusLabel={session.sessionFocusLabel}
+        progressionState={session.progressionState}
+        sessionScenarios={session.sessionScenarios}
+        answers={session.answers}
+        defenderScore={session.defenderScore}
+        pointsEarned={null}
+        correctStreak={session.correctStreak}
+        generated={session.sessionMeta.generated}
+      />
+
+      <Card className="premium-card rounded-2xl border-gold/25 py-0">
+        <CardHeader className="border-b border-navy-border/60 pb-6 text-center">
+          <div className="mb-4 flex justify-center">
+            <GuardianCharacter mood="neutral" size="lg" floating showLabel />
+          </div>
+          <CardTitle className="font-heading text-3xl font-bold tracking-wide text-foreground">
+            Session Complete
+          </CardTitle>
+          <CardDescription className="text-base text-muted-foreground">
+            You completed {session.sessionScenarios.length} scenario
+            {session.sessionScenarios.length === 1 ? "" : "s"} in a{" "}
+            {difficultyMeta.label.toLowerCase()} open session at{" "}
+            {session.rank.abbreviation} — each one{" "}
+            {session.sessionMeta.generated ? "Grok-generated" : "curated"} from
+            the full founding corpus.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6 py-8">
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <RankBadge rank={session.rank} size="lg" />
+            <DifficultyBadge difficulty={session.sessionMeta.difficulty} />
+            {session.sessionMeta.generated && (
+              <span className="inline-flex items-center gap-1.5 rounded-lg border border-gold/25 bg-gold/10 px-3 py-1 text-xs font-medium text-gold">
+                <Sparkles className="size-3.5" />
+                Grok Generated
+              </span>
+            )}
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[
+              {
+                label: "Total Defender Score",
+                value: session.defenderScore.toLocaleString(),
+                sub: `+${session.sessionPointsEarned} this session`,
+                tone: "gold" as const,
+              },
+              {
+                label: "Correct",
+                value: `${correctCount}/${session.sessionScenarios.length}`,
+                sub: null,
+                tone: "neutral" as const,
+              },
+              {
+                label: "Daily Streak",
+                value: `${session.dailyStreak}d`,
+                sub: null,
+                tone: "crimson" as const,
+              },
+            ].map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.4,
+                  delay: 0.12 * index,
+                  ease: EASE_OUT,
+                }}
+                className={cn(
+                  "rounded-xl border p-5 text-center",
+                  stat.tone === "gold" && "border-gold/20 bg-gold/5",
+                  stat.tone === "neutral" &&
+                    "border-navy-border/80 bg-navy-elevated/50",
+                  stat.tone === "crimson" && "border-crimson/20 bg-crimson/5"
+                )}
+              >
+                <p
+                  className={cn(
+                    "text-xs tracking-[0.2em] uppercase",
+                    stat.tone === "gold" && "text-gold",
+                    stat.tone === "neutral" && "text-muted-foreground",
+                    stat.tone === "crimson" && "text-crimson/80"
+                  )}
+                >
+                  {stat.label}
+                </p>
+                <p
+                  className={cn(
+                    "mt-2 font-heading text-3xl font-bold text-foreground",
+                    stat.tone === "gold" && "score-glow"
+                  )}
+                >
+                  {stat.value}
+                </p>
+                {stat.sub && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {stat.sub}
+                  </p>
+                )}
+              </motion.div>
+            ))}
+          </div>
+
+          <PressureReplayDebrief
+            sessionScenarios={session.sessionScenarios}
+            answers={session.answers}
+          />
+
+          {session.sessionScenarios[0] && (
+            <FieldCardShare
+              title={session.sessionScenarios[0].title}
+              subtitle={session.sessionScenarios[0].amendmentLabel}
+              body={
+                session.sessionScenarios[0].rememberLine ??
+                session.sessionScenarios[0].guardianPositive
+              }
+            />
+          )}
+
+          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Button
+              onClick={() => void session.deploySession()}
+              disabled={!session.canGenerate}
+              className="btn-crimson min-w-[220px]"
+            >
+              <Sparkles className="size-4" />
+              Start New Session
+            </Button>
+            {!session.canGenerate && (
+              <Button
+                onClick={session.resetToBriefing}
+                variant="outline"
+                className="min-w-[200px] border-navy-border text-muted-foreground hover:text-foreground"
+              >
+                View Briefing
+              </Button>
+            )}
+            <Button
+              nativeButton={false}
+              render={<Link href="/" />}
+              className="btn-gold min-w-[200px]"
+            >
+              Return to Hub
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+/* ── Phase: briefing ─────────────────────────────────────────────────── */
+
+function BriefingPhase({ session }: { session: TrainingSession }) {
+  return (
+    <div className="space-y-6">
+      {session.isPremium && <PremiumAccessBanner />}
+      <TrainingBriefing
+        rank={session.rank}
+        difficulty={session.difficulty}
+        weakAreas={session.weakAreas}
+        remainingGenerations={
+          session.remaining === Infinity ? 999 : session.remaining
+        }
+        isPremium={session.isPremium}
+        canGenerate={session.canGenerate}
+        isDeploying={false}
+        onDeploy={() => void session.deploySession()}
+        onUpgrade={session.subscription.openUnlockModal}
+      />
+      {session.generationError && (
+        <p className="rounded-xl border border-crimson/30 bg-crimson/10 px-4 py-3 text-center text-sm text-crimson">
+          {session.generationError}
+        </p>
+      )}
+      {!session.isPremium && (
+        <p className="text-center text-xs text-muted-foreground">
+          Free: {session.remaining} fresh scenarios left today ·{" "}
+          <button
+            type="button"
+            onClick={session.subscription.openUnlockModal}
+            className="text-gold underline-offset-2 hover:underline"
+          >
+            {UNLOCK_FULL_LABEL}
+          </button>
+        </p>
+      )}
+    </div>
+  );
+}
+
+/* ── Orchestrator ────────────────────────────────────────────────────── */
+
+export function ScenarioExperience() {
+  const session = useTrainingSession();
+  const reduceMotion = useReducedMotion();
+
+  const scenarioKey =
+    session.phase === "training" && session.scenario
+      ? `training-${session.scenario.id}`
+      : session.phase;
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+  }, [scenarioKey, reduceMotion]);
+
+  const modals = (
+    <>
+      <DailyScenarioLimitModal
+        open={session.limitModalOpen}
+        onOpenChange={session.setLimitModalOpen}
+        onUnlock={session.subscription.unlock}
+        isPurchasing={session.subscription.isPurchasing}
+        purchaseError={session.subscription.purchaseError}
+      />
+      <CertificationUnlockModal
+        open={session.certUnlockOpen}
+        onOpenChange={session.setCertUnlockOpen}
+        certificationId={session.pendingCertId}
+        record={session.pendingCertRecord}
+        rankTitle={session.rank.title}
+        bonusPoints={session.pendingCertBonus}
+      />
+    </>
+  );
+
+  if (!session.generationLoaded || !session.progressionState) {
+    return (
+      <>
+        <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4">
+          <Loader2 className="size-10 animate-spin text-gold" />
+          <p className="text-sm text-muted-foreground">
+            Loading training systems...
+          </p>
+        </div>
+        {modals}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={scenarioKey}
+          initial={reduceMotion ? false : PHASE_TRANSITION.initial}
+          animate={reduceMotion ? undefined : PHASE_TRANSITION.animate}
+          exit={reduceMotion ? undefined : PHASE_TRANSITION.exit}
+          transition={PHASE_TRANSITION.transition}
+        >
+          {session.phase === "briefing" && <BriefingPhase session={session} />}
+          {session.phase === "generating" && (
+            <GeneratingPhase session={session} />
+          )}
+          {session.phase === "training" && session.scenario && (
+            <TrainingPhase session={session} />
+          )}
+          {session.phase === "complete" && <CompletePhase session={session} />}
+        </motion.div>
+      </AnimatePresence>
+      {modals}
     </>
   );
 }
