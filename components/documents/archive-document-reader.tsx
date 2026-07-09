@@ -46,6 +46,7 @@ import {
 import { useDefenderBadges } from "@/components/badges/defender-badge-provider";
 import {
   AskGrokFab,
+  AskGrokHeaderButton,
   AskGrokPanel,
 } from "@/components/documents/ask-grok-panel";
 import { useSavedLines } from "@/components/my-lines/saved-lines-provider";
@@ -904,8 +905,8 @@ export function ArchiveDocumentReader({
             </Link>
           </div>
 
-          {/* Center: document title (serif) */}
-          <div className="pointer-events-none absolute inset-x-0 flex flex-col items-center justify-center px-28 sm:px-36 md:px-44">
+          {/* Center: document title (serif) — leave room for Ask Grok on the right */}
+          <div className="pointer-events-none absolute inset-x-0 flex flex-col items-center justify-center px-24 sm:px-40 md:px-52">
             <p className="hidden text-[0.6rem] font-medium tracking-[0.22em] text-[#C5A46E]/90 uppercase sm:block">
               {doc.year} · Archive
             </p>
@@ -914,9 +915,10 @@ export function ArchiveDocumentReader({
             </p>
           </div>
 
-          {/* Right: study progress ring + gold bar */}
-          <div className="z-10 ml-auto flex shrink-0 items-center gap-3 sm:gap-3.5">
-            <div className="hidden flex-col items-end gap-1 sm:flex">
+          {/* Right: Ask Grok (always visible) + study progress */}
+          <div className="z-10 ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+            <AskGrokHeaderButton onClick={openAskGrok} />
+            <div className="hidden flex-col items-end gap-1 md:flex">
               <p className="text-[0.65rem] font-medium tracking-wide text-[rgba(245,241,233,0.48)] tabular-nums sm:text-[0.7rem]">
                 <span className="text-[#C5A46E]">{progress.read}</span>
                 <span className="mx-1 text-[rgba(245,241,233,0.28)]">of</span>
@@ -929,19 +931,20 @@ export function ArchiveDocumentReader({
               </p>
               <GoldProgressBar
                 value={progress.pct}
-                className="w-28 sm:w-32"
+                className="w-24 sm:w-28"
                 label={`${progress.read} of ${progress.total} sections studied`}
               />
             </div>
             <ProgressRing
               value={progress.pct}
-              size={40}
+              size={36}
               strokeWidth={2.5}
+              className="hidden sm:inline-flex"
               label={`${progress.read} of ${progress.total} sections studied`}
             >
-              <span className="font-heading text-[0.65rem] font-medium tabular-nums text-[#C5A46E] sm:text-[0.7rem]">
+              <span className="font-heading text-[0.6rem] font-medium tabular-nums text-[#C5A46E] sm:text-[0.65rem]">
                 {progress.pct}
-                <span className="text-[0.55rem] text-[rgba(197,164,110,0.7)]">
+                <span className="text-[0.5rem] text-[rgba(197,164,110,0.7)]">
                   %
                 </span>
               </span>
@@ -1022,9 +1025,21 @@ export function ArchiveDocumentReader({
                   variant="parchment"
                   className="mx-auto mt-8 max-w-md px-2"
                 />
-                <p className="mt-7 text-[0.7rem] tracking-[0.14em] text-[#8B7355]/85">
-                  Tap a passage to study it
-                </p>
+
+                {/* Always-visible Ask Grok entry in the reading surface */}
+                <div className="mt-8 flex flex-col items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={openAskGrok}
+                    className="inline-flex items-center gap-2.5 rounded-full border border-[rgba(168,139,82,0.45)] bg-gradient-to-b from-[#D4B882] via-[#C5A46E] to-[#A88B52] px-6 py-3 text-sm font-bold tracking-[0.04em] text-[#0A1628] shadow-[0_10px_28px_rgba(168,139,82,0.28)] transition-all hover:brightness-[1.04] active:scale-[0.98]"
+                  >
+                    <Sparkles className="size-4" strokeWidth={2.25} />
+                    Ask Grok About This Document
+                  </button>
+                  <p className="text-[0.7rem] tracking-[0.14em] text-[#8B7355]/85">
+                    Or tap a passage to study it
+                  </p>
+                </div>
               </header>
 
               <div className="space-y-2">

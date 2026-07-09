@@ -2,8 +2,8 @@
 
 /**
  * Ask Grok — archive document chat.
+ * Always portaled to document.body so fixed positioning is never clipped.
  * Desktop: right-side drawer. Mobile: bottom sheet.
- * Grounded in the open document + selected passage via /api/chat (Grok 4.5).
  */
 
 import { SignInButton, useAuth } from "@clerk/nextjs";
@@ -14,6 +14,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import {
   Loader2,
   MessageSquare,
@@ -32,16 +33,11 @@ import {
 import { GuardianCharacter } from "@/components/guardian/guardian-character";
 import { useGrokTeaser } from "@/hooks/use-grok-teaser";
 import { useSubscription } from "@/hooks/use-subscription";
-import type {
-  ChatMessage,
-  DocumentChatContext,
-} from "@/lib/grok";
+import type { ChatMessage, DocumentChatContext } from "@/lib/grok";
 import { CHARACTER_NAME } from "@/lib/guardian";
 import { GROK_TEASER_LABEL } from "@/lib/grok-teaser";
 import { UNLOCK_CTA_LABEL } from "@/lib/subscription";
 import { cn } from "@/lib/utils";
-
-const EASE = [0.22, 1, 0.36, 1] as const;
 
 const STARTER_PROMPTS = [
   "Explain this passage in modern terms",
@@ -77,6 +73,7 @@ export function AskGrokPanel({
     isLoaded: teaserLoaded,
   } = useGrokTeaser();
 
+  const [mounted, setMounted] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -84,7 +81,10 @@ export function AskGrokPanel({
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Fresh thread when the open document/passage focus changes
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const contextKey = useMemo(
     () =>
       [
@@ -111,7 +111,6 @@ export function AskGrokPanel({
     return () => window.clearTimeout(t);
   }, [open]);
 
-  // Escape closes chat
   useEffect(() => {
     if (!open) return;
     function onKey(event: KeyboardEvent) {
@@ -121,10 +120,9 @@ export function AskGrokPanel({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  // Lock body scroll while open
   useEffect(() => {
     if (!open) return;
-    const { body } = document;
+    const { body } = globalThis.document;
     const prev = body.style.overflow;
     body.style.overflow = "hidden";
     return () => {
@@ -241,41 +239,45 @@ export function AskGrokPanel({
     : documentContext.documentTitle;
 
   const panelBody = (
-    <div className={cn("flex h-full min-h-0 flex-col", className)}>
-      {/* Header */}
+    <div className={cn("flex h-full min-h-0 flex-col bg-[#0C1829]", className)}>
       <div className="flex shrink-0 items-start justify-between gap-3 border-b border-[rgba(197,164,110,0.14)] px-5 py-4 sm:px-6">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="flex size-8 items-center justify-center rounded-full border border-[rgba(197,164,110,0.4)] bg-gradient-to-b from-[rgba(197,164,110,0.22)] to-[rgba(197,164,110,0.08)] shadow-[0_0_20px_rgba(197,164,110,0.15)]">
-              <Sparkles className="size-3.5 text-[#C5A46E]" strokeWidth={1.75} />
+          <div className="flex items-center gap-2.5">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-[rgba(197,164,110,0.45)] bg-gradient-to-b from-[rgba(197,164,110,0.28)] to-[rgba(197,164,110,0.1)] shadow-[0_0_20px_rgba(197,164,110,0.2)]">
+              <Sparkles className="size-4 text-[#C5A46E]" strokeWidth={1.75} />
             </span>
-            <div>
-              <p className="font-heading text-base font-medium tracking-[-0.01em] text-[#F5F1E9]">
-                Ask Grok
+            <div className="min-w-0">
+              <p className="font-heading text-[1.05rem] font-medium leading-snug tracking-[-0.01em] text-[#F5F1E9]">
+                Ask Grok About This Document
               </p>
-              <p className="text-[0.65rem] tracking-wide text-[rgba(245,241,233,0.4)]">
-                {CHARACTER_NAME} · founding text counsel
+              <p className="mt-0.5 text-[0.65rem] tracking-wide text-[rgba(245,241,233,0.4)]">
+                {CHARACTER_NAME} · Grok 4.5
               </p>
             </div>
           </div>
-          <div className="mt-3 inline-flex max-w-full items-center gap-2 rounded-full border border-[rgba(197,164,110,0.2)] bg-[rgba(197,164,110,0.08)] px-3 py-1">
-            <MessageSquare className="size-3 shrink-0 text-[#C5A46E]" strokeWidth={1.75} />
-            <span className="truncate text-[0.7rem] text-[rgba(245,241,233,0.7)]">
-              Context: {contextLabel}
+          <div className="mt-3 inline-flex max-w-full items-center gap-2 rounded-full border border-[rgba(197,164,110,0.22)] bg-[rgba(197,164,110,0.1)] px-3 py-1">
+            <MessageSquare
+              className="size-3 shrink-0 text-[#C5A46E]"
+              strokeWidth={1.75}
+            />
+            <span className="truncate text-[0.7rem] text-[rgba(245,241,233,0.75)]">
+              {documentContext.documentTitle}
+              {documentContext.passageSection
+                ? ` · ${documentContext.passageSection}`
+                : ""}
             </span>
           </div>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-[rgba(197,164,110,0.18)] text-[rgba(245,241,233,0.6)] transition-all hover:border-[rgba(197,164,110,0.4)] hover:bg-[rgba(197,164,110,0.08)] hover:text-[#F5F1E9] active:scale-95"
+          className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-[rgba(197,164,110,0.22)] text-[rgba(245,241,233,0.7)] transition-all hover:border-[rgba(197,164,110,0.45)] hover:bg-[rgba(197,164,110,0.1)] hover:text-[#F5F1E9] active:scale-95"
           aria-label="Close Ask Grok"
         >
           <X className="size-4" />
         </button>
       </div>
 
-      {/* Messages */}
       <div
         ref={scrollRef}
         className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6"
@@ -296,7 +298,7 @@ export function AskGrokPanel({
                   type="button"
                   disabled={isSending}
                   onClick={() => void sendMessage(prompt)}
-                  className="rounded-full border border-[rgba(197,164,110,0.22)] bg-[rgba(197,164,110,0.06)] px-3.5 py-2 text-left text-[0.75rem] leading-snug text-[rgba(245,241,233,0.72)] transition-all hover:border-[rgba(197,164,110,0.45)] hover:bg-[rgba(197,164,110,0.12)] hover:text-[#F5F1E9] disabled:opacity-50"
+                  className="rounded-full border border-[rgba(197,164,110,0.28)] bg-[rgba(197,164,110,0.08)] px-3.5 py-2 text-left text-[0.75rem] leading-snug text-[rgba(245,241,233,0.78)] transition-all hover:border-[rgba(197,164,110,0.5)] hover:bg-[rgba(197,164,110,0.14)] hover:text-[#F5F1E9] disabled:opacity-50"
                 >
                   {prompt}
                 </button>
@@ -375,7 +377,6 @@ export function AskGrokPanel({
         )}
       </div>
 
-      {/* Composer */}
       <div className="shrink-0 border-t border-[rgba(197,164,110,0.12)] px-4 py-3 sm:px-5 sm:py-4">
         <form
           onSubmit={(event) => {
@@ -391,15 +392,15 @@ export function AskGrokPanel({
               type="text"
               value={input}
               onChange={(event) => setInput(event.target.value)}
-              placeholder="Ask about this passage…"
+              placeholder="Ask about this document…"
               disabled={isSending}
-              className="h-11 w-full rounded-xl border border-[rgba(197,164,110,0.2)] bg-[rgba(10,22,40,0.65)] pr-3 pl-10 text-sm text-[#F5F1E9] outline-none transition-colors placeholder:text-[rgba(245,241,233,0.32)] focus:border-[rgba(197,164,110,0.45)] focus:ring-1 focus:ring-[rgba(197,164,110,0.2)] disabled:opacity-60"
+              className="h-11 w-full rounded-xl border border-[rgba(197,164,110,0.22)] bg-[rgba(10,22,40,0.65)] pr-3 pl-10 text-sm text-[#F5F1E9] outline-none transition-colors placeholder:text-[rgba(245,241,233,0.32)] focus:border-[rgba(197,164,110,0.5)] focus:ring-1 focus:ring-[rgba(197,164,110,0.22)] disabled:opacity-60"
             />
           </div>
           <button
             type="submit"
             disabled={isSending || !input.trim()}
-            className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl border border-[rgba(197,164,110,0.4)] bg-gradient-to-b from-[#D4B882] via-[#C5A46E] to-[#A88B52] text-[#0A1628] shadow-[0_8px_24px_rgba(197,164,110,0.28)] transition-all hover:brightness-[1.04] disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl border border-[rgba(197,164,110,0.45)] bg-gradient-to-b from-[#D4B882] via-[#C5A46E] to-[#A88B52] text-[#0A1628] shadow-[0_8px_24px_rgba(197,164,110,0.28)] transition-all hover:brightness-[1.04] disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Send message"
           >
             {isSending ? (
@@ -416,15 +417,16 @@ export function AskGrokPanel({
     </div>
   );
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <>
-          {/* Backdrop */}
           <motion.button
             type="button"
             aria-label="Close Ask Grok"
-            className="fixed inset-0 z-[60] bg-black/55 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-[2px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -432,12 +434,12 @@ export function AskGrokPanel({
             onClick={onClose}
           />
 
-          {/* Desktop / tablet side panel */}
+          {/* Desktop side panel */}
           <motion.aside
             role="dialog"
             aria-modal="true"
-            aria-label="Ask Grok about this document"
-            className="fixed inset-y-0 right-0 z-[70] hidden w-[min(26rem,100vw)] flex-col border-l border-[rgba(197,164,110,0.16)] bg-[#0C1829] shadow-[-24px_0_64px_rgba(0,0,0,0.45)] sm:flex"
+            aria-label="Ask Grok About This Document"
+            className="fixed inset-y-0 right-0 z-[210] hidden w-[min(28rem,100vw)] flex-col border-l border-[rgba(197,164,110,0.18)] bg-[#0C1829] shadow-[-24px_0_64px_rgba(0,0,0,0.5)] sm:flex"
             initial={reduceMotion ? false : { x: "100%" }}
             animate={{ x: 0 }}
             exit={reduceMotion ? undefined : { x: "100%" }}
@@ -450,8 +452,8 @@ export function AskGrokPanel({
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-label="Ask Grok about this document"
-            className="fixed inset-x-0 bottom-0 z-[70] flex max-h-[90dvh] flex-col overflow-hidden rounded-t-[1.75rem] border border-[rgba(197,164,110,0.16)] border-b-0 bg-[#0C1829] shadow-[0_-24px_64px_rgba(0,0,0,0.5)] sm:hidden"
+            aria-label="Ask Grok About This Document"
+            className="fixed inset-x-0 bottom-0 z-[210] flex max-h-[92dvh] flex-col overflow-hidden rounded-t-[1.75rem] border border-[rgba(197,164,110,0.18)] border-b-0 bg-[#0C1829] shadow-[0_-24px_64px_rgba(0,0,0,0.55)] sm:hidden"
             initial={reduceMotion ? false : { y: "100%" }}
             animate={{ y: 0 }}
             exit={reduceMotion ? undefined : { y: "100%" }}
@@ -472,18 +474,19 @@ export function AskGrokPanel({
             >
               <span
                 aria-hidden
-                className="h-1 w-11 rounded-full bg-[rgba(245,241,233,0.18)]"
+                className="h-1 w-11 rounded-full bg-[rgba(245,241,233,0.2)]"
               />
             </div>
             <div className="min-h-0 flex-1">{panelBody}</div>
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    globalThis.document.body
   );
 }
 
-/** Floating gold CTA — pairs with AskGrokPanel. */
+/** Portaled gold FAB — always above page chrome. */
 export function AskGrokFab({
   onClick,
   hidden,
@@ -493,23 +496,54 @@ export function AskGrokFab({
   hidden?: boolean;
   className?: string;
 }) {
-  if (hidden) return null;
+  const [mounted, setMounted] = useState(false);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || hidden) return null;
+
+  return createPortal(
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "fixed z-[190] inline-flex items-center gap-2.5 rounded-full border border-[rgba(197,164,110,0.55)] bg-gradient-to-b from-[#E0C99A] via-[#C5A46E] to-[#A88B52] px-5 py-3.5 text-sm font-bold tracking-[0.04em] text-[#0A1628] shadow-[0_12px_40px_rgba(197,164,110,0.45),0_0_0_1px_rgba(255,255,255,0.12)_inset] transition-transform hover:scale-[1.03] hover:brightness-[1.05] active:scale-[0.98]",
+        "right-4 bottom-[max(1.5rem,env(safe-area-inset-bottom))] sm:right-8 sm:bottom-8",
+        className
+      )}
+      aria-label="Ask Grok About This Document"
+    >
+      <span className="flex size-7 items-center justify-center rounded-full bg-[rgba(10,22,40,0.14)]">
+        <Sparkles className="size-3.5" strokeWidth={2.25} />
+      </span>
+      <span>Ask Grok</span>
+    </button>,
+    globalThis.document.body
+  );
+}
+
+/** Gold header / inline control used in the archive sticky bar. */
+export function AskGrokHeaderButton({
+  onClick,
+  className,
+}: {
+  onClick: () => void;
+  className?: string;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        "ask-grok-fab group fixed z-40 inline-flex items-center gap-2.5 rounded-full border border-[rgba(197,164,110,0.45)] bg-gradient-to-b from-[#D4B882] via-[#C5A46E] to-[#A88B52] px-5 py-3.5 text-sm font-semibold tracking-[0.04em] text-[#0A1628] shadow-[0_12px_40px_rgba(197,164,110,0.35),0_0_0_1px_rgba(255,255,255,0.08)_inset] transition-all hover:brightness-[1.04] hover:shadow-[0_14px_44px_rgba(197,164,110,0.42)] active:scale-[0.98]",
-        "right-4 bottom-[max(1.25rem,env(safe-area-inset-bottom))] sm:right-6 sm:bottom-8",
+        "inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[rgba(197,164,110,0.5)] bg-gradient-to-b from-[#D4B882] via-[#C5A46E] to-[#A88B52] px-2.5 py-1.5 text-[0.7rem] font-bold tracking-[0.04em] text-[#0A1628] shadow-[0_4px_16px_rgba(197,164,110,0.35)] transition-all hover:brightness-[1.05] active:scale-[0.97] sm:gap-2 sm:px-3.5 sm:py-2 sm:text-xs",
         className
       )}
-      aria-label="Ask Grok about this document"
+      aria-label="Ask Grok About This Document"
     >
-      <span className="flex size-7 items-center justify-center rounded-full bg-[rgba(10,22,40,0.12)]">
-        <Sparkles className="size-3.5" strokeWidth={2} />
-      </span>
-      <span>Ask Grok</span>
+      <Sparkles className="size-3.5 shrink-0 sm:size-3.5" strokeWidth={2.25} />
+      <span className="whitespace-nowrap">Ask Grok</span>
     </button>
   );
 }
