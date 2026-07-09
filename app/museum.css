@@ -571,11 +571,95 @@ body {
     0 0 40px rgba(197, 164, 110, 0.12);
 }
 
+/* ── Quick Drills action buttons ─────────────────────────────────────── */
+
+.drill-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  letter-spacing: 0.02em;
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.28s ease,
+    filter 0.28s ease,
+    background 0.28s ease;
+}
+
+.drill-action-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.drill-action-btn:not(:disabled):active {
+  transform: translateY(0) scale(0.985);
+}
+
+.drill-action-crimson {
+  border: 1px solid rgba(220, 38, 38, 0.45);
+  background: linear-gradient(180deg, #dc3b3b 0%, #b91c1c 52%, #991b1b 100%);
+  color: #fffef9;
+  box-shadow:
+    0 4px 16px rgba(185, 28, 28, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.drill-action-crimson:not(:disabled):hover {
+  border-color: rgba(248, 113, 113, 0.55);
+  filter: brightness(1.06);
+  box-shadow:
+    0 8px 24px rgba(185, 28, 28, 0.32),
+    0 0 0 1px rgba(248, 113, 113, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.drill-action-gold {
+  border: 1px solid rgba(197, 164, 110, 0.5);
+  background: linear-gradient(
+    180deg,
+    var(--museum-gold-light) 0%,
+    var(--museum-gold) 48%,
+    var(--museum-gold-dark) 100%
+  );
+  color: var(--museum-navy);
+  box-shadow:
+    0 4px 16px rgba(197, 164, 110, 0.16),
+    inset 0 1px 0 rgba(255, 252, 245, 0.35);
+}
+
+.drill-action-gold:not(:disabled):hover {
+  border-color: rgba(224, 201, 154, 0.7);
+  filter: brightness(1.05);
+  box-shadow:
+    0 8px 24px rgba(197, 164, 110, 0.28),
+    0 0 0 1px rgba(197, 164, 110, 0.18),
+    inset 0 1px 0 rgba(255, 252, 245, 0.45);
+}
+
+.drill-action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.15);
+  box-shadow: none;
+}
+
+.drill-panel {
+  box-shadow:
+    inset 0 1px 0 rgba(248, 244, 236, 0.04),
+    0 20px 48px rgba(4, 10, 20, 0.4);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .museum-card,
   .museum-cta,
-  .museum-nav-link {
+  .museum-nav-link,
+  .drill-action-btn {
     transition: none;
+  }
+
+  .drill-action-btn:not(:disabled):hover,
+  .drill-action-btn:not(:disabled):active {
+    transform: none;
   }
 
   .museum-card:hover {

@@ -15,7 +15,7 @@ export default function PathDrillPage() {
         className="mb-8 sm:mb-10"
         eyebrow="Tactical Training"
         title="Quick Drills"
-        description="Short missions to sharpen judgment between full training sessions."
+        description="Short constitutional missions to sharpen judgment between full training sessions."
       />
       <GrokProgressionPanel />
     </PageShell>

@@ -44,25 +44,25 @@ function GrokMissionCard({
   const wasCorrect = selected === mission.correctChoiceId;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gold/25 bg-gradient-to-b from-gold/[0.06] to-navy/55">
-      <div className="border-b border-gold/15 bg-gold/[0.04] px-4 py-3 sm:px-5">
-        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
-          <p className="min-w-0 font-heading text-sm font-semibold leading-snug tracking-wide text-balance text-gold sm:text-[0.95rem]">
+    <div className="overflow-hidden rounded-xl border border-gold/20 bg-gradient-to-b from-navy-elevated/90 to-navy/80 shadow-[inset_0_1px_0_rgba(248,244,236,0.04)]">
+      <div className="border-b border-gold/12 bg-gold/[0.04] px-4 py-3.5 sm:px-5">
+        <div className="flex min-w-0 flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+          <p className="min-w-0 font-heading text-[0.95rem] font-semibold leading-snug tracking-wide text-balance text-foreground sm:text-base">
             {mission.title}
           </p>
-          <span className="w-fit max-w-full shrink-0 rounded-md border border-gold/25 bg-navy/50 px-2.5 py-1 text-[0.6rem] font-semibold tracking-[0.1em] text-gold/85 uppercase">
+          <span className="w-fit max-w-full shrink-0 rounded-full border border-gold/25 bg-navy/60 px-2.5 py-1 text-[0.6rem] font-semibold tracking-[0.12em] text-gold/90 uppercase">
             {mission.focusArea}
           </span>
         </div>
       </div>
 
       <div className="space-y-4 px-4 py-4 sm:px-5 sm:py-5">
-        <p className="text-pretty text-sm leading-relaxed text-muted-foreground">
+        <p className="text-pretty text-sm leading-relaxed text-foreground/75">
           {mission.scenario}
         </p>
 
         <div>
-          <p className="font-heading text-xs font-semibold tracking-[0.15em] text-balance text-foreground uppercase">
+          <p className="font-heading text-xs font-semibold tracking-[0.14em] text-balance text-foreground uppercase">
             {mission.question}
           </p>
           <div className="mt-3 grid gap-2.5">
@@ -80,10 +80,10 @@ function GrokMissionCard({
                     onComplete(mission.id, choice.id);
                   }}
                   className={cn(
-                    "min-h-11 rounded-xl border px-3.5 py-3 text-left text-sm leading-snug transition-all sm:px-4",
+                    "min-h-11 rounded-lg border px-3.5 py-3 text-left text-sm leading-snug transition-all duration-300 sm:px-4",
                     "break-words text-pretty",
                     !answered &&
-                      "border-navy-border/80 bg-navy-elevated/50 hover:border-gold/30 hover:bg-navy-elevated/80",
+                      "border-navy-border/70 bg-navy/40 text-foreground/90 hover:border-gold/35 hover:bg-gold/[0.06] hover:shadow-[0_0_20px_rgba(197,164,110,0.08)]",
                     answered &&
                       isCorrect &&
                       "border-gold/40 bg-gold/10 text-foreground",
@@ -94,7 +94,7 @@ function GrokMissionCard({
                     answered &&
                       !isSelected &&
                       !isCorrect &&
-                      "border-navy-border/50 text-muted-foreground"
+                      "border-navy-border/40 text-muted-foreground"
                   )}
                 >
                   <span className="mr-2 font-heading font-semibold text-gold uppercase">
@@ -112,8 +112,8 @@ function GrokMissionCard({
             className={cn(
               "animate-in fade-in slide-in-from-bottom-2 space-y-3 rounded-xl border px-4 py-4 duration-300",
               wasCorrect
-                ? "border-gold/35 bg-gold/10"
-                : "border-crimson/35 bg-crimson/10"
+                ? "border-gold/30 bg-gold/[0.08]"
+                : "border-crimson/30 bg-crimson/10"
             )}
           >
             <div className="flex items-center gap-2">
@@ -136,7 +136,7 @@ function GrokMissionCard({
                 </span>
               )}
             </div>
-            <p className="text-pretty text-sm leading-relaxed text-muted-foreground">
+            <p className="text-pretty text-sm leading-relaxed text-foreground/70">
               {mission.explanation}
             </p>
             {onDismiss && (
@@ -144,7 +144,7 @@ function GrokMissionCard({
                 onClick={onDismiss}
                 variant="outline"
                 size="sm"
-                className="h-10 w-full rounded-xl border-navy-border/80 bg-navy/50 hover:border-gold/30 hover:bg-navy-elevated/80"
+                className="h-10 w-full rounded-lg border-gold/25 bg-navy/40 text-foreground transition-all duration-300 hover:border-gold/40 hover:bg-gold/[0.08]"
               >
                 Continue
               </Button>
@@ -158,11 +158,11 @@ function GrokMissionCard({
 
 function LockedTrainingGate({ onUnlock }: { onUnlock: () => void }) {
   return (
-    <div className="flex flex-col items-center px-5 py-8 text-center sm:px-8 sm:py-10">
+    <div className="flex flex-col items-center px-5 py-9 text-center sm:px-8 sm:py-11">
       <GuardianCharacter mood="neutral" size="md" floating showLabel />
 
-      <div className="mt-5 w-full max-w-md rounded-xl border border-gold/25 bg-gradient-to-b from-gold/[0.08] to-navy/50 px-5 py-5 sm:px-6 sm:py-6">
-        <p className="font-heading text-[0.65rem] font-semibold tracking-[0.2em] text-gold uppercase">
+      <div className="mt-6 w-full max-w-md rounded-xl border border-gold/20 bg-gradient-to-b from-gold/[0.07] to-navy/55 px-5 py-5 sm:px-6 sm:py-6">
+        <p className="font-heading text-[0.65rem] font-semibold tracking-[0.22em] text-gold uppercase">
           {CHARACTER_NAME} · Mission Briefing
         </p>
         <p className="mt-3 text-pretty text-sm leading-relaxed text-foreground/90">
@@ -177,11 +177,68 @@ function LockedTrainingGate({ onUnlock }: { onUnlock: () => void }) {
 
       <Button
         onClick={onUnlock}
-        className="btn-gold btn-cta mt-6 h-12 w-full max-w-sm rounded-xl font-semibold shadow-[0_0_28px_rgba(201,162,39,0.25)]"
+        className="btn-gold drill-action-btn drill-action-gold mt-7 h-11 min-w-[12rem] rounded-lg px-6 text-sm font-semibold"
       >
         <Sparkles className="size-4 shrink-0" />
         {UNLOCK_CTA_LABEL}
       </Button>
+    </div>
+  );
+}
+
+function AwaitingOrders() {
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-gold/18 bg-gradient-to-b from-navy-elevated/70 via-navy/50 to-navy/70 px-5 py-9 text-center sm:px-8 sm:py-11">
+      {/* Subtle patriotic wash — kept low so cream text stays crisp */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.22]"
+        style={{
+          background: `
+            radial-gradient(ellipse at 12% 18%, rgba(245,241,233,0.09) 0 1px, transparent 1.5px),
+            radial-gradient(ellipse at 78% 72%, rgba(245,241,233,0.06) 0 1px, transparent 1.5px),
+            radial-gradient(ellipse at 0% 0%, rgba(59,89,152,0.16) 0%, transparent 48%),
+            radial-gradient(ellipse at 100% 100%, rgba(185,28,28,0.1) 0%, transparent 42%)
+          `,
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent"
+      />
+
+      <div className="relative mx-auto flex max-w-sm flex-col items-center">
+        <div className="flex size-14 items-center justify-center rounded-full border border-gold/30 bg-gradient-to-b from-gold/15 to-gold/[0.04] shadow-[0_0_28px_rgba(197,164,110,0.12)]">
+          <Target className="size-5 text-gold" strokeWidth={1.75} />
+        </div>
+
+        <p className="mt-5 font-heading text-base font-semibold tracking-[0.14em] text-foreground uppercase sm:text-lg">
+          Awaiting Mission Orders
+        </p>
+
+        <div
+          aria-hidden
+          className="mt-3 h-px w-16 bg-gradient-to-r from-transparent via-gold/50 to-transparent"
+        />
+
+        <p className="mt-4 text-pretty text-sm leading-relaxed text-foreground/70">
+          Select a drill below to receive your next constitutional scenario from{" "}
+          {CHARACTER_NAME}.
+        </p>
+
+        <dl className="mt-5 grid w-full gap-2 text-left text-[0.75rem] leading-snug">
+          <div className="flex gap-2.5 rounded-lg border border-crimson/20 bg-crimson/[0.06] px-3 py-2.5">
+            <dt className="shrink-0 font-semibold text-crimson">Next Mission</dt>
+            <dd className="text-foreground/65">Random topic · general practice</dd>
+          </div>
+          <div className="flex gap-2.5 rounded-lg border border-gold/20 bg-gold/[0.05] px-3 py-2.5">
+            <dt className="shrink-0 font-semibold text-gold">Weak Area</dt>
+            <dd className="text-foreground/65">
+              Focused remedial drill on your lowest score
+            </dd>
+          </div>
+        </dl>
+      </div>
     </div>
   );
 }
@@ -197,7 +254,9 @@ export function GrokProgressionPanel() {
   >(null);
   const [error, setError] = useState<string | null>(null);
   const [lastMissionType, setLastMissionType] = useState<string | null>(null);
-  const [missionPoints, setMissionPoints] = useState<Record<string, number>>({});
+  const [missionPoints, setMissionPoints] = useState<Record<string, number>>(
+    {}
+  );
   const [reviewMissionId, setReviewMissionId] = useState<string | null>(null);
 
   const canUseGrok = canAccess("grok_progression");
@@ -287,7 +346,9 @@ export function GrokProgressionPanel() {
   }
 
   const activeMissions = grokMissions.filter((mission) => !mission.completed);
-  const completedCount = grokMissions.filter((mission) => mission.completed).length;
+  const completedCount = grokMissions.filter(
+    (mission) => mission.completed
+  ).length;
 
   const displayedMissions = useMemo(() => {
     if (reviewMissionId) {
@@ -299,52 +360,68 @@ export function GrokProgressionPanel() {
     return activeMissions.slice(0, 2);
   }, [reviewMissionId, grokMissions, activeMissions]);
 
+  const actionsDisabled = loadingAction !== null || reviewMissionId !== null;
+
   return (
-    <div className="relative overflow-hidden rounded-xl border border-gold/25 bg-gradient-to-b from-gold/[0.06] to-navy/40">
+    <div className="drill-panel relative overflow-hidden rounded-2xl border border-gold/18 bg-gradient-to-b from-navy-elevated/80 to-navy/90">
+      {/* Soft patriotic atmosphere */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(201,162,39,0.1)_0%,transparent_55%)]"
+        className="pointer-events-none absolute inset-0 opacity-30"
+        style={{
+          background: `
+            radial-gradient(ellipse at top left, rgba(197,164,110,0.1) 0%, transparent 52%),
+            radial-gradient(ellipse at bottom right, rgba(185,28,28,0.06) 0%, transparent 45%),
+            radial-gradient(ellipse at 80% 20%, rgba(59,89,152,0.08) 0%, transparent 40%)
+          `,
+        }}
       />
       <div
         aria-hidden
-        className="h-0.5 bg-gradient-to-r from-transparent via-gold/60 to-transparent"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/45 to-transparent"
       />
 
-      <div className="relative p-5 sm:p-6">
+      <div className="relative p-5 sm:p-7">
+        {/* Header */}
         <div className="flex items-start gap-4">
-          <GuardianCharacter mood="neutral" size="sm" className="-mt-1 shrink-0" />
+          <GuardianCharacter
+            mood="neutral"
+            size="sm"
+            className="-mt-0.5 shrink-0"
+          />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <p className="section-eyebrow !text-[0.65rem] sm:!text-xs">
                 Tactical Training
               </p>
               {showLocked && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-gold/30 bg-gold/10 px-2 py-0.5 text-[0.6rem] font-semibold tracking-[0.12em] text-gold uppercase">
+                <span className="inline-flex items-center gap-1 rounded-full border border-gold/25 bg-gold/10 px-2 py-0.5 text-[0.6rem] font-semibold tracking-[0.12em] text-gold uppercase">
                   <Lock className="size-2.5" />
                   Full Access
                 </span>
               )}
             </div>
-            <h3 className="mt-1 font-heading text-lg font-bold tracking-wide text-foreground sm:text-xl">
+            <h3 className="mt-1.5 font-heading text-xl font-semibold tracking-wide text-foreground sm:text-2xl">
               Quick Drills
             </h3>
-            <p className="mt-1.5 max-w-prose text-pretty text-sm leading-relaxed text-muted-foreground">
+            <p className="mt-2 max-w-prose text-pretty text-sm leading-relaxed text-foreground/65">
               {showLocked
                 ? `${CHARACTER_NAME} issues short missions from the hub — unlock for general drills, weak-area targeting, and rank debriefs.`
-                : `${CHARACTER_NAME} issues two kinds of hub drills: general missions across any topic, or focused remedial drills on your weakest area.`}
+                : `Short constitutional scenarios from ${CHARACTER_NAME}: general practice, or a focused drill on your weakest area.`}
             </p>
           </div>
         </div>
 
-        <div className="mt-5 overflow-hidden rounded-xl border border-navy-border/60 bg-navy/30 sm:mt-6">
+        {/* Body */}
+        <div className="mt-6 overflow-hidden rounded-xl border border-navy-border/50 bg-navy/35 sm:mt-7">
           {showLocked ? (
             <LockedTrainingGate onUnlock={openUnlockModal} />
           ) : (
-            <div className="p-4 sm:p-5">
+            <div className="p-4 sm:p-6">
               {displayedMissions.length > 0 ? (
                 <div className="space-y-4">
                   {!reviewMissionId && (
-                    <p className="font-heading text-xs font-semibold tracking-[0.2em] text-crimson uppercase">
+                    <p className="font-heading text-[0.65rem] font-semibold tracking-[0.2em] text-gold uppercase">
                       Active Mission
                     </p>
                   )}
@@ -363,113 +440,101 @@ export function GrokProgressionPanel() {
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-col items-center rounded-xl border border-dashed border-gold/20 bg-navy/25 px-5 py-8 text-center">
-                  <div className="flex size-12 items-center justify-center rounded-full border border-gold/25 bg-gold/10">
-                    <Target className="size-5 text-gold" />
-                  </div>
-                  <p className="mt-4 font-heading text-sm font-semibold tracking-[0.1em] text-balance text-foreground uppercase">
-                    Awaiting Mission Orders
-                  </p>
-                  <p className="mt-2 max-w-sm text-pretty text-sm leading-relaxed text-muted-foreground">
-                    <strong className="font-medium text-foreground">Next Mission</strong>{" "}
-                    — random constitutional topic for general training.{" "}
-                    <strong className="font-medium text-gold">Weak Area Drill</strong>{" "}
-                    — focused remedial mission on your lowest-accuracy topic.
-                  </p>
-                </div>
+                <AwaitingOrders />
               )}
 
               {lastMissionType && !error && displayedMissions.length === 0 && (
-                <p className="mt-4 rounded-xl border border-gold/20 bg-gold/5 px-4 py-3 text-sm text-foreground/90">
+                <p className="mt-4 rounded-lg border border-gold/18 bg-gold/[0.05] px-4 py-2.5 text-center text-sm text-foreground/85">
                   {lastMissionType}
                 </p>
               )}
 
               {error && (
-                <p className="mt-4 rounded-xl border border-crimson/30 bg-crimson/10 px-4 py-3 text-sm text-crimson">
+                <p className="mt-4 rounded-lg border border-crimson/30 bg-crimson/10 px-4 py-2.5 text-center text-sm text-crimson">
                   {error}
                 </p>
               )}
 
+              {/* Action row — compact, balanced, side-by-side */}
               <FeatureHint
                 hintId="quick_drills"
                 title="Quick Drills — how they work"
                 message="Next Mission covers a random topic for general practice. Weak Area Drill targets your lowest-accuracy topic once you've completed a few training sessions."
               >
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Button
-                      disabled={
-                        loadingAction !== null || reviewMissionId !== null
-                      }
-                      onClick={() => void requestGrokMission("next_mission")}
-                      className="btn-crimson btn-cta h-12 w-full rounded-xl text-sm font-semibold shadow-[0_4px_24px_rgba(185,28,28,0.25)]"
-                    >
-                      {loadingAction === "next_mission" ? (
-                        <Loader2 className="size-4 shrink-0 animate-spin" />
-                      ) : (
-                        <Target className="size-4 shrink-0" />
-                      )}
-                      {loadingAction === "next_mission"
-                        ? "Deploying…"
-                        : "Next Mission"}
-                    </Button>
-                    <p className="text-center text-[0.65rem] leading-relaxed text-muted-foreground sm:text-left">
-                      Random topic · repeatable general training
+                <div className="mt-6 flex flex-col items-center">
+                  {weakestTarget ? (
+                    <p className="mb-3 max-w-md rounded-full border border-gold/22 bg-gold/[0.06] px-3.5 py-1.5 text-center text-[0.7rem] leading-snug text-gold/90">
+                      Weak area ready:{" "}
+                      <span className="font-semibold text-foreground">
+                        {weakestTarget.displayLabel}
+                      </span>
+                      <span className="text-foreground/50">
+                        {" "}
+                        · {weakestTarget.accuracy}% accuracy
+                      </span>
                     </p>
-                  </div>
+                  ) : (
+                    <p className="mb-3 max-w-md text-center text-[0.7rem] text-muted-foreground">
+                      Complete a few training sessions to unlock weak-area
+                      targeting
+                    </p>
+                  )}
 
-                  <div className="space-y-2">
-                    {weakestTarget ? (
-                      <p className="rounded-lg border border-gold/20 bg-gold/5 px-2.5 py-1.5 text-center text-[0.65rem] leading-snug text-gold sm:text-left">
-                        Targeting your weakest area:{" "}
-                        <span className="font-semibold text-foreground">
-                          {weakestTarget.displayLabel}
-                        </span>
-                        <span className="text-muted-foreground">
-                          {" "}
-                          ({weakestTarget.accuracy}% accuracy)
-                        </span>
+                  <div className="grid w-full max-w-md grid-cols-2 gap-3">
+                    <div className="flex flex-col items-center gap-2">
+                      <Button
+                        disabled={actionsDisabled}
+                        onClick={() => void requestGrokMission("next_mission")}
+                        className="btn-crimson drill-action-btn drill-action-crimson h-11 w-full max-w-[11.5rem] rounded-lg px-3.5 text-sm font-semibold sm:px-4"
+                      >
+                        {loadingAction === "next_mission" ? (
+                          <Loader2 className="size-3.5 shrink-0 animate-spin" />
+                        ) : (
+                          <Target className="size-3.5 shrink-0" />
+                        )}
+                        {loadingAction === "next_mission"
+                          ? "Deploying…"
+                          : "Next Mission"}
+                      </Button>
+                      <p className="text-center text-[0.65rem] leading-snug text-muted-foreground">
+                        Random topic
                       </p>
-                    ) : (
-                      <p className="rounded-lg border border-navy-border/60 bg-navy/40 px-2.5 py-1.5 text-center text-[0.65rem] text-muted-foreground sm:text-left">
-                        Complete training to unlock weak-area targeting
+                    </div>
+
+                    <div className="flex flex-col items-center gap-2">
+                      <Button
+                        disabled={actionsDisabled || !weakestTarget}
+                        onClick={() =>
+                          void requestGrokMission("personalized_scenario")
+                        }
+                        className="btn-gold drill-action-btn drill-action-gold h-11 w-full max-w-[11.5rem] rounded-lg px-3.5 text-sm font-semibold sm:px-4"
+                      >
+                        {loadingAction === "personalized_scenario" ? (
+                          <Loader2 className="size-3.5 shrink-0 animate-spin" />
+                        ) : (
+                          <Sparkles className="size-3.5 shrink-0" />
+                        )}
+                        {loadingAction === "personalized_scenario"
+                          ? "Targeting…"
+                          : "Weak Area Drill"}
+                      </Button>
+                      <p className="text-center text-[0.65rem] leading-snug text-muted-foreground">
+                        Lowest accuracy
                       </p>
-                    )}
-                    <Button
-                      disabled={
-                        loadingAction !== null ||
-                        reviewMissionId !== null ||
-                        !weakestTarget
-                      }
-                      onClick={() =>
-                        void requestGrokMission("personalized_scenario")
-                      }
-                      className="btn-gold h-12 w-full rounded-xl text-sm font-semibold shadow-[0_4px_24px_rgba(201,162,39,0.2)]"
-                    >
-                      {loadingAction === "personalized_scenario" ? (
-                        <Loader2 className="size-4 shrink-0 animate-spin" />
-                      ) : (
-                        <Sparkles className="size-4 shrink-0" />
-                      )}
-                      {loadingAction === "personalized_scenario"
-                        ? "Targeting…"
-                        : "Weak Area Drill"}
-                    </Button>
-                    <p className="text-center text-[0.65rem] leading-relaxed text-muted-foreground sm:text-left">
-                      Focused remedial drill on your lowest score
-                    </p>
+                    </div>
                   </div>
                 </div>
               </FeatureHint>
 
               {completedCount > 0 && (
-                <div className="mt-4 flex items-center justify-center gap-2 rounded-lg border border-gold/15 bg-gold/5 px-4 py-2.5 text-xs text-muted-foreground sm:justify-start">
+                <div className="mt-5 flex items-center justify-center gap-2 border-t border-gold/10 pt-4 text-xs text-muted-foreground">
                   <CheckCircle2 className="size-3.5 shrink-0 text-gold" />
                   <span className="min-w-0 text-pretty">
-                    <span className="font-semibold text-gold">{completedCount}</span>{" "}
-                    {CHARACTER_NAME} mission{completedCount === 1 ? "" : "s"}{" "}
-                    completed
+                    <span className="font-semibold text-gold">
+                      {completedCount}
+                    </span>{" "}
+                    {CHARACTER_NAME} mission
+                    {completedCount === 1 ? "" : "s"} completed
                   </span>
                 </div>
               )}
