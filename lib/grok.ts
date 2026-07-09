@@ -57,13 +57,106 @@ export type ChatMessage = {
   content: string;
 };
 
+/** Passage / archive context for Ask Grok in the document reader. */
+export type DocumentChatContext = {
+  documentTitle: string;
+  documentYear?: string;
+  documentSlug?: string;
+  passageSection?: string;
+  passageText?: string;
+  passageExplanation?: string;
+  historicalContext?: string;
+  modernRelevance?: string;
+};
+
 export type GrokChatRequest = {
   messages: ChatMessage[];
   mode?: "full" | "teaser";
   context?: GrokTeaserContext;
+  /** When set, answers are grounded in the open archive document / passage. */
+  documentContext?: DocumentChatContext;
 };
 
 export type GrokChatResponse = {
   message: string;
   error?: string;
 };
+
+/** Append founding-document passage context to the rights system prompt. */
+export function buildDocumentAwareSystemPrompt(
+  documentContext?: DocumentChatContext | null
+): string {
+  if (!documentContext?.documentTitle) {
+    return RIGHTS_SYSTEM_PROMPT;
+  }
+
+  const lines = [
+    RIGHTS_SYSTEM_PROMPT,
+    "",
+    "## Current archive reading session",
+    `The citizen is studying **${documentContext.documentTitle}**${
+      documentContext.documentYear ? ` (${documentContext.documentYear})` : ""
+    } in The Line archive reader.`,
+    "Ground your answer in this document and the selected passage when provided. Prefer plain civic language; do not invent quotes.",
+  ];
+
+  if (documentContext.passageSection) {
+    lines.push(`Selected section: ${documentContext.passageSection}`);
+  }
+  if (documentContext.passageText) {
+    lines.push(
+      `Passage text:\n"""\n${documentContext.passageText.slice(0, 1800)}\n"""`
+    );
+  }
+  if (documentContext.passageExplanation) {
+    lines.push(
+      `Curated explanation (use as a starting point, expand accurately): ${documentContext.passageExplanation.slice(0, 600)}`
+    );
+  }
+  if (documentContext.historicalContext) {
+    lines.push(
+      `Historical notes: ${documentContext.historicalContext.slice(0, 500)}`
+    );
+  }
+  if (documentContext.modernRelevance) {
+    lines.push(
+      `Modern relevance notes: ${documentContext.modernRelevance.slice(0, 500)}`
+    );
+  }
+
+  lines.push(
+    "If no passage is selected, speak about the document as a whole and invite them to select a passage for closer study."
+  );
+
+  return lines.join("\n");
+}
+
+/** Compact user-prompt wrapper for teaser questions with archive context. */
+export function buildDocumentTeaserUserPrompt(
+  userMessage: string,
+  documentContext?: DocumentChatContext | null
+): string {
+  if (!documentContext?.documentTitle) return userMessage;
+
+  const lines = [
+    `User question: ${userMessage}`,
+    `Archive context: Studying "${documentContext.documentTitle}"${
+      documentContext.documentYear ? ` (${documentContext.documentYear})` : ""
+    }.`,
+  ];
+
+  if (documentContext.passageSection) {
+    lines.push(`Section: ${documentContext.passageSection}`);
+  }
+  if (documentContext.passageText) {
+    lines.push(
+      `Passage (excerpt): ${documentContext.passageText.slice(0, 400)}`
+    );
+  }
+
+  lines.push(
+    "Give a short, grounded field debrief on this founding text — punchy, serious, under 80 words."
+  );
+
+  return lines.join("\n");
+}

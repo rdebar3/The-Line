@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 import { requireAuth, requirePremium } from "@/lib/api-guards";
 import {
   GROK_CHAT_MODEL,
-  RIGHTS_SYSTEM_PROMPT,
+  buildDocumentAwareSystemPrompt,
+  buildDocumentTeaserUserPrompt,
   XAI_CHAT_COMPLETIONS_URL,
   type ChatMessage,
   type GrokChatRequest,
@@ -87,17 +88,25 @@ export async function POST(request: Request) {
   }
 
   const sanitized = sanitizeMessages(messages);
+  const documentContext = body.documentContext;
+
   const userContent = isTeaser
-    ? buildTeaserUserPrompt(lastMessage.content, body.context)
+    ? documentContext?.documentTitle
+      ? buildDocumentTeaserUserPrompt(lastMessage.content, documentContext)
+      : buildTeaserUserPrompt(lastMessage.content, body.context)
     : (sanitized[sanitized.length - 1]?.content ?? lastMessage.content);
+
+  const systemPrompt = isTeaser
+    ? TEASER_SYSTEM_PROMPT
+    : buildDocumentAwareSystemPrompt(documentContext);
 
   const apiMessages = isTeaser
     ? [
-        { role: "system" as const, content: TEASER_SYSTEM_PROMPT },
+        { role: "system" as const, content: systemPrompt },
         { role: "user" as const, content: userContent },
       ]
     : [
-        { role: "system" as const, content: RIGHTS_SYSTEM_PROMPT },
+        { role: "system" as const, content: systemPrompt },
         ...sanitized,
       ];
 

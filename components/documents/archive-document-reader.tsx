@@ -7,7 +7,8 @@
  *  - Sticky deep-navy header (logo · centered title · study progress)
  *  - Left TOC with section links and studied checks
  *  - Center parchment reading surface (serif, ~42rem measure)
- *  - Right context panel (historical / modern / save)
+ *  - Right context panel (historical / modern / save / Ask Grok)
+ *  - Floating Ask Grok CTA → side panel (desktop) / bottom sheet (mobile)
  *  - Mobile: TOC drawer + drag-to-dismiss context bottom sheet
  *
  * Drop-in for FoundingDocument data; ships with Declaration sample text.
@@ -31,6 +32,7 @@ import {
   Lightbulb,
   List,
   Scale,
+  Sparkles,
   X,
 } from "lucide-react";
 import {
@@ -42,6 +44,10 @@ import {
 } from "motion/react";
 
 import { useDefenderBadges } from "@/components/badges/defender-badge-provider";
+import {
+  AskGrokFab,
+  AskGrokPanel,
+} from "@/components/documents/ask-grok-panel";
 import { useSavedLines } from "@/components/my-lines/saved-lines-provider";
 import {
   EraTimeline,
@@ -53,6 +59,7 @@ import {
 import { useProgression } from "@/hooks/use-progression";
 import type { DocumentSlug } from "@/lib/document-links";
 import type { DocumentPassage, FoundingDocument } from "@/lib/documents/types";
+import type { DocumentChatContext } from "@/lib/grok";
 import { buildDocumentLineId, type SaveLineDraft } from "@/lib/saved-lines";
 import { cn } from "@/lib/utils";
 
@@ -456,6 +463,7 @@ function PassageContext({
   showClose,
   onStudied,
   onSavedToast,
+  onAskGrok,
 }: {
   passage: DocumentPassage;
   documentTitle: string;
@@ -464,6 +472,7 @@ function PassageContext({
   showClose?: boolean;
   onStudied?: (passageId: string) => void;
   onSavedToast?: (subtitle: string) => void;
+  onAskGrok?: () => void;
 }) {
   const draft: SaveLineDraft = {
     id: buildDocumentLineId(documentSlug as DocumentSlug, passage.id),
@@ -549,7 +558,17 @@ function PassageContext({
         </section>
       </div>
 
-      <div className="mt-7 shrink-0 border-t border-[rgba(197,164,110,0.1)] pt-6">
+      <div className="mt-7 shrink-0 space-y-3 border-t border-[rgba(197,164,110,0.1)] pt-6">
+        {onAskGrok && (
+          <button
+            type="button"
+            onClick={onAskGrok}
+            className="group flex w-full items-center justify-center gap-2.5 rounded-full border border-[rgba(197,164,110,0.35)] bg-[rgba(197,164,110,0.08)] px-5 py-3 text-sm font-semibold tracking-[0.04em] text-[#C5A46E] transition-all hover:border-[rgba(197,164,110,0.55)] hover:bg-[rgba(197,164,110,0.14)] active:scale-[0.985]"
+          >
+            <Sparkles className="size-3.5" strokeWidth={1.75} />
+            Ask Grok about this passage
+          </button>
+        )}
         <SaveToMyLinesButton
           draft={draft}
           documentSlug={documentSlug}
@@ -557,7 +576,7 @@ function PassageContext({
           onStudied={onStudied}
           onSavedToast={onSavedToast}
         />
-        <p className="mt-3.5 text-center text-[0.7rem] leading-relaxed tracking-wide text-[rgba(245,241,233,0.32)]">
+        <p className="mt-1 text-center text-[0.7rem] leading-relaxed tracking-wide text-[rgba(245,241,233,0.32)]">
           Lines you save appear in My Lines — your personal archive of the
           standard.
         </p>
@@ -666,6 +685,7 @@ export function ArchiveDocumentReader({
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tocOpen, setTocOpen] = useState(false);
+  const [askGrokOpen, setAskGrokOpen] = useState(false);
   const [readIds, setReadIds] = useState<Set<string>>(() => new Set());
   const [saveToast, setSaveToast] = useState<{
     open: boolean;
@@ -724,10 +744,11 @@ export function ArchiveDocumentReader({
     };
   }, [selectedId, tocOpen]);
 
-  // Escape closes drawers / sheets
+  // Escape closes drawers / sheets (Ask Grok handles its own Escape)
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
       if (event.key !== "Escape") return;
+      if (askGrokOpen) return;
       if (tocOpen) {
         setTocOpen(false);
         return;
@@ -736,7 +757,7 @@ export function ArchiveDocumentReader({
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selectedId, tocOpen]);
+  }, [selectedId, tocOpen, askGrokOpen]);
 
   const markReadAndRecord = useCallback(
     (passageId: string) => {
@@ -818,6 +839,24 @@ export function ArchiveDocumentReader({
       pct: total === 0 ? 0 : Math.round((read / total) * 100),
     };
   }, [doc.passages, readIds]);
+
+  const documentChatContext = useMemo((): DocumentChatContext => {
+    const passage = selectedPassage;
+    return {
+      documentTitle: doc.title,
+      documentYear: doc.year,
+      documentSlug: doc.slug,
+      passageSection: passage?.section,
+      passageText: passage?.text,
+      passageExplanation: passage?.explanation,
+      historicalContext: passage?.historicalContext,
+      modernRelevance: passage?.modernRelevance,
+    };
+  }, [doc.title, doc.year, doc.slug, selectedPassage]);
+
+  const openAskGrok = useCallback(() => {
+    setAskGrokOpen(true);
+  }, []);
 
   const setPassageRef = useCallback(
     (id: string, node: HTMLButtonElement | null) => {
@@ -1114,6 +1153,7 @@ export function ArchiveDocumentReader({
                     documentSlug={doc.slug}
                     onStudied={handlePassageStudied}
                     onSavedToast={showSavedToast}
+                    onAskGrok={openAskGrok}
                   />
                 </motion.div>
               ) : (
@@ -1246,12 +1286,21 @@ export function ArchiveDocumentReader({
                   showClose
                   onStudied={handlePassageStudied}
                   onSavedToast={showSavedToast}
+                  onAskGrok={openAskGrok}
                 />
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
+
+      {/* Ask Grok — floating entry + side panel / mobile sheet */}
+      <AskGrokFab onClick={openAskGrok} hidden={askGrokOpen} />
+      <AskGrokPanel
+        open={askGrokOpen}
+        onClose={() => setAskGrokOpen(false)}
+        documentContext={documentChatContext}
+      />
 
       {/* Global save confirmation — survives passage/panel changes */}
       <SavedToMyLinesToast

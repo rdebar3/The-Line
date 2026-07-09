@@ -518,6 +518,28 @@ body {
   padding: 0;
 }
 
+/* Ask Grok floating CTA — archive reader */
+.ask-grok-fab {
+  animation: ask-grok-fab-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes ask-grok-fab-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ask-grok-fab {
+    animation: none;
+  }
+}
+
 @keyframes archive-gold-line {
   0% {
     transform: scaleX(0);
