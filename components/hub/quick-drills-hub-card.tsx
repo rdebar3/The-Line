@@ -23,8 +23,13 @@ export function QuickDrillsHubCard() {
     >
       <Link href="/quick-drills" className="hub-tactical-card group">
         <div className="flex items-start justify-between gap-3">
-          <span className="flex size-11 items-center justify-center rounded-xl border border-crimson/35 bg-crimson/15">
-            <Zap className="size-5 text-crimson-light" />
+          <span className="relative flex size-11 items-center justify-center rounded-xl border border-crimson/35 bg-crimson/15">
+            <Zap className="size-5 text-crimson-light" strokeWidth={1.75} />
+            {isLoaded && !showLocked && activeMissions > 0 && (
+              <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full border border-crimson/40 bg-crimson text-[0.55rem] font-bold text-white">
+                {activeMissions > 9 ? "9+" : activeMissions}
+              </span>
+            )}
           </span>
           <ChevronRight className="size-5 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-gold" />
         </div>
@@ -35,19 +40,36 @@ export function QuickDrillsHubCard() {
           Short tactical missions from {CHARACTER_NAME} — general drills or
           focused remedial training on weak areas.
         </p>
-        <p className="mt-4 text-sm font-semibold text-crimson-light">
-          {!isLoaded ? (
-            "Loading…"
-          ) : showLocked ? (
-            "Unlock for full drill access"
-          ) : activeMissions > 0 ? (
-            <>
-              {activeMissions} active mission{activeMissions === 1 ? "" : "s"}
-            </>
-          ) : (
-            "Request a new drill"
-          )}
-        </p>
+        <div className="mt-4 flex items-center gap-2">
+          <span
+            aria-hidden
+            className="h-1 flex-1 overflow-hidden rounded-full bg-navy-border/50"
+          >
+            <span
+              className="block h-full rounded-full bg-crimson-light/80 transition-all"
+              style={{
+                width: !isLoaded || showLocked
+                  ? "0%"
+                  : activeMissions > 0
+                    ? "66%"
+                    : "12%",
+              }}
+            />
+          </span>
+          <p className="shrink-0 text-sm font-semibold text-crimson-light">
+            {!isLoaded ? (
+              "Loading…"
+            ) : showLocked ? (
+              "Unlock"
+            ) : activeMissions > 0 ? (
+              <>
+                {activeMissions} active
+              </>
+            ) : (
+              "New drill"
+            )}
+          </p>
+        </div>
       </Link>
     </motion.div>
   );

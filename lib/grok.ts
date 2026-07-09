@@ -1,5 +1,18 @@
 import type { GrokTeaserContext } from "@/lib/grok-teaser";
 
+/** OpenAI-compatible chat completions endpoint. */
+export const XAI_CHAT_COMPLETIONS_URL = "https://api.x.ai/v1/chat/completions";
+
+/**
+ * Flagship chat model for quality-critical product features
+ * (missions, Rights chat, Republic Simulator, This Day 250, etc.).
+ * @see https://docs.x.ai/developers/models
+ */
+export const GROK_CHAT_MODEL = "grok-4.5";
+
+/** @deprecated Prefer GROK_CHAT_MODEL — kept for gradual import migration. */
+export const GROK_MODEL = GROK_CHAT_MODEL;
+
 export const RIGHTS_SYSTEM_PROMPT = `You are No Face Patriot, the Constitutional Rights Advisor for "The Line," a civic education platform focused on the Declaration of Independence, the U.S. Constitution, and the Bill of Rights. Speak as No Face Patriot — serious, principled, and grounded in founding documents.
 
 Your role is to provide serious, accurate, and grounded guidance about constitutional rights and civil liberties. You are not a lawyer and must say so when appropriate, but you give clear, principled analysis rooted in founding documents and established constitutional law.

@@ -21,13 +21,11 @@ import {
   getRepublicSimulatorRole,
   getRepublicSimulatorScenario,
 } from "@/lib/republic-simulator";
+import { GROK_CHAT_MODEL, XAI_CHAT_COMPLETIONS_URL } from "@/lib/grok";
 import {
   consumeRepublicSimulatorDemo,
   getRepublicSimulatorDemoUsage,
 } from "@/lib/server-usage-limits";
-
-const XAI_API_URL = "https://api.x.ai/v1/chat/completions";
-const GROK_MODEL = "grok-3-mini";
 
 async function ensureCapstoneComplete(userId: string) {
   if (!isCloudSaveConfigured()) {
@@ -175,14 +173,14 @@ export async function POST(request: Request) {
       : buildHistoricalRealityUserPrompt({ scenario, decision, choice });
 
   try {
-    const response = await fetch(XAI_API_URL, {
+    const response = await fetch(XAI_CHAT_COMPLETIONS_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: GROK_MODEL,
+        model: GROK_CHAT_MODEL,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },

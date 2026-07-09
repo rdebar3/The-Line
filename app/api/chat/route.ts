@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 
 import { requireAuth, requirePremium } from "@/lib/api-guards";
 import {
+  GROK_CHAT_MODEL,
   RIGHTS_SYSTEM_PROMPT,
+  XAI_CHAT_COMPLETIONS_URL,
   type ChatMessage,
   type GrokChatRequest,
 } from "@/lib/grok";
@@ -11,9 +13,6 @@ import {
   buildTeaserUserPrompt,
 } from "@/lib/grok-teaser";
 import { consumeTeaserUse } from "@/lib/server-usage-limits";
-
-const XAI_API_URL = "https://api.x.ai/v1/chat/completions";
-const GROK_MODEL = "grok-3-mini";
 
 export async function POST(request: Request) {
   const authResult = await requireAuth();
@@ -103,14 +102,14 @@ export async function POST(request: Request) {
       ];
 
   try {
-    const response = await fetch(XAI_API_URL, {
+    const response = await fetch(XAI_CHAT_COMPLETIONS_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: GROK_MODEL,
+        model: GROK_CHAT_MODEL,
         messages: apiMessages,
         temperature: isTeaser ? 0.5 : 0.3,
         max_tokens: isTeaser ? 200 : 1200,

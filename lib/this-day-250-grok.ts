@@ -8,9 +8,9 @@ import {
   buildFallbackThisDay250Entry,
   type ThisDay250Entry,
 } from "@/lib/this-day-250";
+import { GROK_CHAT_MODEL } from "@/lib/grok";
 
 const XAI_RESPONSES_URL = "https://api.x.ai/v1/responses";
-const GROK_MODEL = "grok-4-1-fast";
 
 type XaiOutputText = {
   type: "output_text";
@@ -84,7 +84,7 @@ export async function generateThisDay250Entry(options?: {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: GROK_MODEL,
+        model: GROK_CHAT_MODEL,
         input: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -118,7 +118,7 @@ export async function generateThisDay250Entry(options?: {
     const parsed = parseThisDay250Payload(text, {
       calendarDate,
       targetHistoricalDate,
-      grokModel: GROK_MODEL,
+      grokModel: GROK_CHAT_MODEL,
       allCitations: citations,
     });
 

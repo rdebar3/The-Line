@@ -12,10 +12,11 @@ import {
   pickWeakAreaTopicAssignment,
   type TopicAssignment,
 } from "@/lib/scenario-curriculum";
+import { GROK_CHAT_MODEL, XAI_CHAT_COMPLETIONS_URL } from "@/lib/grok";
 import type { ScenarioDifficulty } from "@/lib/scenario-difficulty";
 
-export const GROK_API_URL = "https://api.x.ai/v1/chat/completions";
-export const GROK_MODEL = "grok-3-mini";
+export const GROK_API_URL = XAI_CHAT_COMPLETIONS_URL;
+export const GROK_MODEL = GROK_CHAT_MODEL;
 
 export type GenerationMode = "session" | "general" | "weak_area";
 

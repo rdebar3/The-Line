@@ -43,6 +43,13 @@ import {
 
 import { useDefenderBadges } from "@/components/badges/defender-badge-provider";
 import { useSavedLines } from "@/components/my-lines/saved-lines-provider";
+import {
+  EraTimeline,
+  GoldProgressBar,
+  ProgressRing,
+  SectionIconBadge,
+  SectionMarker,
+} from "@/components/ui/visual-nav";
 import { useProgression } from "@/hooks/use-progression";
 import type { DocumentSlug } from "@/lib/document-links";
 import type { DocumentPassage, FoundingDocument } from "@/lib/documents/types";
@@ -610,30 +617,28 @@ function TocList({
                   : "hover:bg-[rgba(197,164,110,0.05)]"
               )}
             >
-              <span
-                className={cn(
-                  "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border text-[0.6rem] transition-all duration-300",
-                  read
-                    ? "border-[#C5A46E]/55 bg-[#C5A46E]/15 text-[#C5A46E]"
-                    : "border-[rgba(245,241,233,0.12)] text-[rgba(245,241,233,0.35)]",
-                  active && !read && "border-[#C5A46E]/45 text-[#C5A46E]"
-                )}
-              >
-                {read ? (
-                  <Check className="size-3 stroke-[2.5]" />
-                ) : (
-                  String(index + 1).padStart(2, "0")
-                )}
-              </span>
-              <span
-                className={cn(
-                  "block text-sm leading-snug transition-colors duration-200",
-                  active
-                    ? "font-medium text-[#C5A46E]"
-                    : "text-[rgba(245,241,233,0.62)] group-hover:text-[#F5F1E9]"
-                )}
-              >
-                {passage.section}
+              <SectionIconBadge
+                section={passage.section}
+                passageId={passage.id}
+                active={active}
+                read={read}
+                size="sm"
+                className="mt-0.5"
+              />
+              <span className="min-w-0 flex-1">
+                <span
+                  className={cn(
+                    "block text-sm leading-snug transition-colors duration-200",
+                    active
+                      ? "font-medium text-[#C5A46E]"
+                      : "text-[rgba(245,241,233,0.62)] group-hover:text-[#F5F1E9]"
+                  )}
+                >
+                  {passage.section}
+                </span>
+                <span className="mt-0.5 block font-heading text-[0.6rem] tracking-[0.14em] text-[rgba(245,241,233,0.28)] tabular-nums">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
               </span>
             </button>
           </li>
@@ -870,34 +875,38 @@ export function ArchiveDocumentReader({
             </p>
           </div>
 
-          {/* Right: study progress */}
-          <div className="z-10 ml-auto flex shrink-0 flex-col items-end gap-1.5">
-            <p className="text-[0.65rem] font-medium tracking-wide text-[rgba(245,241,233,0.48)] tabular-nums sm:text-[0.7rem]">
-              <span className="text-[#C5A46E]">{progress.read}</span>
-              <span className="mx-1 text-[rgba(245,241,233,0.28)]">of</span>
-              <span className="text-[rgba(245,241,233,0.72)]">
-                {progress.total}
-              </span>
-              <span className="ml-1.5 hidden text-[rgba(245,241,233,0.38)] sm:inline">
-                sections studied
-              </span>
-              <span className="ml-1 text-[rgba(245,241,233,0.38)] sm:hidden">
-                studied
-              </span>
-            </p>
-            <div
-              className="archive-progress-track h-[3px] w-20 overflow-hidden rounded-full sm:w-32"
-              role="progressbar"
-              aria-valuenow={progress.pct}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-label={`${progress.read} of ${progress.total} sections studied`}
-            >
-              <div
-                className="archive-progress-fill h-full rounded-full transition-[width] duration-500 ease-out"
-                style={{ width: `${progress.pct}%` }}
+          {/* Right: study progress ring + gold bar */}
+          <div className="z-10 ml-auto flex shrink-0 items-center gap-3 sm:gap-3.5">
+            <div className="hidden flex-col items-end gap-1 sm:flex">
+              <p className="text-[0.65rem] font-medium tracking-wide text-[rgba(245,241,233,0.48)] tabular-nums sm:text-[0.7rem]">
+                <span className="text-[#C5A46E]">{progress.read}</span>
+                <span className="mx-1 text-[rgba(245,241,233,0.28)]">of</span>
+                <span className="text-[rgba(245,241,233,0.72)]">
+                  {progress.total}
+                </span>
+                <span className="ml-1.5 text-[rgba(245,241,233,0.38)]">
+                  studied
+                </span>
+              </p>
+              <GoldProgressBar
+                value={progress.pct}
+                className="w-28 sm:w-32"
+                label={`${progress.read} of ${progress.total} sections studied`}
               />
             </div>
+            <ProgressRing
+              value={progress.pct}
+              size={40}
+              strokeWidth={2.5}
+              label={`${progress.read} of ${progress.total} sections studied`}
+            >
+              <span className="font-heading text-[0.65rem] font-medium tabular-nums text-[#C5A46E] sm:text-[0.7rem]">
+                {progress.pct}
+                <span className="text-[0.55rem] text-[rgba(197,164,110,0.7)]">
+                  %
+                </span>
+              </span>
+            </ProgressRing>
           </div>
         </div>
       </header>
@@ -909,10 +918,25 @@ export function ArchiveDocumentReader({
             aria-label="Table of contents"
             className="sticky top-[calc(var(--site-header-height,4rem)+4.25rem)] max-h-[calc(100dvh-var(--site-header-height,4rem)-4.25rem)] overflow-y-auto overscroll-contain px-4 py-9 sm:px-5"
           >
-            <p className="text-[0.625rem] font-semibold tracking-[0.28em] text-[#C5A46E] uppercase">
-              Contents
-            </p>
-            <div className="mt-6">
+            <div className="flex items-center gap-2.5">
+              <span className="flex size-6 items-center justify-center rounded-md border border-[rgba(197,164,110,0.22)] bg-[rgba(197,164,110,0.08)]">
+                <List className="size-3 text-[#C5A46E]" strokeWidth={1.75} />
+              </span>
+              <p className="text-[0.625rem] font-semibold tracking-[0.28em] text-[#C5A46E] uppercase">
+                Contents
+              </p>
+            </div>
+            <div className="mt-5">
+              <GoldProgressBar
+                value={progress.pct}
+                className="h-[2px]"
+                label={`${progress.pct}% of document studied`}
+              />
+              <p className="mt-2 text-[0.65rem] tracking-wide text-[rgba(245,241,233,0.38)] tabular-nums">
+                {progress.read}/{progress.total} passages
+              </p>
+            </div>
+            <div className="mt-5">
               <TocList
                 passages={doc.passages}
                 selectedId={selectedId}
@@ -937,9 +961,11 @@ export function ArchiveDocumentReader({
             />
 
             <div className="relative mx-auto max-w-[42rem]">
-              <header className="mb-14 text-center sm:mb-16">
+              <header className="mb-12 text-center sm:mb-14">
                 <p className="text-[0.7rem] font-semibold tracking-[0.3em] text-[#8B7355] uppercase">
-                  In Congress, July 4, {doc.year}
+                  {doc.slug === "declaration"
+                    ? `In Congress, July 4, ${doc.year}`
+                    : `${doc.year} · Archive`}
                 </p>
                 <h1 className="mt-5 font-heading text-[2rem] font-medium leading-[1.15] tracking-[-0.02em] text-[#1a1520] sm:text-4xl md:text-[2.75rem]">
                   {doc.title}
@@ -949,7 +975,13 @@ export function ArchiveDocumentReader({
                 </p>
                 <div
                   aria-hidden
-                  className="mx-auto mt-9 h-px w-20 bg-gradient-to-r from-transparent via-[#C5A46E] to-transparent"
+                  className="mx-auto mt-8 h-px w-20 bg-gradient-to-r from-transparent via-[#C5A46E] to-transparent"
+                />
+                <EraTimeline
+                  currentYear={doc.year}
+                  currentSlug={doc.slug}
+                  variant="parchment"
+                  className="mx-auto mt-8 max-w-md px-2"
                 />
                 <p className="mt-7 text-[0.7rem] tracking-[0.14em] text-[#8B7355]/85">
                   Tap a passage to study it
@@ -990,9 +1022,12 @@ export function ArchiveDocumentReader({
                       />
 
                       <div className="mb-3 flex items-center justify-between gap-3">
-                        <p className="text-[0.625rem] font-semibold tracking-[0.22em] text-[#8B7355] uppercase">
-                          {passage.section}
-                        </p>
+                        <SectionMarker
+                          section={passage.section}
+                          passageId={passage.id}
+                          index={index}
+                          tone="parchment"
+                        />
                         <span className="flex items-center gap-2">
                           <AnimatePresence mode="popLayout">
                             {read && (
@@ -1020,9 +1055,6 @@ export function ArchiveDocumentReader({
                               </motion.span>
                             )}
                           </AnimatePresence>
-                          <span className="font-heading text-[0.65rem] tracking-widest text-[#8B7355]/65">
-                            {String(index + 1).padStart(2, "0")}
-                          </span>
                           <ChevronRight
                             className={cn(
                               "size-3.5 text-[#8B7355]/55 transition-transform duration-300",

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 
+import { NavIconForItem } from "@/components/ui/visual-nav";
 import { PRIMARY_NAV, isNavItemActive } from "@/lib/site-nav";
 import { cn } from "@/lib/utils";
 
@@ -13,25 +14,33 @@ function NavLink({
   active,
   onClick,
   className,
+  showIcon = true,
 }: {
   href: string;
   label: string;
   active: boolean;
   onClick?: () => void;
   className?: string;
+  showIcon?: boolean;
 }) {
   return (
     <Link
       href={href}
       onClick={onClick}
-      className={cn(
-        "museum-nav-link",
-        active && "is-active",
-        className
-      )}
+      className={cn("museum-nav-link", active && "is-active", className)}
       aria-current={active ? "page" : undefined}
     >
-      {label}
+      {showIcon && (
+        <NavIconForItem
+          href={href}
+          label={label}
+          className={cn(
+            "size-3.5 shrink-0 opacity-70 transition-opacity",
+            active && "opacity-100 text-[#C5A46E]"
+          )}
+        />
+      )}
+      <span>{label}</span>
     </Link>
   );
 }

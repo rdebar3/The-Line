@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from "motion/react";
 
 import { HubFeaturedDocumentCard } from "@/components/hub/hub-featured-document-card";
 import { Button } from "@/components/ui/button";
+import { EraTimeline } from "@/components/ui/visual-nav";
 import { useSubscription } from "@/hooks/use-subscription";
 import {
   PREMIUM_PRICE_LABEL,
@@ -70,6 +71,8 @@ export function FoundingDocumentsHighlight() {
           Read the actual text that limits power — not summaries. Every document
           connects to your Defender Score, My Lines, and certifications.
         </p>
+
+        <EraTimeline className="mx-auto mt-8 max-w-lg px-4" />
 
         {!isLoading && !isPremium && (
           <p className="mx-auto mt-5 max-w-md font-heading text-xl font-medium text-[#F5F1E9] sm:text-2xl">

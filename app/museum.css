@@ -122,6 +122,9 @@ body {
 }
 
 .museum-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   position: relative;
   padding: 0.5rem 0.85rem;
   font-size: 0.8125rem;
@@ -502,6 +505,17 @@ body {
   box-shadow:
     0 0 10px rgba(197, 164, 110, 0.45),
     0 0 2px rgba(224, 201, 154, 0.6);
+}
+
+/* Revolutionary-era timeline (document reader + founding docs hub) */
+.era-timeline {
+  width: 100%;
+}
+
+.era-timeline ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 @keyframes archive-gold-line {
